@@ -1,5 +1,6 @@
 /**
  * Keycloak OAuth2 клиент для социальной аутентификации
+ * Работает только на клиенте (браузер)
  */
 
 import {
@@ -15,10 +16,15 @@ const PKCE_VERIFIER_KEY = "pkce_verifier";
 
 /**
  * Генерирует URL для авторизации через Keycloak
+ * Работает только на клиенте (браузер)
  */
 export async function getLoginUrl(
   provider?: "google" | "github",
 ): Promise<string> {
+  if (typeof window === "undefined") {
+    throw new Error("getLoginUrl can only be called in the browser");
+  }
+
   const { codeVerifier, codeChallenge } = await generatePKCE();
 
   // Сохраняем code_verifier в localStorage для последующего использования
@@ -44,8 +50,13 @@ export async function getLoginUrl(
 
 /**
  * Генерирует URL для привязки GitHub аккаунта (AIA)
+ * Работает только на клиенте (браузер)
  */
 export async function getLinkGithubUrl(): Promise<string> {
+  if (typeof window === "undefined") {
+    throw new Error("getLinkGithubUrl can only be called in the browser");
+  }
+
   const { codeVerifier, codeChallenge } = await generatePKCE();
 
   if (typeof window !== "undefined") {
@@ -68,12 +79,14 @@ export async function getLinkGithubUrl(): Promise<string> {
 
 /**
  * Обменивает authorization code на токены
+ * Работает только на клиенте (браузер)
  */
 export async function exchangeCodeForTokens(code: string): Promise<AuthTokens> {
-  const codeVerifier =
-    typeof window !== "undefined"
-      ? localStorage.getItem(PKCE_VERIFIER_KEY)
-      : null;
+  if (typeof window === "undefined") {
+    throw new Error("exchangeCodeForTokens can only be called in the browser");
+  }
+
+  const codeVerifier = localStorage.getItem(PKCE_VERIFIER_KEY);
 
   if (!codeVerifier) {
     throw new Error("Code verifier not found");
@@ -108,9 +121,7 @@ export async function exchangeCodeForTokens(code: string): Promise<AuthTokens> {
   const tokens = (await response.json()) as AuthTokens;
 
   // Удаляем code_verifier после использования
-  if (typeof window !== "undefined") {
-    localStorage.removeItem(PKCE_VERIFIER_KEY);
-  }
+  localStorage.removeItem(PKCE_VERIFIER_KEY);
 
   return tokens;
 }

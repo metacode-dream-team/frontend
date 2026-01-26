@@ -14,10 +14,40 @@ export function SocialLoginButtons() {
   const handleSocialLogin = async (provider: "google" | "github") => {
     setIsLoading(provider);
     try {
+      // Проверяем доступность crypto.subtle перед вызовом
+      if (
+        typeof window !== "undefined" &&
+        (!window.crypto || !window.crypto.subtle)
+      ) {
+        const protocol = window.location.protocol;
+        const hostname = window.location.hostname;
+        alert(
+          `Social login requires a secure context.\n` +
+            `Current: ${protocol}//${hostname}\n\n` +
+            `Please access the app via:\n` +
+            `- http://localhost:3000 (recommended)\n` +
+            `- http://127.0.0.1:3000\n` +
+            `- https:// (in production)`
+        );
+        setIsLoading(null);
+        return;
+      }
+
       const url = await getLoginUrl(provider);
       window.location.href = url;
     } catch (error) {
       console.error(`Failed to initiate ${provider} login:`, error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      
+      // Показываем понятное сообщение пользователю
+      if (errorMessage.includes("crypto.subtle")) {
+        alert(
+          `Social login is not available in this context.\n\n` +
+            `Please access the app via http://localhost:PORT or use HTTPS.`
+        );
+      }
+      
       setIsLoading(null);
     }
   };
