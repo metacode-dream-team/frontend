@@ -5,6 +5,7 @@
 import { apiClient } from "@/shared/lib/api/client";
 import type {
   AuthTokens,
+  RefreshTokenResponse,
   LoginRequest,
   RegisterRequest,
   ForgotPasswordRequest,
@@ -22,9 +23,16 @@ export const authApi = {
 
   /**
    * Вход в систему
+   * Бэкенд должен установить refresh_token в httpOnly cookie через Set-Cookie header
    */
   login: async (data: LoginRequest): Promise<AuthTokens> => {
-    return apiClient.post<AuthTokens>("/v1/login", data);
+    console.log("[API] 🔐 Logging in...");
+    console.log("[API] 📍 Endpoint: /v1/login");
+    console.log("[API] 💡 Backend should set refresh_token cookie in response");
+    const response = await apiClient.post<AuthTokens>("/v1/login", data);
+    console.log("[API] ✅ Login successful");
+    console.log("[API] 💡 Check browser DevTools > Application > Cookies for refresh_token");
+    return response;
   },
 
   /**
@@ -50,9 +58,10 @@ export const authApi = {
 
   /**
    * Обновление токенов
-   * Refresh token отправляется автоматически в httpOnly cookie
+   * Refresh token отправляется автоматически в httpOnly cookie браузером
+   * Response не содержит refresh_token (он остается в cookie)
    */
-  refreshTokens: async (): Promise<AuthTokens> => {
+  refreshTokens: async (): Promise<RefreshTokenResponse> => {
     return apiClient.refreshAccessToken();
   },
 };

@@ -115,10 +115,16 @@ export async function exchangeCodeForTokens(code: string): Promise<AuthTokens> {
     const error = await response
       .json()
       .catch(() => ({ error_description: "Token exchange failed" }));
+    console.error("[Keycloak] ❌ Token exchange failed:", error);
+    console.error("[Keycloak] 💡 Status:", response.status);
+    console.error("[Keycloak] 💡 Check Keycloak configuration and PKCE verifier");
     throw new Error(error.error_description || "Token exchange failed");
   }
 
   const tokens = (await response.json()) as AuthTokens;
+  console.log("[Keycloak] ✅ Tokens received from Keycloak");
+  console.log("[Keycloak] ⚠️ Note: These tokens are from Keycloak, NOT from backend");
+  console.log("[Keycloak] ⚠️ Backend refresh_token cookie will NOT be set!");
 
   // Удаляем code_verifier после использования
   localStorage.removeItem(PKCE_VERIFIER_KEY);
