@@ -21,14 +21,9 @@ class ApiClient {
    */
   async refreshAccessToken(): Promise<RefreshTokenResponse> {
     if (this.refreshPromise) {
-      console.log("[API] Refresh already in progress, returning existing promise");
       return this.refreshPromise;
     }
 
-    console.log("[API] 🔄 Refreshing token...");
-    console.log("[API] 📍 URL:", `${this.baseUrl}/v1/token/refresh`);
-    console.log("[API] 🔐 Using credentials: include (will send httpOnly cookies)");
-    
     this.refreshPromise = fetch(`${this.baseUrl}/v1/token/refresh`, {
       method: "POST",
       headers: {
@@ -38,72 +33,50 @@ class ApiClient {
       body: JSON.stringify({}), // Пустой body, refresh token в cookie
     })
       .then(async (response) => {
-        console.log("[API] 📥 Refresh response status:", response.status);
-        console.log("[API] 📥 Response headers:", Object.fromEntries(response.headers.entries()));
-        
         if (!response.ok) {
           let errorData: ApiError;
           try {
             errorData = await response.json();
           } catch {
-            // Если не удалось распарсить JSON, создаем ошибку из статуса
             errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
           }
-          
-          console.error("[API] ❌ Refresh failed:", errorData);
-          console.error("[API] 💡 Possible reasons:");
-          console.error("[API]   1. Backend didn't set refresh_token cookie on login");
-          console.error("[API]   2. Refresh token expired or invalid");
-          console.error("[API]   3. CORS issue - check if backend allows credentials");
-          console.error("[API]   4. Cookie domain/path mismatch");
-          
-          // Создаем специальный тип ошибки для 401 (нет refresh token)
+
+          if (response.status !== 401) {
+            console.error("[API] Refresh failed:", response.status, errorData);
+          }
+
           const errorMessage = errorData.error || "Token refresh failed";
-          const refreshError = new Error(errorMessage) as Error & { 
-            status?: number; 
+          const refreshError = new Error(errorMessage) as Error & {
+            status?: number;
             isUnauthorized?: boolean;
             isNetworkError?: boolean;
           };
           refreshError.status = response.status;
           refreshError.isUnauthorized = response.status === 401;
-          
+
           throw refreshError;
         }
-        
-        // Response не содержит refresh_token (он остается в cookie)
+
         let tokens: RefreshTokenResponse;
         try {
-          tokens = await response.json() as RefreshTokenResponse;
-          console.log("[API] ✅ Refresh successful!");
-          console.log("[API] 📦 Received tokens:", {
-            access_token: tokens.access_token ? "✓" : "✗",
-            id_token: tokens.id_token ? "✓" : "✗",
-            expires_in: tokens.expires_in,
-          });
+          tokens = (await response.json()) as RefreshTokenResponse;
         } catch (parseError) {
-          console.error("[API] ❌ Failed to parse response as JSON:", parseError);
+          console.error("[API] Refresh: invalid JSON response", parseError);
           throw new Error("Invalid response format from refresh endpoint");
         }
-        
+
         return tokens;
       })
       .catch((error) => {
-        // Обрабатываем сетевые ошибки
+        if (error?.isUnauthorized !== undefined) {
+          throw error;
+        }
         if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
-          console.error("[API] ❌ Network error during refresh");
-          console.error("[API] 💡 Check if backend is running on:", this.baseUrl);
+          console.warn("[API] Refresh: backend unavailable at", this.baseUrl);
           const networkError = new Error("Backend unavailable") as Error & { isNetworkError?: boolean };
           networkError.isNetworkError = true;
           throw networkError;
         }
-        
-        // Если ошибка уже обработана выше, просто пробрасываем
-        if (error.status || error.isUnauthorized || error.isNetworkError) {
-          throw error;
-        }
-        
-        // Неожиданная ошибка
-        console.error("[API] ❌ Unexpected error during refresh:", error);
         throw error;
       })
       .finally(() => {
@@ -135,13 +108,37 @@ class ApiClient {
     }
 
     if (!response.ok) {
-      const error: ApiError = await response
-        .json()
-        .catch(() => ({ error: "Request failed" }));
-      throw new Error(error.error || "Request failed");
+      const errorMessage = await this.parseErrorResponse(response);
+      throw new Error(errorMessage);
     }
 
     return response.json() as Promise<T>;
+  }
+
+  /**
+   * Парсит тело ошибки из ответа (JSON, text или стандартное сообщение по коду).
+   */
+  private async parseErrorResponse(response: Response): Promise<string> {
+    const contentType = response.headers.get("content-type") ?? "";
+    try {
+      if (contentType.includes("application/json")) {
+        const data: ApiError = await response.json();
+        return data.error ?? "Request failed";
+      }
+      if (response.status < 500 && contentType.includes("text/")) {
+        const text = await response.text();
+        const trimmed = text.trim().slice(0, 200);
+        if (trimmed) return trimmed;
+      }
+    } catch {
+      // ignore parse errors
+    }
+    if (response.status >= 500) return "Server error. Please try again later.";
+    if (response.status === 400) return "Invalid request.";
+    if (response.status === 401) return "Unauthorized.";
+    if (response.status === 403) return "Access denied.";
+    if (response.status === 404) return "Not found.";
+    return "Request failed.";
   }
 
   /**

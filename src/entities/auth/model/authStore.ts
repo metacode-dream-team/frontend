@@ -57,44 +57,30 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   refreshToken: async () => {
     try {
-      console.log("[Auth] 🔄 Attempting to refresh token...");
-      console.log("[Auth] 💡 Refresh token should be in httpOnly cookie (set by backend on login)");
       const tokens = await authApi.refreshTokens();
-      console.log("[Auth] ✅ Token refreshed successfully");
       get().setTokens(tokens.access_token, tokens.id_token, tokens.expires_in);
       return tokens;
     } catch (error) {
-      // Проверяем тип ошибки
       const err = error as Error & { isUnauthorized?: boolean; isNetworkError?: boolean; message?: string; status?: number };
       const isUnauthorized = err?.isUnauthorized;
-      const isNetworkError = err?.isNetworkError || 
-                            err?.message?.includes("Failed to fetch") || 
-                            err?.message?.includes("ERR_CONNECTION_REFUSED") ||
-                            err?.message?.includes("NetworkError") ||
-                            err?.message?.includes("Backend unavailable");
-      
+      const isNetworkError =
+        err?.isNetworkError ||
+        err?.message?.includes("Failed to fetch") ||
+        err?.message?.includes("ERR_CONNECTION_REFUSED") ||
+        err?.message?.includes("NetworkError") ||
+        err?.message?.includes("Backend unavailable");
+
       if (isUnauthorized) {
-        // 401 - нет refresh token или он истек, это нормально для неавторизованных пользователей
-        console.warn("[Auth] ❌ Refresh failed: 401 Unauthorized");
-        console.warn("[Auth] 💡 Possible reasons:");
-        console.warn("[Auth]   1. No refresh_token cookie found (backend didn't set it on login)");
-        console.warn("[Auth]   2. Refresh token expired");
-        console.warn("[Auth]   3. Backend doesn't read refresh_token from cookie");
-        console.warn("[Auth]   4. Cookie domain/path mismatch");
+        // 401 — нормально для неавторизованных; без лишних логов
         throw error;
       }
-      
+
       if (isNetworkError) {
-        // Сетевая ошибка - бэкенд недоступен, не разлогиниваем
-        console.warn("[Auth] ⚠️ Network error during refresh - backend may be unavailable");
-        console.warn("[Auth] 💡 Check if backend is running and accessible");
+        console.warn("[Auth] Refresh: backend unavailable");
         throw error;
       }
-      
-      // Другие ошибки - логируем и разлогиниваем
-      console.error("[Auth] ❌ Failed to refresh token:", error);
-      console.error("[Auth] 💡 Status:", err?.status || "unknown");
-      console.error("[Auth] 💡 Message:", err?.message || "Unknown error");
+
+      console.error("[Auth] Refresh failed:", err?.status ?? err?.message);
       get().logout();
       throw error;
     }
@@ -113,54 +99,34 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return;
     }
     
-    // Если уже есть токен и он валидный - помечаем как инициализированное
     if (state.accessToken && !isTokenExpired(state.accessToken)) {
-      console.log("[Auth] Token is valid, marking as initialized");
       set({ isInitialized: true });
       return;
     }
 
-    console.log("[Auth] Initializing auth - attempting to refresh token from cookie");
-    
-    // Если токен истек или отсутствует - пытаемся обновить через refresh token
     try {
-      const tokens = await get().refreshToken();
-      console.log("[Auth] ✅ Successfully restored session from refresh token");
+      await get().refreshToken();
       set({ isInitialized: true });
     } catch (error) {
-      // Проверяем тип ошибки
       const err = error as Error & { isUnauthorized?: boolean; message?: string };
       const isUnauthorized = err?.isUnauthorized;
-      const isNetworkError = err?.message?.includes("Failed to fetch") || 
-                            err?.message?.includes("ERR_CONNECTION_REFUSED") ||
-                            err?.message?.includes("NetworkError");
-      
+      const isNetworkError =
+        err?.message?.includes("Failed to fetch") ||
+        err?.message?.includes("ERR_CONNECTION_REFUSED") ||
+        err?.message?.includes("NetworkError");
+
       if (isUnauthorized) {
-        // 401 - нет refresh token в cookie (пользователь не авторизован)
-        console.log("[Auth] ❌ No refresh token found in cookie - user is not authenticated");
-        console.log("[Auth] 💡 This is normal if:");
-        console.log("[Auth]   - User hasn't logged in yet");
-        console.log("[Auth]   - Backend didn't set refresh_token cookie on login");
-        console.log("[Auth]   - Refresh token expired");
-        console.log("[Auth] 💡 To debug: check browser DevTools > Application > Cookies");
-        // Помечаем как инициализированное (пользователь просто не авторизован)
+        // Нет сессии — нормально для неавторизованных; без логов
         set({ isInitialized: true });
         return;
       }
-      
+
       if (isNetworkError) {
-        // Сетевая ошибка - бэкенд недоступен
-        console.warn("[Auth] ⚠️ Backend unavailable - cannot check authentication");
-        console.warn("[Auth] 💡 Make sure backend is running on", API_BASE_URL);
-        // Помечаем как инициализированное, чтобы не блокировать приложение
-        // Пользователь останется в текущем состоянии (если был залогинен - останется)
+        console.warn("[Auth] Init: backend unavailable at", API_BASE_URL);
         set({ isInitialized: true });
         return;
       }
-      
-      // Другие ошибки (сервер и т.д.) - логируем, но не разлогиниваем
-      console.warn("[Auth] ⚠️ Failed to initialize auth:", error);
-      // Помечаем как инициализированное, чтобы не блокировать приложение
+
       set({ isInitialized: true });
     }
   },

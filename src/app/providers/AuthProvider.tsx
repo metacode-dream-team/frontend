@@ -19,13 +19,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Аналогично примеру: POST /auth/refresh при монтировании
     initializeAuth();
     
-    // Добавляем функцию диагностики в window для отладки в development
     if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
-      (window as any).debugRefreshToken = () => {
-        console.log("🔍 Running refresh token diagnostics...");
+      (window as Window & { debugRefreshToken?: () => void }).debugRefreshToken = () =>
         diagnoseRefreshToken(API_BASE_URL);
-      };
-      console.log("💡 Development mode: use window.debugRefreshToken() to diagnose refresh token issues");
     }
   }, [initializeAuth]);
 
