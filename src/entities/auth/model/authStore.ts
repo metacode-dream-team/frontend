@@ -113,7 +113,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const isNetworkError =
         err?.message?.includes("Failed to fetch") ||
         err?.message?.includes("ERR_CONNECTION_REFUSED") ||
-        err?.message?.includes("NetworkError");
+        err?.message?.includes("NetworkError") ||
+        err?.message?.includes("Backend unavailable");
 
       if (isUnauthorized) {
         // Нет сессии — нормально для неавторизованных; без логов
@@ -122,7 +123,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
 
       if (isNetworkError) {
-        console.warn("[Auth] Init: backend unavailable at", API_BASE_URL);
+        // Бэкенд недоступен - нормально для разработки без бэкенда
+        // Просто инициализируем приложение без авторизации
+        console.log("[Auth] Backend unavailable - continuing without auth (dev mode)");
         set({ isInitialized: true });
         return;
       }

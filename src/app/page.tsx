@@ -19,6 +19,15 @@ export default function Home() {
             architecture and authentication.
           </p>
 
+          {/* Навигация */}
+          <div className="flex flex-col gap-2 mt-4">
+            <Link href="/leaderboard">
+              <Button variant="outline" size="lg">
+                🏆 Leaderboard
+              </Button>
+            </Link>
+          </div>
+
           {isAuthenticated ? (
             <div className="space-y-4 mt-8">
               <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">

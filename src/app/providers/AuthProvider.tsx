@@ -25,7 +25,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [initializeAuth]);
 
-  // Показываем loader пока не инициализировано (как в примере)
+  // Показываем loader пока не инициализировано
+  // При отсутствии бэкенда инициализация завершится быстро (обработка network error)
   if (!isInitialized) {
     return (
       <div className="flex min-h-screen items-center justify-center">
