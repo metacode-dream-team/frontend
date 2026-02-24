@@ -21,9 +21,19 @@ export default function Home() {
 
           {/* Навигация */}
           <div className="flex flex-col gap-2 mt-4">
+            <Link href="/dashboard">
+              <Button variant="outline" size="lg">
+                📊 Dashboard
+              </Button>
+            </Link>
             <Link href="/leaderboard">
               <Button variant="outline" size="lg">
                 🏆 Leaderboard
+              </Button>
+            </Link>
+            <Link href="/roadmaps">
+              <Button variant="outline" size="lg">
+                🗺 Roadmaps
               </Button>
             </Link>
           </div>

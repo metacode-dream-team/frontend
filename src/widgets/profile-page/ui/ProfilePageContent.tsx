@@ -23,9 +23,6 @@ function difficultyColor(level: "Easy" | "Medium" | "Hard"): string {
 
 export function ProfilePageContent({ profile }: ProfilePageContentProps) {
   const totalYearSubmissions = profile.heatmap.reduce((acc, day) => acc + day.count, 0);
-  const totalCircle = 2 * Math.PI * 92;
-  const segmentGap = totalCircle * 0.06;
-  const segmentLength = (totalCircle - segmentGap * 3) / 3;
   const heatmapData = useMemo(() => {
     const points = [...profile.heatmap].sort((a, b) => a.date.localeCompare(b.date));
     const firstDate = new Date(`${points[0]?.date ?? ""}T00:00:00`);
