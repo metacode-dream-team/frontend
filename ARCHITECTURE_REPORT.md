@@ -93,7 +93,7 @@ Features: auth (login, register, forgot-password, reset-password, verify-email, 
 
 Next.js App Router: app/dashboard/page.tsx → /dashboard, app/profile/[id]/page.tsx → /profile/:id, app/roadmaps/[id], app/(auth)/login, /register, /callback, /verify-email, /forgot-password, /reset-password. «use client» директивасы тек клиенттік JavaScript қажет болғанда. TypeScript paths: @/* → ./src/*.
 
-### Технологиялық стек қорытындысы
+### Технологиялық стек қорытындысыa
 
 | Категория | Құрал | Неге таңдалған |
 |-----------|-------|----------------|
