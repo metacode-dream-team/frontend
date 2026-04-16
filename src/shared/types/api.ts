@@ -38,6 +38,9 @@ export interface RegisterRequest {
   email: string;
   password: string;
   confirm_password: string;
+  /** Optional profile fields if the backend supports them */
+  full_name?: string;
+  username?: string;
 }
 
 export interface RefreshTokenRequest {

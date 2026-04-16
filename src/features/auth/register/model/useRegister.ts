@@ -18,12 +18,20 @@ export function useRegister() {
     email: string,
     password: string,
     confirmPassword: string,
+    fullName: string,
+    username: string,
   ) => {
     setError(null);
     setSuccess(false);
 
     // Валидация на клиенте
-    const validation = validateRegisterForm(email, password, confirmPassword);
+    const validation = validateRegisterForm(
+      email,
+      password,
+      confirmPassword,
+      fullName,
+      username,
+    );
     if (!validation.isValid) {
       setError(validation.errors[0]);
       return;
@@ -36,6 +44,8 @@ export function useRegister() {
         email,
         password,
         confirm_password: confirmPassword,
+        full_name: fullName,
+        username,
       };
       await registerUser(data);
       setSuccess(true);

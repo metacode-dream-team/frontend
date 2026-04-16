@@ -4,29 +4,19 @@ import Link from "next/link";
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="flex min-h-screen items-center justify-center bg-black p-4 text-zinc-100">
+      <div className="w-full max-w-[440px] rounded-2xl border border-zinc-800/90 bg-[#161618] px-8 py-10 shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_24px_48px_rgba(0,0,0,0.45)]">
         <LoginForm />
-        <SocialLoginButtons />
-        <div className="text-center space-y-2">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{" "}
-            <Link
-              href="/register"
-              className="text-black dark:text-white font-medium hover:underline"
-            >
-              Sign up
-            </Link>
-          </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            <Link
-              href="/forgot-password"
-              className="text-black dark:text-white font-medium hover:underline"
-            >
-              Forgot password?
-            </Link>
-          </p>
-        </div>
+        <SocialLoginButtons mode="login" />
+        <p className="mt-8 text-center text-sm text-zinc-400">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/register"
+            className="font-semibold text-[#c4a3f7] transition-colors hover:text-[#dcc4ff]"
+          >
+            Sign up
+          </Link>
+        </p>
       </div>
     </div>
   );

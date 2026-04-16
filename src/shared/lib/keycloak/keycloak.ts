@@ -14,12 +14,19 @@ import type { AuthTokens } from "@/shared/types/api";
 
 const PKCE_VERIFIER_KEY = "pkce_verifier";
 
+/** Identity provider alias in Keycloak (must match IdP configuration). */
+export type KeycloakIdpHint =
+  | "google"
+  | "github"
+  | "monkeytype"
+  | "leetcode";
+
 /**
  * Генерирует URL для авторизации через Keycloak
  * Работает только на клиенте (браузер)
  */
 export async function getLoginUrl(
-  provider?: "google" | "github",
+  provider?: KeycloakIdpHint,
 ): Promise<string> {
   if (typeof window === "undefined") {
     throw new Error("getLoginUrl can only be called in the browser");
@@ -46,6 +53,49 @@ export async function getLoginUrl(
   }
 
   return `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth?${params.toString()}`;
+}
+
+/**
+ * Запускает браузерный редирект на выбранный IdP (PKCE).
+ * @returns true если редирект начат, false если контекст небезопасен или ошибка.
+ */
+export async function startKeycloakIdpLogin(
+  provider: KeycloakIdpHint,
+): Promise<boolean> {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  if (!window.crypto?.subtle) {
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    alert(
+      `Social login requires a secure context.\n` +
+        `Current: ${protocol}//${hostname}\n\n` +
+        `Please access the app via:\n` +
+        `- http://localhost:3000 (recommended)\n` +
+        `- http://127.0.0.1:3000\n` +
+        `- https:// (in production)`,
+    );
+    return false;
+  }
+
+  try {
+    const url = await getLoginUrl(provider);
+    window.location.href = url;
+    return true;
+  } catch (error) {
+    console.error(`Failed to initiate ${provider} login:`, error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    if (errorMessage.includes("crypto.subtle")) {
+      alert(
+        `Social login is not available in this context.\n\n` +
+          `Please access the app via http://localhost:PORT or use HTTPS.`,
+      );
+    }
+    return false;
+  }
 }
 
 /**

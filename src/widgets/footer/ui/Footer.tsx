@@ -35,9 +35,15 @@ export function Footer() {
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-zinc-800 pt-8 md:flex-row">
-          <p className="text-sm text-zinc-500">
-            © {new Date().getFullYear()} MetaCode. Your Dev Journey, Visualized.
-          </p>
+          <div className="text-center md:text-left">
+            <p className="text-sm text-zinc-500">
+              © {new Date().getFullYear()} MetaCode. Your Dev Journey, Visualized.
+            </p>
+            <p className="mt-2 max-w-xl text-xs leading-relaxed text-zinc-600">
+              MetaCode is an independent product. GitHub®, LeetCode™, and
+              Monkeytype are trademarks of their respective owners.
+            </p>
+          </div>
           <div className="flex items-center gap-4 text-sm text-zinc-500">
             <span>Join 12,000+ developers</span>
           </div>

@@ -5,7 +5,7 @@
 import { type ButtonHTMLAttributes, forwardRef } from "react";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline";
+  variant?: "primary" | "secondary" | "outline" | "accent";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
 }
@@ -33,6 +33,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         "bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600",
       outline:
         "border-2 border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800",
+      accent:
+        "border-0 bg-[#c4a3f7] text-zinc-900 hover:bg-[#d4b8ff] focus:ring-[#a855f7] focus:ring-offset-0 focus:ring-offset-[#161618] shadow-[0_0_20px_rgba(168,85,247,0.25)]",
     };
 
     const sizeStyles = {

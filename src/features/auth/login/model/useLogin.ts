@@ -17,11 +17,11 @@ export function useLogin() {
   const router = useRouter();
   const { setTokens } = useAuthStore();
 
-  const login = async (email: string, password: string) => {
+  const login = async (identifier: string, password: string) => {
     setError(null);
 
     // Валидация на клиенте
-    const validation = validateLoginForm(email, password);
+    const validation = validateLoginForm(identifier, password);
     if (!validation.isValid) {
       setError(validation.errors[0]);
       return;
@@ -30,7 +30,7 @@ export function useLogin() {
     setIsLoading(true);
 
     try {
-      const data: LoginRequest = { email, password };
+      const data: LoginRequest = { email: identifier.trim(), password };
       const tokens = await loginUser(data);
 
       // Сохраняем токены в store

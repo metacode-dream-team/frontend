@@ -1,24 +1,10 @@
 import { RegisterForm } from "@/features/auth/register";
-import { SocialLoginButtons } from "@/features/auth/social-login";
-import Link from "next/link";
 
 export default function RegisterPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="flex min-h-screen items-center justify-center bg-black p-4 py-12 text-zinc-100">
+      <div className="w-full max-w-[440px] rounded-2xl border border-zinc-800/90 bg-[#161618] px-8 py-10 shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_24px_48px_rgba(0,0,0,0.45)]">
         <RegisterForm />
-        <SocialLoginButtons />
-        <div className="text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="text-black dark:text-white font-medium hover:underline"
-            >
-              Sign in
-            </Link>
-          </p>
-        </div>
       </div>
     </div>
   );
