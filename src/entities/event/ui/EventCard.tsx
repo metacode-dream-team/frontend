@@ -12,56 +12,55 @@ import type { FeedEvent } from "../model/types";
 interface EventCardProps {
   event: FeedEvent;
   className?: string;
+  /** Строка внутри группы: без аватара и имени (они в шапке группы) */
+  omitAvatar?: boolean;
 }
 
-export function EventCard({ event, className }: EventCardProps) {
+export function EventCard({ event, className, omitAvatar = false }: EventCardProps) {
   const content = renderEventContent(event);
 
   return (
-    <div
+    <article
       className={cn(
-        "flex gap-4 p-4 rounded-lg border border-gray-800 bg-gray-900/50 hover:bg-gray-900 transition-colors",
+        "flex gap-3 py-4 transition-colors hover:bg-zinc-900/25 sm:gap-4",
         className,
       )}
     >
-      {/* Аватар */}
-      <Link href={`/profile/${event.userId}`} className="flex-shrink-0">
-        <Avatar src={event.userAvatar} alt={event.username} size="md" />
-      </Link>
+      {!omitAvatar && (
+        <Link href={`/profile/${event.userId}`} className="shrink-0 pt-0.5">
+          <Avatar src={event.userAvatar} alt={event.username} size="sm" />
+        </Link>
+      )}
 
-      {/* Контент */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start gap-3">
-          {/* Иконка типа события */}
-          <div className="flex-shrink-0 mt-1">
-            <EventTypeIcon type={event.type} />
-          </div>
+      <div className="flex min-w-0 flex-1 gap-2.5 sm:gap-3">
+        <div className="mt-0.5 shrink-0">
+          <EventTypeIcon type={event.type} className="rounded-md bg-zinc-800/50 p-1.5 [&_svg]:size-4" />
+        </div>
 
-          {/* Текст события */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Link
-                href={`/profile/${event.userId}`}
-                className="font-semibold text-white hover:text-purple-400 transition-colors"
-              >
-                {event.username}
-              </Link>
-              <span className="text-gray-400">{content.text}</span>
-            </div>
-
-            {/* Дополнительная информация */}
-            {content.details && (
-              <div className="mt-1 text-sm text-gray-300">{content.details}</div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm leading-snug text-zinc-400">
+            <span className="text-zinc-500">{formatTimeAgo(event.createdAt)}</span>
+            {!omitAvatar && (
+              <>
+                {" "}
+                <Link
+                  href={`/profile/${event.userId}`}
+                  className="font-medium text-zinc-200 hover:text-white"
+                >
+                  {event.username}
+                </Link>
+              </>
             )}
+            {" "}
+            {content.text}
+          </p>
 
-            {/* Время */}
-            <div className="mt-2 text-xs text-gray-500">
-              {formatTimeAgo(event.createdAt)}
-            </div>
-          </div>
+          {content.details && (
+            <div className="mt-1 text-sm leading-snug text-zinc-500">{content.details}</div>
+          )}
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -78,7 +77,7 @@ function renderEventContent(event: FeedEvent): {
         text: (
           <>
             совершил{" "}
-            <span className="text-purple-400 font-medium">
+            <span className="font-medium text-zinc-300">
               {event.payload.commitCount} коммит
               {event.payload.commitCount > 1 ? "ов" : ""}
             </span>{" "}
@@ -88,7 +87,7 @@ function renderEventContent(event: FeedEvent): {
         details: (
           <Link
             href={event.payload.repositoryUrl || `#`}
-            className="text-blue-400 hover:text-blue-300 transition-colors"
+            className="text-blue-500 hover:text-blue-400"
           >
             {event.payload.repository}
           </Link>
@@ -107,7 +106,7 @@ function renderEventContent(event: FeedEvent): {
             решил задачу{" "}
             <Link
               href={event.payload.problemSlug ? `/problems/${event.payload.problemSlug}` : `#`}
-              className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+              className="font-medium text-blue-500 hover:text-blue-400"
             >
               {event.payload.problemTitle}
             </Link>
@@ -127,7 +126,7 @@ function renderEventContent(event: FeedEvent): {
             создал новый роадмап{" "}
             <Link
               href={event.payload.roadmapSlug ? `/roadmaps/${event.payload.roadmapSlug}` : `#`}
-              className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+              className="font-medium text-blue-500 hover:text-blue-400"
             >
               {event.payload.roadmapTitle}
             </Link>
@@ -142,7 +141,7 @@ function renderEventContent(event: FeedEvent): {
             добавил в избранное роадмап{" "}
             <Link
               href={event.payload.roadmapSlug ? `/roadmaps/${event.payload.roadmapSlug}` : `#`}
-              className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+              className="font-medium text-blue-500 hover:text-blue-400"
             >
               {event.payload.roadmapTitle}
             </Link>
@@ -173,7 +172,7 @@ function renderEventContent(event: FeedEvent): {
             создал дискуссию{" "}
             <Link
               href={event.payload.discussionSlug ? `/discussions/${event.payload.discussionSlug}` : `#`}
-              className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+              className="font-medium text-blue-500 hover:text-blue-400"
             >
               {event.payload.discussionTitle}
             </Link>

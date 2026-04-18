@@ -10,7 +10,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const profile = await getProfileById(id);
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100">
+    <div className="min-h-screen bg-black px-4 py-8 text-zinc-100">
       <div className="mx-auto max-w-7xl">
         <ProfilePageContent profile={profile} />
       </div>

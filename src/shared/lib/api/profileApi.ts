@@ -1,4 +1,4 @@
-import type { ProfileData, ProfileHeatmapDay } from "@/entities/profile";
+import type { ProfileAchievement, ProfileData, ProfileHeatmapDay } from "@/entities/profile";
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -33,6 +33,75 @@ function createHeatmap(seed: number): ProfileHeatmapDay[] {
   return result;
 }
 
+function createAchievements(seed: number): ProfileAchievement[] {
+  const u = (i: number) => (seed + i * 13) % 5 !== 0;
+  const list: ProfileAchievement[] = [
+    {
+      id: "ach-streak",
+      title: "50-day solving streak",
+      description: "Submitted at least one accepted solution on 50 consecutive days.",
+      tone: "emerald",
+      unlocked: u(0),
+      unlockedAt: u(0) ? "Jan 2026" : undefined,
+    },
+    {
+      id: "ach-explorer",
+      title: "Topic explorer",
+      description: "Solved problems across 12 different problem tags.",
+      tone: "amber",
+      unlocked: u(1),
+      unlockedAt: u(1) ? "Dec 2025" : undefined,
+    },
+    {
+      id: "ach-contest",
+      title: "Weekly contest top 25%",
+      description: "Finished inside the top quarter in any rated weekly contest.",
+      tone: "violet",
+      unlocked: u(2),
+      unlockedAt: u(2) ? "Nov 2025" : undefined,
+    },
+    {
+      id: "ach-first",
+      title: "First acceptance",
+      description: "Got your first accepted submission on the platform.",
+      tone: "emerald",
+      unlocked: true,
+      unlockedAt: "Mar 2024",
+    },
+    {
+      id: "ach-hard",
+      title: "Hard breakthrough",
+      description: "Solved 25 hard-rated problems.",
+      tone: "violet",
+      unlocked: u(4),
+      unlockedAt: u(4) ? "Oct 2025" : undefined,
+    },
+    {
+      id: "ach-speed",
+      title: "Speed run",
+      description: "Solved 5 problems in a single day with all accepted on first submission.",
+      tone: "amber",
+      unlocked: u(5),
+      unlockedAt: u(5) ? "Sep 2025" : undefined,
+    },
+    {
+      id: "ach-community",
+      title: "Discussion helper",
+      description: "Earned 50 upvotes on public solution explanations.",
+      tone: "emerald",
+      unlocked: false,
+    },
+    {
+      id: "ach-legend",
+      title: "Legend tier",
+      description: "Reach global rank under 10,000 while staying active for 90 days.",
+      tone: "violet",
+      unlocked: false,
+    },
+  ];
+  return list;
+}
+
 export async function getProfileById(id: string): Promise<ProfileData> {
   await delay(700);
 
@@ -41,6 +110,7 @@ export async function getProfileById(id: string): Promise<ProfileData> {
   const easySolved = 100 + (seed % 130);
   const mediumSolved = 90 + (seed % 140);
   const hardSolved = 25 + (seed % 70);
+  const attempting = seed % 18;
 
   return {
     id,
@@ -48,63 +118,106 @@ export async function getProfileById(id: string): Promise<ProfileData> {
     fullName: `Metacode ${id}`,
     avatarUrl: `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(id)}`,
     rank: 50000 + (seed % 500000),
+    role: "Software Engineer",
+    location: "Almaty, Kazakhstan",
     following: seed % 120,
     followers: seed % 240,
     solved,
-    totalProblems: 3851,
+    totalProblems: 3902,
+    attempting,
     easySolved,
-    easyTotal: 927,
+    easyTotal: 937,
     mediumSolved,
-    mediumTotal: 2014,
+    mediumTotal: 2042,
     hardSolved,
-    hardTotal: 910,
-    badges: seed % 5,
+    hardTotal: 923,
+    achievements: createAchievements(seed),
     currentStreak: 2 + (seed % 8),
     maxStreak: 7 + (seed % 20),
-    communityStats: [
-      { label: "Views", value: 240 + (seed % 1000), lastWeek: 12 + (seed % 100) },
-      { label: "Solutions", value: 18 + (seed % 40), lastWeek: 2 + (seed % 8) },
-      { label: "Discuss", value: 12 + (seed % 35), lastWeek: 1 + (seed % 6) },
-      { label: "Reputation", value: 90 + (seed % 400), lastWeek: 4 + (seed % 20) },
-    ],
     languages: [
+      { name: "Go", solved: 400 + (seed % 120) },
       { name: "TypeScript", solved: 70 + (seed % 80) },
-      { name: "Rust", solved: 8 + (seed % 30) },
-      { name: "Go", solved: 12 + (seed % 28) },
+      { name: "PostgreSQL", solved: 8 + (seed % 24) },
     ],
     skills: [
       {
         level: "Advanced",
         items: [
-          { name: "Dynamic Programming", count: 10 + (seed % 8) },
-          { name: "Graph", count: 4 + (seed % 5) },
+          { name: "Dynamic Programming", count: 40 + (seed % 55) },
+          { name: "Union-Find", count: 12 + (seed % 28) },
+          { name: "Backtracking", count: 8 + (seed % 22) },
         ],
       },
       {
         level: "Intermediate",
         items: [
-          { name: "Hash Table", count: 20 + (seed % 10) },
-          { name: "Greedy", count: 7 + (seed % 7) },
-          { name: "Math", count: 10 + (seed % 12) },
+          { name: "Hash Table", count: 60 + (seed % 50) },
+          { name: "DFS", count: 30 + (seed % 50) },
+          { name: "BFS", count: 28 + (seed % 45) },
         ],
       },
       {
         level: "Fundamental",
         items: [
-          { name: "Array", count: 30 + (seed % 16) },
-          { name: "String", count: 25 + (seed % 12) },
-          { name: "Linked List", count: 12 + (seed % 7) },
+          { name: "Array", count: 120 + (seed % 120) },
+          { name: "String", count: 40 + (seed % 90) },
+          { name: "Sorting", count: 35 + (seed % 40) },
         ],
       },
     ],
     heatmap: createHeatmap(seed),
-    recentSubmissions: [
-      { id: "s1", title: "Reverse Integer", difficulty: "Easy", solvedAt: "2 days ago" },
-      { id: "s2", title: "Zigzag Conversion", difficulty: "Medium", solvedAt: "4 days ago" },
-      { id: "s3", title: "Longest Palindromic Substring", difficulty: "Medium", solvedAt: "9 days ago" },
-      { id: "s4", title: "Median of Two Sorted Arrays", difficulty: "Hard", solvedAt: "15 days ago" },
-      { id: "s5", title: "Longest Substring Without Repeating Characters", difficulty: "Medium", solvedAt: "21 days ago" },
-      { id: "s6", title: "Two Sum", difficulty: "Easy", solvedAt: "28 days ago" },
+    experience: [
+      {
+        id: "e1",
+        title: "Backend Developer",
+        company: "IT Dev Group",
+        employmentType: "Full-time",
+        workMode: "Hybrid",
+        location: "Almaty, Kazakhstan",
+        start: "Oct 2025",
+        end: "Present",
+        description: "API design, PostgreSQL, and service reliability for internal products.",
+      },
+      {
+        id: "e2",
+        title: "Java Software Engineer",
+        company: "FAANG School",
+        employmentType: "Apprenticeship",
+        workMode: "Remote",
+        location: "Global",
+        start: "Aug 2024",
+        end: "Dec 2024",
+        description: "Algorithms, system design drills, and interview-style problem sets.",
+      },
     ],
+    education: [
+      {
+        id: "ed1",
+        school: "Narxoz University",
+        degree: "Bachelor of Engineering",
+        start: "Sep 2022",
+        end: "May 2026",
+        gpa: "3.2",
+        specialization: "Computer Science",
+        logoUrl: `https://api.dicebear.com/7.x/initials/svg?seed=NU&backgroundType=gradientLinear`,
+      },
+    ],
+    certifications: [
+      {
+        id: "c1",
+        title: "AWS Academy Data Engineering",
+        issuer: "Amazon Web Services",
+        issued: "Dec 2025",
+        provider: "aws",
+      },
+      {
+        id: "c2",
+        title: "HCIA-Security Course",
+        issuer: "Huawei",
+        issued: "Apr 2025",
+        provider: "huawei",
+      },
+    ],
+    techSkills: ["Redis", "Golang", "Docker", "Kubernetes", "gRPC"],
   };
 }

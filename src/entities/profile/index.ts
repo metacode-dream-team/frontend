@@ -1,7 +1,10 @@
 export type {
-  CommunityStat,
   SkillGroup,
-  RecentSubmission,
   ProfileHeatmapDay,
   ProfileData,
+  ProfileExperience,
+  ProfileEducation,
+  ProfileCertification,
+  ProfileAchievement,
+  ProfileWorkMode,
 } from "./model/types";

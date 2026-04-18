@@ -1,9 +1,3 @@
-export interface CommunityStat {
-  label: string;
-  value: number;
-  lastWeek: number;
-}
-
 export interface SkillGroup {
   level: "Fundamental" | "Intermediate" | "Advanced";
   items: Array<{
@@ -12,16 +6,51 @@ export interface SkillGroup {
   }>;
 }
 
-export interface RecentSubmission {
-  id: string;
-  title: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  solvedAt: string;
-}
-
 export interface ProfileHeatmapDay {
   date: string;
   count: number;
+}
+
+export type ProfileWorkMode = "Remote" | "Hybrid" | "On-site";
+
+export interface ProfileExperience {
+  id: string;
+  title: string;
+  company: string;
+  employmentType: string;
+  workMode: ProfileWorkMode;
+  location: string;
+  start: string;
+  end: string;
+  description?: string;
+}
+
+export interface ProfileEducation {
+  id: string;
+  school: string;
+  degree: string;
+  start: string;
+  end: string;
+  gpa?: string;
+  specialization?: string;
+  logoUrl?: string;
+}
+
+export interface ProfileCertification {
+  id: string;
+  title: string;
+  issuer: string;
+  issued: string;
+  provider: "aws" | "huawei" | "google" | "other";
+}
+
+export interface ProfileAchievement {
+  id: string;
+  title: string;
+  description: string;
+  tone: "emerald" | "amber" | "violet";
+  unlocked: boolean;
+  unlockedAt?: string;
 }
 
 export interface ProfileData {
@@ -30,22 +59,27 @@ export interface ProfileData {
   fullName: string;
   avatarUrl: string;
   rank: number;
+  role: string;
+  location: string;
   following: number;
   followers: number;
   solved: number;
   totalProblems: number;
+  attempting: number;
   easySolved: number;
   easyTotal: number;
   mediumSolved: number;
   mediumTotal: number;
   hardSolved: number;
   hardTotal: number;
-  badges: number;
+  achievements: ProfileAchievement[];
   currentStreak: number;
   maxStreak: number;
-  communityStats: CommunityStat[];
   languages: Array<{ name: string; solved: number }>;
   skills: SkillGroup[];
   heatmap: ProfileHeatmapDay[];
-  recentSubmissions: RecentSubmission[];
+  experience: ProfileExperience[];
+  education: ProfileEducation[];
+  certifications: ProfileCertification[];
+  techSkills: string[];
 }
