@@ -59,31 +59,13 @@ export function validateRegisterForm(
   email: string,
   password: string,
   confirmPassword: string,
-  fullName?: string,
-  username?: string,
 ): ValidationResult {
   const errors: string[] = [];
-
-  const name = fullName?.trim() ?? "";
-  if (!name) {
-    errors.push("Full name is required");
-  } else if (name.length < 2) {
-    errors.push("Full name is too short");
-  }
 
   if (!email) {
     errors.push("Email is required");
   } else if (!validateEmail(email)) {
     errors.push("Invalid email format");
-  }
-
-  const user = username?.trim() ?? "";
-  if (!user) {
-    errors.push("Username is required");
-  } else if (!validateUsernameIdentifier(user)) {
-    errors.push(
-      "Username must be 3–64 characters (letters, digits, . _ -)",
-    );
   }
 
   if (!password) {

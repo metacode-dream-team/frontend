@@ -11,22 +11,6 @@ import { SocialLoginButtons } from "@/features/auth/social-login";
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 
-function UserIcon() {
-  return (
-    <svg
-      className="h-[18px] w-[18px]"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      aria-hidden
-    >
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  );
-}
-
 function MailIcon() {
   return (
     <svg
@@ -40,14 +24,6 @@ function MailIcon() {
       <rect width="20" height="16" x="2" y="4" rx="2" />
       <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
     </svg>
-  );
-}
-
-function AtIcon() {
-  return (
-    <span className="text-sm font-semibold text-zinc-500" aria-hidden>
-      @
-    </span>
   );
 }
 
@@ -115,9 +91,7 @@ function InfoIcon() {
 }
 
 export function RegisterForm() {
-  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [newsletter, setNewsletter] = useState(false);
@@ -126,13 +100,7 @@ export function RegisterForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    void register(
-      email.trim(),
-      password,
-      confirmPassword,
-      fullName.trim(),
-      username.trim(),
-    );
+    void register(email.trim(), password, confirmPassword);
   };
 
   if (success) {
@@ -187,19 +155,6 @@ export function RegisterForm() {
         )}
 
         <Input
-          type="text"
-          label="Full Name"
-          variant="auth"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          placeholder="Jane Doe"
-          autoComplete="name"
-          required
-          disabled={isLoading}
-          startSlot={<UserIcon />}
-        />
-
-        <Input
           type="email"
           label="Email Address"
           variant="auth"
@@ -210,19 +165,6 @@ export function RegisterForm() {
           required
           disabled={isLoading}
           startSlot={<MailIcon />}
-        />
-
-        <Input
-          type="text"
-          label="Username"
-          variant="auth"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="janedoe_dev"
-          autoComplete="username"
-          required
-          disabled={isLoading}
-          startSlot={<AtIcon />}
         />
 
         <div className="grid gap-5 sm:grid-cols-2">
