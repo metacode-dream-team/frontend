@@ -3,6 +3,7 @@
 import Image from "next/image";
 import type { ProfileCertification, ProfileEducation, ProfileExperience } from "@/entities/profile";
 import { isRemoteSvgImage } from "@/shared/lib/utils/isRemoteSvgImage";
+import { shouldUseNativeImgForRemoteUrl } from "@/shared/lib/utils/remoteImagePlain";
 import { ProfileCard, ProfileTag, SectionHeading } from "./profile-primitives";
 
 function CompanyMark({ label }: { label: string }) {
@@ -89,14 +90,24 @@ export function ProfileEducationSection({ items }: { items: ProfileEducation[] }
           >
             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-zinc-900">
               {ed.logoUrl ? (
-                <Image
-                  src={ed.logoUrl}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="48px"
-                  unoptimized={isRemoteSvgImage(ed.logoUrl)}
-                />
+                shouldUseNativeImgForRemoteUrl(ed.logoUrl) ? (
+                  <img
+                    src={ed.logoUrl}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <Image
+                    src={ed.logoUrl}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="48px"
+                    unoptimized={isRemoteSvgImage(ed.logoUrl)}
+                  />
+                )
               ) : (
                 <span className="flex h-full w-full items-center justify-center text-sm font-bold text-zinc-400">
                   {ed.school.charAt(0)}
@@ -136,11 +147,22 @@ export function ProfileCertificationsSection({ items }: { items: ProfileCertific
             className="flex gap-3 rounded-xl bg-black/25 p-3 transition-colors hover:bg-black/35"
           >
             <ProviderMark provider={c.provider} />
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="font-semibold text-white">{c.title}</p>
               <p className="text-xs text-zinc-500">
                 {c.issuer} · Issued {c.issued}
+                {c.expires ? ` · Expires ${c.expires}` : null}
               </p>
+              {c.credentialUrl ? (
+                <a
+                  href={c.credentialUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1.5 inline-block text-xs font-medium text-emerald-400/90 underline-offset-2 hover:text-emerald-300 hover:underline"
+                >
+                  View credential
+                </a>
+              ) : null}
             </div>
           </li>
         ))}

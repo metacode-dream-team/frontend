@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * Канонический URL «мой профиль»: редирект на /profile/{slug}.
- * Сначала данные из GET /v1/profiles/me (Zustand), иначе JWT.
- */
-
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/entities/auth";

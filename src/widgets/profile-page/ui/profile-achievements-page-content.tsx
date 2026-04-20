@@ -9,13 +9,11 @@ const toneBorder: Record<ProfileAchievement["tone"], string> = {
 };
 
 interface ProfileAchievementsPageContentProps {
-  profileId: string;
   username: string;
   achievements: ProfileAchievement[];
 }
 
 export function ProfileAchievementsPageContent({
-  profileId,
   username,
   achievements,
 }: ProfileAchievementsPageContentProps) {
@@ -25,7 +23,7 @@ export function ProfileAchievementsPageContent({
     <div className="mx-auto max-w-3xl">
       <nav className="mb-6">
         <Link
-          href={`/profile/${encodeURIComponent(profileId)}`}
+          href={`/profile/${encodeURIComponent(username)}`}
           className="text-sm font-medium text-zinc-500 transition-colors hover:text-[#b84dff]"
         >
           ← Back to profile

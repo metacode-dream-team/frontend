@@ -1,5 +1,5 @@
 import { getProfileById } from "@/shared/lib/api/profileApi";
-import { ProfilePageContent } from "@/widgets/profile-page";
+import { ProfileRouteView } from "@/widgets/profile-page";
 
 interface ProfilePageProps {
   params: Promise<{ username: string }>;
@@ -10,11 +10,5 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const id = decodeURIComponent(username);
   const profile = await getProfileById(id);
 
-  return (
-    <div className="min-h-screen bg-black px-4 py-8 text-zinc-100">
-      <div className="mx-auto max-w-7xl">
-        <ProfilePageContent profile={profile} />
-      </div>
-    </div>
-  );
+  return <ProfileRouteView routeUsername={id} initialProfile={profile} />;
 }

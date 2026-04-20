@@ -19,11 +19,11 @@ function previewAchievements(all: ProfileAchievement[]): ProfileAchievement[] {
 }
 
 interface ProfileAchievementsBlockProps {
-  profileId: string;
+  profileSlug: string;
   achievements: ProfileAchievement[];
 }
 
-export function ProfileAchievementsBlock({ profileId, achievements }: ProfileAchievementsBlockProps) {
+export function ProfileAchievementsBlock({ profileSlug, achievements }: ProfileAchievementsBlockProps) {
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
   const latest = achievements.find((a) => a.unlocked && a.unlockedAt);
   const preview = previewAchievements(achievements);
@@ -66,7 +66,7 @@ export function ProfileAchievementsBlock({ profileId, achievements }: ProfileAch
           </p>
         ) : null}
         <Link
-          href={`/profile/${encodeURIComponent(profileId)}/achievements`}
+          href={`/profile/${encodeURIComponent(profileSlug)}/achievements`}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-800/90 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-zinc-800 hover:text-white"
         >
           All achievements

@@ -1,10 +1,3 @@
-/**
- * В браузере при включённом прокси fetch идёт на same-origin
- * (/api/backend/…, /api/backend-platform/…), Next rewrites проксируют на BACKEND_PROXY_* — без CORS.
- * В development прокси по умолчанию включён (см. shouldUseBrowserApiProxy).
- * На сервере (RSC) по-прежнему прямые URL из env.
- */
-
 import {
   AUTH_API_SERVER_BASE,
   AUTH_SERVICE_URL,
@@ -17,12 +10,6 @@ import {
 export const API_PROXY_AUTH = "/api/backend";
 export const API_PROXY_PLATFORM = "/api/backend-platform";
 
-/**
- * Прокси same-origin (/api/backend*) обходит CORS к API gateway (по умолчанию :8080).
- * - Явно: NEXT_PUBLIC_USE_API_PROXY=true / false / 1 / 0
- * - В development, если переменная не задана: включено (типичный localhost:5417 → API на других портах)
- * - В production: выключено, пока не задано true
- */
 export function shouldUseBrowserApiProxy(): boolean {
   if (typeof window === "undefined") return false;
   const raw = process.env.NEXT_PUBLIC_USE_API_PROXY?.trim().toLowerCase();
@@ -39,7 +26,6 @@ function sameBase(a: string, b: string): boolean {
   return stripSlash(a) === stripSlash(b);
 }
 
-/** Прямой URL: в Node — внутренняя база (Docker), в браузере — NEXT_PUBLIC. */
 export function authServiceFetchUrl(path: string): string {
   const p = path.startsWith("/") ? path : `/${path}`;
   const base =
@@ -63,9 +49,6 @@ export function integrationFetchUrl(path: string): string {
   return `${base}${p}`;
 }
 
-/**
- * URL для fetch в браузере с учётом прокси.
- */
 export function resolveAuthUrlForFetch(path: string): string {
   if (!shouldUseBrowserApiProxy()) {
     return authServiceFetchUrl(path);
@@ -82,9 +65,6 @@ export function resolvePlatformUrlForFetch(path: string): string {
   return `${API_PROXY_PLATFORM}${p}`;
 }
 
-/**
- * Integration и platform обычно на одном gateway; префикс /api/backend-platform при необходимости ведёт на тот же хост.
- */
 export function resolveIntegrationUrlForFetch(path: string): string {
   if (!shouldUseBrowserApiProxy()) {
     return integrationFetchUrl(path);

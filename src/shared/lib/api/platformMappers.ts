@@ -1,19 +1,17 @@
-/**
- * Маппинг ответов platform API (snake_case / вложенные объекты) в типы UI.
- */
-
-import type {
-  ProfileAchievement,
-  ProfileData,
-  ProfileEducation,
-  ProfileExperience,
-  ProfileHeatmapDay,
+import {
+  formatMeYearMonth,
+  type ProfileAchievement,
+  type ProfileCertification,
+  type ProfileData,
+  type ProfileEducation,
+  type ProfileExperience,
+  type ProfileHeatmapBySource,
+  type ProfileHeatmapDay,
 } from "@/entities/profile";
 import type { ActivityDay, ActivitySource, GithubStats, LeetcodeStats, MonkeytypeStats } from "@/entities/stats";
 
 type Json = Record<string, unknown>;
 
-/** Ответы вида { "data": { ... } } */
 export function unwrapDataPayload(raw: unknown): Json {
   if (!raw || typeof raw !== "object") return {};
   const r = raw as Json;
@@ -44,8 +42,10 @@ function bool(v: unknown): boolean {
 export function pickUserId(raw: unknown): string | null {
   const j = unwrapDataPayload(raw);
   const id =
+    str(j.UserID, "") ||
     str(j.user_id, "") ||
     str(j.userId, "") ||
+    str(j.ID, "") ||
     str(j.id, "");
   if (/^[0-9a-f-]{36}$/i.test(id)) {
     return id;
@@ -53,7 +53,6 @@ export function pickUserId(raw: unknown): string | null {
   return null;
 }
 
-/** GET /v1/profiles/{username} или /v1/profiles/me */
 export function mapProfileDocument(
   raw: Json,
   fallbackId: string,
@@ -62,46 +61,65 @@ export function mapProfileDocument(
     heatmap: ProfileHeatmapDay[];
   },
 ): ProfileData {
-  const username = str(raw.username, fallbackId);
-  const first = str(raw.first_name ?? raw.firstname ?? raw.firstName, "");
-  const last = str(raw.last_name ?? raw.lastname ?? raw.lastName, "");
+  const username = str(raw.Username ?? raw.username, fallbackId);
+  const first = str(
+    raw.FirstName ?? raw.first_name ?? raw.firstname ?? raw.firstName,
+    "",
+  );
+  const last = str(
+    raw.LastName ?? raw.last_name ?? raw.lastname ?? raw.lastName,
+    "",
+  );
   const fullName =
-    str(raw.full_name ?? raw.fullName, "").trim() ||
+    str(raw.FullName ?? raw.full_name ?? raw.fullName, "").trim() ||
     [first, last].filter(Boolean).join(" ").trim() ||
     username;
 
-  const exp = mapExperience(raw.experience ?? raw.work_experience);
-  const edu = mapEducation(raw.education);
-  const tech = mapStringArray(raw.tech_skills ?? raw.techSkills ?? raw.skills_tags);
+  const exp = mapExperience(
+    raw.Experiences ?? raw.experience ?? raw.work_experience,
+  );
+  const edu = mapEducation(raw.Educations ?? raw.education);
+  const tech = mapStringArray(
+    raw.tech_skills ?? raw.techSkills ?? raw.skills_tags ?? raw.TechSkills,
+  );
 
+  // `id` в приоритете = UserID (тот же query `user_id`, что в /integration/profile и /activity/user/achievement)
   return {
-    id: str(raw.id ?? raw.user_id, fallbackId),
+    id: str(
+      raw.UserID ?? raw.user_id ?? raw.userId ?? raw.ID ?? raw.id,
+      fallbackId,
+    ),
     username,
     fullName,
-    avatarUrl: str(raw.avatar_url ?? raw.avatarUrl, `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(username)}`),
-    rank: num(raw.rank ?? raw.global_rank),
-    role: str(raw.role ?? raw.headline ?? raw.title, "Developer"),
-    location: str(raw.location ?? raw.city, ""),
-    following: num(raw.following ?? raw.following_count),
-    followers: num(raw.followers ?? raw.followers_count),
-    solved: num(raw.solved ?? raw.total_solved),
-    totalProblems: num(raw.total_problems ?? raw.totalProblems, 3902),
-    attempting: num(raw.attempting ?? raw.in_progress),
-    easySolved: num(raw.easy_solved ?? raw.easySolved),
-    easyTotal: num(raw.easy_total ?? raw.easyTotal, 937),
-    mediumSolved: num(raw.medium_solved ?? raw.mediumSolved),
-    mediumTotal: num(raw.medium_total ?? raw.mediumTotal, 2042),
-    hardSolved: num(raw.hard_solved ?? raw.hardSolved),
-    hardTotal: num(raw.hard_total ?? raw.hardTotal, 923),
+    avatarUrl: str(
+      raw.AvatarURL ?? raw.avatar_url ?? raw.avatarUrl,
+      `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(username)}`,
+    ),
+    rank: num(raw.Rank ?? raw.rank ?? raw.global_rank),
+    role: str(raw.Role ?? raw.role ?? raw.Headline ?? raw.headline ?? raw.Title ?? raw.title, "Developer"),
+    location: str(raw.Location ?? raw.location ?? raw.City ?? raw.city, ""),
+    following: num(raw.FollowingCount ?? raw.following ?? raw.following_count ?? raw.followingCount),
+    followers: num(raw.FollowersCount ?? raw.followers ?? raw.followers_count ?? raw.followersCount),
+    solved: num(raw.Solved ?? raw.solved ?? raw.total_solved),
+    totalProblems: num(raw.TotalProblems ?? raw.total_problems ?? raw.totalProblems, 3902),
+    attempting: num(raw.Attempting ?? raw.attempting ?? raw.in_progress),
+    easySolved: num(raw.EasySolved ?? raw.easy_solved ?? raw.easySolved),
+    easyTotal: num(raw.EasyTotal ?? raw.easy_total ?? raw.easyTotal, 937),
+    mediumSolved: num(raw.MediumSolved ?? raw.medium_solved ?? raw.mediumSolved),
+    mediumTotal: num(raw.MediumTotal ?? raw.medium_total ?? raw.mediumTotal, 2042),
+    hardSolved: num(raw.HardSolved ?? raw.hard_solved ?? raw.hardSolved),
+    hardTotal: num(raw.HardTotal ?? raw.hard_total ?? raw.hardTotal, 923),
     achievements: extras.achievements,
-    currentStreak: num(raw.current_streak ?? raw.currentStreak),
-    maxStreak: num(raw.max_streak ?? raw.maxStreak),
-    languages: mapLanguages(raw.languages ?? raw.language_stats),
-    skills: mapSkillGroups(raw.skill_groups ?? raw.skills),
+    currentStreak: num(raw.CurrentStreak ?? raw.current_streak ?? raw.currentStreak),
+    maxStreak: num(raw.MaxStreak ?? raw.max_streak ?? raw.maxStreak),
+    languages: mapLanguages(raw.Languages ?? raw.languages ?? raw.language_stats),
+    skills: mapSkillGroups(raw.SkillGroups ?? raw.skill_groups ?? raw.skills),
     heatmap: extras.heatmap,
     experience: exp,
     education: edu,
-    certifications: [],
+    certifications: mapApiCertificationsToProfile(
+      raw.Certifications ?? raw.certifications,
+    ),
     techSkills: tech,
   };
 }
@@ -148,6 +166,47 @@ function mapEducation(raw: unknown): ProfileData["education"] {
   });
 }
 
+function inferCertificationProvider(issuer: string): ProfileCertification["provider"] {
+  const lower = issuer.toLowerCase();
+  if (/amazon|aws/.test(lower)) return "aws";
+  if (/huawei/.test(lower)) return "huawei";
+  if (/google/.test(lower)) return "google";
+  return "other";
+}
+
+export function mapApiCertificationsToProfile(raw: unknown): ProfileCertification[] {
+  if (!Array.isArray(raw)) return [];
+  const out: ProfileCertification[] = [];
+  for (let i = 0; i < raw.length; i++) {
+    const o = raw[i] as Json;
+    const title = str(o.Name ?? o.name ?? o.title, "").trim();
+    if (!title) continue;
+    const issuer = str(o.Issuer ?? o.issuer, "").trim() || "—";
+    const id = str(o.ID ?? o.id, `cert${i}`);
+    const issueRaw = o.IssueDate ?? o.issue_date ?? o.issueDate;
+    const issued = formatMeYearMonth(issueRaw) || "—";
+    const expireRaw = o.ExpireDate ?? o.expire_date ?? o.expireDate;
+    const expStr =
+      expireRaw != null && typeof expireRaw === "object" && expireRaw !== null
+        ? formatMeYearMonth(expireRaw)
+        : "";
+    const expires = expStr && expStr.length > 0 ? expStr : undefined;
+    const urlRaw = o.CredentialURL ?? o.credentialURL ?? o.credential_url;
+    const credentialUrl =
+      typeof urlRaw === "string" && urlRaw.trim() ? urlRaw.trim() : undefined;
+    out.push({
+      id,
+      title,
+      issuer,
+      issued,
+      expires,
+      credentialUrl,
+      provider: inferCertificationProvider(issuer),
+    });
+  }
+  return out;
+}
+
 function mapStringArray(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((x) => String(x)).filter(Boolean);
@@ -181,32 +240,53 @@ function mapSkillGroups(raw: unknown): ProfileData["skills"] {
 }
 
 export function mapAchievementsPayload(raw: unknown): ProfileAchievement[] {
-  const root = unwrapDataPayload(raw);
-  const list = Array.isArray(raw)
-    ? raw
-    : Array.isArray((root as Json).achievements)
-      ? ((root as Json).achievements as unknown[])
-      : Array.isArray((root as Json).data)
-        ? ((root as Json).data as unknown[])
-        : [];
-  if (!Array.isArray(list)) return [];
+  const list = extractAchievementList(raw);
+  if (!list.length) return [];
 
   const tones: ProfileAchievement["tone"][] = ["emerald", "amber", "violet"];
   return list.map((item, i) => {
     const o = item as Json;
-    const unlocked = bool(o.unlocked ?? o.is_unlocked ?? o.earned);
+    const achievedAt = str(
+      o.AchievedAt ?? o.achieved_at ?? o.unlocked_at ?? o.unlockedAt ?? o.earned_at ?? "",
+      "",
+    );
+    const unlocked =
+      bool(o.unlocked ?? o.is_unlocked ?? o.earned) || achievedAt.length > 0;
     return {
-      id: str(o.id ?? o.slug, `ach-${i}`),
-      title: str(o.title ?? o.name, "Achievement"),
-      description: str(o.description ?? o.desc, ""),
+      id: str(
+        o.AchievementID ?? o.achievement_id ?? o.id ?? o.slug,
+        `ach-${i}`,
+      ),
+      title: str(o.Name ?? o.title ?? o.name, "Achievement"),
+      description: str(o.Description ?? o.description ?? o.desc, ""),
       tone: tones[i % 3]!,
       unlocked,
-      unlockedAt: unlocked ? str(o.unlocked_at ?? o.unlockedAt ?? o.earned_at, "") || undefined : undefined,
+      unlockedAt: unlocked
+        ? achievedAt ||
+          str(o.unlocked_at ?? o.unlockedAt ?? o.earned_at ?? "", "") ||
+          undefined
+        : undefined,
     };
   });
 }
 
-/** Календарь / интеграция: гибкий формат дней */
+function extractAchievementList(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) return raw;
+  if (!raw || typeof raw !== "object") return [];
+  const r = raw as Json;
+  if (Array.isArray(r.data)) return r.data as unknown[];
+  if (Array.isArray(r.achievements)) return r.achievements as unknown[];
+
+  const inner = unwrapDataPayload(raw);
+  if (Array.isArray(inner)) return inner as unknown[];
+  if (inner && typeof inner === "object") {
+    const j = inner as Json;
+    if (Array.isArray(j.achievements)) return j.achievements as unknown[];
+    if (Array.isArray(j.data)) return j.data as unknown[];
+  }
+  return [];
+}
+
 export function mapCalendarToProfileHeatmap(raw: unknown): ProfileHeatmapDay[] {
   const j = unwrapDataPayload(raw);
   const rows = Array.isArray(raw)
@@ -255,9 +335,6 @@ export function mapCalendarToActivityDays(raw: unknown): ActivityDay[] {
 
 const INTEGRATION_SOURCES: ActivitySource[] = ["github", "leetcode", "monkeytype"];
 
-/**
- * Календари из GET /v1/integration/profile: data.github|leetcode|monkeytype.current_years_activity.days
- */
 export function mapIntegrationProfileToActivityDays(raw: unknown): ActivityDay[] {
   const root = unwrapDataPayload(raw);
   const out: ActivityDay[] = [];
@@ -293,6 +370,42 @@ export function mergeActivityDaysToHeatmap(rows: ActivityDay[]): ProfileHeatmapD
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
+export function mergeActivityDaysToHeatmapMax(rows: ActivityDay[]): ProfileHeatmapDay[] {
+  const map = new Map<string, number>();
+  for (const r of rows) {
+    const prev = map.get(r.date) ?? 0;
+    map.set(r.date, Math.max(prev, r.count));
+  }
+  return Array.from(map.entries())
+    .map(([date, count]) => ({ date, count }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function activityDaysToHeatmapForSource(
+  rows: ActivityDay[],
+  source: ActivitySource,
+): ProfileHeatmapDay[] {
+  const map = new Map<string, number>();
+  for (const r of rows) {
+    if (r.source !== source) continue;
+    const prev = map.get(r.date) ?? 0;
+    map.set(r.date, Math.max(prev, r.count));
+  }
+  return Array.from(map.entries())
+    .map(([date, count]) => ({ date, count }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/** combinedMax: по дате max(github, leetcode, monkeytype), не сумма и не среднее */
+export function buildIntegrationHeatmapBundle(rows: ActivityDay[]): ProfileHeatmapBySource {
+  return {
+    combinedMax: mergeActivityDaysToHeatmapMax(rows),
+    github: activityDaysToHeatmapForSource(rows, "github"),
+    leetcode: activityDaysToHeatmapForSource(rows, "leetcode"),
+    monkeytype: activityDaysToHeatmapForSource(rows, "monkeytype"),
+  };
+}
+
 function mapLeetcodeSkillTree(skills: Json): ProfileData["skills"] {
   const levels: Array<{ key: string; level: ProfileData["skills"][0]["level"] }> = [
     { key: "fundamental", level: "Fundamental" },
@@ -314,7 +427,6 @@ function mapLeetcodeSkillTree(skills: Json): ProfileData["skills"] {
     .filter((g) => g.items.length > 0);
 }
 
-/** GET /v1/integration/profile — виджеты дашборда (контракт с data.github / … / personal_bests) */
 export function mapIntegrationProfileToStats(raw: unknown): {
   github: GithubStats | null;
   leetcode: LeetcodeStats | null;
@@ -394,7 +506,6 @@ export function mapIntegrationProfileToStats(raw: unknown): {
   };
 }
 
-/** Дополняет профиль данными интеграции (LeetCode stats/skills, streak Monkeytype, heatmap). */
 export function augmentProfileWithIntegration(
   base: ProfileData,
   integrationRaw: unknown,
@@ -443,7 +554,9 @@ export function augmentProfileWithIntegration(
 
   const mergedActivity = mapIntegrationProfileToActivityDays(integrationRaw);
   if (mergedActivity.length > 0) {
-    next.heatmap = mergeActivityDaysToHeatmap(mergedActivity);
+    const bundle = buildIntegrationHeatmapBundle(mergedActivity);
+    next.heatmap = bundle.combinedMax;
+    next.heatmapBySource = bundle;
   }
 
   return next;

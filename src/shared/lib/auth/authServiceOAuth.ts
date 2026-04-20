@@ -1,9 +1,3 @@
-/**
- * OAuth через отдельный микросервис авторизации (не Keycloak напрямую).
- * Старт: GET {AUTH}/v1/auth/oauth/link?provider=google|github
- * Callback на бэкенде: /v1/auth/callback — после этого пользователь обычно попадает на SPA /callback?code=...
- */
-
 import {
   AUTH_OAUTH_LINK_PATH,
   AUTH_OAUTH_TOKEN_PATH,
@@ -20,10 +14,6 @@ function baseUrl(): string {
   return AUTH_SERVICE_URL.replace(/\/$/, "");
 }
 
-/**
- * Полный URL для редиректа браузера на OAuth (Google / GitHub).
- * Добавляем redirect_uri, чтобы после /v1/auth/callback сервис вернул пользователя на фронт с code.
- */
 export function getOAuthLinkUrl(provider: AuthServiceOAuthProvider): string {
   const url = new URL(`${baseUrl()}${AUTH_OAUTH_LINK_PATH}`);
   url.searchParams.set("provider", provider);
@@ -33,9 +23,6 @@ export function getOAuthLinkUrl(provider: AuthServiceOAuthProvider): string {
   return url.toString();
 }
 
-/**
- * Запускает OAuth: полный переход браузера на сервис авторизации.
- */
 export function startAuthServiceOAuth(
   provider: AuthServiceOAuthProvider,
 ): boolean {
@@ -59,9 +46,6 @@ export function startAuthServiceOAuth(
   }
 }
 
-/**
- * Обмен authorization code на токены у сервиса авторизации (после редиректа на /callback?code=...).
- */
 export async function exchangeAuthServiceCodeForTokens(
   code: string,
 ): Promise<AuthTokens> {

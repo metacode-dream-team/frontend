@@ -228,13 +228,19 @@ export async function getProfileById(id: string): Promise<ProfileData> {
     try {
       return await buildProfileFromPlatform(id);
     } catch (e) {
-      const example = resolvePlatformUrlForFetch("/v1/profiles/<username>");
-      console.warn(
-        `[Profile] Platform unreachable (${example}). ` +
-          `SSR: set PLATFORM_API_SERVER_URL inside Docker, or run platform on the host/port from NEXT_PUBLIC_PLATFORM_API_URL. ` +
-          `Mock-only dev: set NEXT_PUBLIC_PLATFORM_API_URL= (empty) or false. Using mock.`,
-        e,
-      );
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/\b401\b|UNAUTHORIZED/i.test(msg)) {
+        console.warn(
+          "[Profile] SSR platform GET without Bearer → 401. Using mock on server; signed-in user sees /v1/profiles/me merge on client.",
+        );
+      } else {
+        console.warn(
+          "[Profile] platform fetch failed, using mock. SSR base:",
+          resolvePlatformUrlForFetch("/v1/profiles/…"),
+          "— in Docker set PLATFORM_API_SERVER_URL if host differs from NEXT_PUBLIC.",
+          e,
+        );
+      }
     }
   }
 

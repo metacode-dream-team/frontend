@@ -3,6 +3,7 @@
 import Image from "next/image";
 import type { ProfileData } from "@/entities/profile";
 import { isRemoteSvgImage } from "@/shared/lib/utils/isRemoteSvgImage";
+import { shouldUseNativeImgForRemoteUrl } from "@/shared/lib/utils/remoteImagePlain";
 import { ProfileAchievementsBlock } from "./profile-achievements-block";
 import {
   ProfileCertificationsSection,
@@ -36,6 +37,7 @@ function MapPinIcon() {
 }
 
 export function ProfilePageContent({ profile }: ProfilePageContentProps) {
+  const avatarPlain = shouldUseNativeImgForRemoteUrl(profile.avatarUrl);
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
       <aside className="w-full shrink-0 bg-black lg:w-[280px] lg:min-w-[280px]">
@@ -43,15 +45,25 @@ export function ProfilePageContent({ profile }: ProfilePageContentProps) {
           <div className="min-w-0">
           <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
             <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-black shadow-inner">
-              <Image
-                src={profile.avatarUrl}
-                alt=""
-                fill
-                className="object-cover"
-                sizes="96px"
-                priority
-                unoptimized={isRemoteSvgImage(profile.avatarUrl)}
-              />
+              {avatarPlain ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="eager"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <Image
+                  src={profile.avatarUrl}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="96px"
+                  priority
+                  unoptimized={isRemoteSvgImage(profile.avatarUrl)}
+                />
+              )}
             </div>
             <div className="mt-4 min-w-0 sm:ml-4 sm:mt-0">
               <h1 className="text-lg font-semibold tracking-tight text-white">{profile.fullName}</h1>
@@ -64,6 +76,9 @@ export function ProfilePageContent({ profile }: ProfilePageContentProps) {
           </div>
 
           <p className="mt-4 text-center text-sm font-medium text-[#b84dff] sm:text-left">{profile.role}</p>
+          {profile.about ? (
+            <p className="mt-2 text-center text-sm leading-relaxed text-zinc-400 sm:text-left">{profile.about}</p>
+          ) : null}
           <p className="mt-1 flex items-center justify-center gap-1.5 text-xs text-zinc-500 sm:justify-start">
             <MapPinIcon />
             {profile.location}
@@ -156,11 +171,16 @@ export function ProfilePageContent({ profile }: ProfilePageContentProps) {
             </div>
           </ProfileCard>
 
-          <ProfileAchievementsBlock profileId={profile.id} achievements={profile.achievements} />
+          <ProfileAchievementsBlock
+            profileSlug={profile.username}
+            achievements={profile.achievements}
+          />
         </div>
 
         <SubmissionHeatmap
+          profileKey={profile.username}
           heatmap={profile.heatmap}
+          heatmapBySource={profile.heatmapBySource}
           currentStreak={profile.currentStreak}
           maxStreak={profile.maxStreak}
         />

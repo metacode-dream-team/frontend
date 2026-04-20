@@ -1,3 +1,5 @@
+import type { ActivitySource } from "@/entities/stats";
+
 export interface SkillGroup {
   level: "Fundamental" | "Intermediate" | "Advanced";
   items: Array<{
@@ -9,6 +11,15 @@ export interface SkillGroup {
 export interface ProfileHeatmapDay {
   date: string;
   count: number;
+}
+
+export type HeatmapSourceTab = "all" | ActivitySource;
+
+export interface ProfileHeatmapBySource {
+  combinedMax: ProfileHeatmapDay[];
+  github: ProfileHeatmapDay[];
+  leetcode: ProfileHeatmapDay[];
+  monkeytype: ProfileHeatmapDay[];
 }
 
 export type ProfileWorkMode = "Remote" | "Hybrid" | "On-site";
@@ -41,6 +52,8 @@ export interface ProfileCertification {
   title: string;
   issuer: string;
   issued: string;
+  expires?: string;
+  credentialUrl?: string;
   provider: "aws" | "huawei" | "google" | "other";
 }
 
@@ -58,6 +71,7 @@ export interface ProfileData {
   username: string;
   fullName: string;
   avatarUrl: string;
+  about?: string;
   rank: number;
   role: string;
   location: string;
@@ -78,6 +92,8 @@ export interface ProfileData {
   languages: Array<{ name: string; solved: number }>;
   skills: SkillGroup[];
   heatmap: ProfileHeatmapDay[];
+  /** Из `/v1/integration/profile`: max по дням + разбивка по GitHub / LeetCode / Monkeytype */
+  heatmapBySource?: ProfileHeatmapBySource;
   experience: ProfileExperience[];
   education: ProfileEducation[];
   certifications: ProfileCertification[];

@@ -1,9 +1,7 @@
-/**
- * Компонент аватара пользователя
- */
-
 import Image from "next/image";
 import { cn } from "@/shared/lib/utils/cn";
+import { shouldUseNativeImgForRemoteUrl } from "@/shared/lib/utils/remoteImagePlain";
+import { isRemoteSvgImage } from "@/shared/lib/utils/isRemoteSvgImage";
 
 interface AvatarProps {
   src: string;
@@ -19,6 +17,8 @@ const sizeClasses = {
 };
 
 export function Avatar({ src, alt, size = "md", className }: AvatarProps) {
+  const plain = shouldUseNativeImgForRemoteUrl(src);
+  const px = size === "sm" ? "32" : size === "md" ? "40" : "64";
   return (
     <div
       className={cn(
@@ -27,13 +27,24 @@ export function Avatar({ src, alt, size = "md", className }: AvatarProps) {
         className,
       )}
     >
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        className="object-cover"
-        sizes={`${size === "sm" ? "32" : size === "md" ? "40" : "64"}px`}
-      />
+      {plain ? (
+        <img
+          src={src}
+          alt={alt}
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+          referrerPolicy="no-referrer"
+        />
+      ) : (
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className="object-cover"
+          sizes={`${px}px`}
+          unoptimized={isRemoteSvgImage(src)}
+        />
+      )}
     </div>
   );
 }

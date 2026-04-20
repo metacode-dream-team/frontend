@@ -1,8 +1,3 @@
-/**
- * Провайдер для инициализации авторизации при загрузке приложения
- * Ждёт гидрацию persist (sessionStorage), затем initializeAuth — без гонки с refresh до восстановления токенов
- */
-
 "use client";
 
 import { useEffect, useState } from "react";

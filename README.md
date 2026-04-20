@@ -81,8 +81,8 @@ cp .env.example .env.local
 Заполните переменные:
 
 ```env
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:8081
+# API gateway
+NEXT_PUBLIC_API_URL=http://localhost:8080
 
 # Keycloak Configuration
 NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
@@ -96,7 +96,7 @@ NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=frontend-app
 npm run dev
 ```
 
-Откройте [http://localhost:3000](http://localhost:3000) в браузере.
+Откройте [http://localhost:5417](http://localhost:5417) в браузере (`npm run dev` слушает порт 5417).
 
 ## Доступные страницы
 

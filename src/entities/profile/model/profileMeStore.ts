@@ -1,7 +1,3 @@
-/**
- * Текущий пользователь: GET /v1/profiles/me (Bearer), для userId и отображения в UI.
- */
-
 import { create } from "zustand";
 import type { CurrentUserProfile } from "./currentUserProfile";
 import { normalizeProfileMe } from "./currentUserProfile";

@@ -1,7 +1,3 @@
-/**
- * API клиент с автоматическим refresh токенов
- */
-
 import { API_BASE_URL, AUTH_REFRESH_PATH } from "@/shared/config/constants";
 import { resolveAuthUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
 import type { ApiError, AuthTokens, RefreshTokenResponse } from "@/shared/types/api";
@@ -14,12 +10,6 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  /**
-   * Обновление access token через refresh token
-   * Использует cookie для refresh token (httpOnly)
-   * Refresh token НЕ отправляется в body, а автоматически отправляется браузером в cookie
-   * Вызывается извне через authApi.refreshTokens()
-   */
   async refreshAccessToken(): Promise<RefreshTokenResponse> {
     if (this.refreshPromise) {
       return this.refreshPromise;
@@ -31,8 +21,8 @@ class ApiClient {
       headers: {
         "Content-Type": "application/json",
       },
-      credentials: "include", // Важно: автоматически отправляет httpOnly cookie с refresh_token
-      body: JSON.stringify({}), // Пустой body, refresh token в cookie
+      credentials: "include",
+      body: JSON.stringify({}),
     })
       .then(async (response) => {
         if (!response.ok) {
@@ -43,7 +33,6 @@ class ApiClient {
             errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
           }
 
-          // 401 — нет сессии; 404 — неверный путь refresh (см. NEXT_PUBLIC_AUTH_REFRESH_PATH)
           const silent =
             response.status === 401 || response.status === 404;
           if (!silent) {
@@ -92,25 +81,13 @@ class ApiClient {
     return this.refreshPromise;
   }
 
-  /**
-   * Обработка ответа с автоматическим refresh при 401
-   */
   private async handleResponse<T>(
     response: Response,
     accessToken: string | null,
   ): Promise<T> {
-    // Если получили 401 и есть access token, пытаемся обновить
     if (response.status === 401 && accessToken) {
-      try {
-        const newTokens = await this.refreshAccessToken();
-        // Повторяем запрос с новым токеном
-        // Но для этого нужно знать оригинальный запрос...
-        // В реальности лучше использовать interceptor или middleware
-        throw new Error("Token expired, please retry");
-      } catch (error) {
-        // Если refresh не удался, пробрасываем ошибку
-        throw error;
-      }
+      await this.refreshAccessToken();
+      throw new Error("Token expired, please retry");
     }
 
     if (!response.ok) {
@@ -121,9 +98,6 @@ class ApiClient {
     return response.json() as Promise<T>;
   }
 
-  /**
-   * Парсит тело ошибки из ответа (JSON, text или стандартное сообщение по коду).
-   */
   private async parseErrorResponse(response: Response): Promise<string> {
     const contentType = response.headers.get("content-type") ?? "";
     try {
@@ -136,9 +110,7 @@ class ApiClient {
         const trimmed = text.trim().slice(0, 200);
         if (trimmed) return trimmed;
       }
-    } catch {
-      // ignore parse errors
-    }
+    } catch {}
     if (response.status >= 500) return "Server error. Please try again later.";
     if (response.status === 400) return "Invalid request.";
     if (response.status === 401) return "Unauthorized.";
@@ -147,9 +119,6 @@ class ApiClient {
     return "Request failed.";
   }
 
-  /**
-   * GET запрос
-   */
   async get<T>(url: string, accessToken: string | null = null): Promise<T> {
     const headers: HeadersInit = {
       "Content-Type": "application/json",
@@ -168,9 +137,6 @@ class ApiClient {
     return this.handleResponse<T>(response, accessToken);
   }
 
-  /**
-   * POST запрос
-   */
   async post<T>(
     url: string,
     data: unknown,
@@ -194,9 +160,6 @@ class ApiClient {
     return this.handleResponse<T>(response, accessToken);
   }
 
-  /**
-   * PUT запрос
-   */
   async put<T>(
     url: string,
     data: unknown,
@@ -220,9 +183,6 @@ class ApiClient {
     return this.handleResponse<T>(response, accessToken);
   }
 
-  /**
-   * DELETE запрос
-   */
   async delete<T>(url: string, accessToken: string | null = null): Promise<T> {
     const headers: HeadersInit = {
       "Content-Type": "application/json",

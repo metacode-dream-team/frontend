@@ -1,7 +1,3 @@
-/**
- * HTTP-клиенты: platform (профили) и integration (GitHub/LeetCode/Monkeytype API).
- */
-
 import { INTEGRATION_API_URL, PLATFORM_API_URL } from "@/shared/config/constants";
 import {
   resolveIntegrationUrlForFetch,

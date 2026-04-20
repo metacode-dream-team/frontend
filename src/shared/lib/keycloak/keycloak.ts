@@ -1,8 +1,3 @@
-/**
- * Keycloak OAuth2 клиент для социальной аутентификации
- * Работает только на клиенте (браузер)
- */
-
 import {
   FRONTEND_DEV_ORIGIN,
   FRONTEND_DEV_PORT,
@@ -16,17 +11,12 @@ import type { AuthTokens } from "@/shared/types/api";
 
 const PKCE_VERIFIER_KEY = "pkce_verifier";
 
-/** Identity provider alias in Keycloak (must match IdP configuration). */
 export type KeycloakIdpHint =
   | "google"
   | "github"
   | "monkeytype"
   | "leetcode";
 
-/**
- * Генерирует URL для авторизации через Keycloak
- * Работает только на клиенте (браузер)
- */
 export async function getLoginUrl(
   provider?: KeycloakIdpHint,
 ): Promise<string> {
@@ -36,7 +26,6 @@ export async function getLoginUrl(
 
   const { codeVerifier, codeChallenge } = await generatePKCE();
 
-  // Сохраняем code_verifier в localStorage для последующего использования
   if (typeof window !== "undefined") {
     localStorage.setItem(PKCE_VERIFIER_KEY, codeVerifier);
   }
@@ -57,10 +46,6 @@ export async function getLoginUrl(
   return `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth?${params.toString()}`;
 }
 
-/**
- * Запускает браузерный редирект на выбранный IdP (PKCE).
- * @returns true если редирект начат, false если контекст небезопасен или ошибка.
- */
 export async function startKeycloakIdpLogin(
   provider: KeycloakIdpHint,
 ): Promise<boolean> {
@@ -100,10 +85,6 @@ export async function startKeycloakIdpLogin(
   }
 }
 
-/**
- * Генерирует URL для привязки GitHub аккаунта (AIA)
- * Работает только на клиенте (браузер)
- */
 export async function getLinkGithubUrl(): Promise<string> {
   if (typeof window === "undefined") {
     throw new Error("getLinkGithubUrl can only be called in the browser");
@@ -129,10 +110,6 @@ export async function getLinkGithubUrl(): Promise<string> {
   return `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth?${params.toString()}`;
 }
 
-/**
- * Обменивает authorization code на токены
- * Работает только на клиенте (браузер)
- */
 export async function exchangeCodeForTokens(code: string): Promise<AuthTokens> {
   if (typeof window === "undefined") {
     throw new Error("exchangeCodeForTokens can only be called in the browser");
@@ -178,7 +155,6 @@ export async function exchangeCodeForTokens(code: string): Promise<AuthTokens> {
   console.log("[Keycloak] ⚠️ Note: These tokens are from Keycloak, NOT from backend");
   console.log("[Keycloak] ⚠️ Backend refresh_token cookie will NOT be set!");
 
-  // Удаляем code_verifier после использования
   localStorage.removeItem(PKCE_VERIFIER_KEY);
 
   return tokens;

@@ -1,7 +1,3 @@
-/**
- * API методы для авторизации
- */
-
 import { AUTH_LOGIN_PATH } from "@/shared/config/constants";
 import { resolveAuthUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
 import { apiClient } from "@/shared/lib/api/client";
@@ -43,7 +39,6 @@ function unwrapTokenPayload(raw: unknown): Record<string, unknown> {
   if (!nested) {
     return r;
   }
-  // Вложенный объект (data/tokens) должен перекрывать корень по полям токена
   return { ...r, ...nested };
 }
 
@@ -69,17 +64,10 @@ function normalizeAuthTokens(raw: Record<string, unknown>): AuthTokens {
 }
 
 export const authApi = {
-  /**
-   * Регистрация пользователя
-   */
   register: async (data: RegisterRequest): Promise<ApiSuccess> => {
     return apiClient.post<ApiSuccess>("/v1/register", data);
   },
 
-  /**
-   * Вход: POST {AUTH}/v1/auth/login с телом { email, password }
-   * Refresh cookie — если бэкенд отдаёт Set-Cookie (credentials: include)
-   */
   login: async (data: LoginRequest): Promise<AuthTokens> => {
     const response = await fetch(resolveAuthUrlForFetch(AUTH_LOGIN_PATH), {
       method: "POST",
@@ -101,32 +89,18 @@ export const authApi = {
     return normalizeAuthTokens(raw);
   },
 
-  /**
-   * Верификация email
-   */
   verifyEmail: async (token: string): Promise<ApiSuccess> => {
     return apiClient.post<ApiSuccess>(`/v1/verify-email?token=${token}`, {});
   },
 
-  /**
-   * Запрос на восстановление пароля
-   */
   forgotPassword: async (data: ForgotPasswordRequest): Promise<ApiSuccess> => {
     return apiClient.post<ApiSuccess>("/v1/forgot-password", data);
   },
 
-  /**
-   * Сброс пароля
-   */
   resetPassword: async (data: ResetPasswordRequest): Promise<ApiSuccess> => {
     return apiClient.post<ApiSuccess>("/v1/reset-password", data);
   },
 
-  /**
-   * Обновление токенов
-   * Refresh token отправляется автоматически в httpOnly cookie браузером
-   * Response не содержит refresh_token (он остается в cookie)
-   */
   refreshTokens: async (): Promise<RefreshTokenResponse> => {
     return apiClient.refreshAccessToken();
   },

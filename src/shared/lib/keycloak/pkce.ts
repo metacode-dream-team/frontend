@@ -1,11 +1,4 @@
-/**
- * PKCE (Proof Key for Code Exchange) утилиты для OAuth2
- * Работает только на клиенте (браузер)
- */
 
-/**
- * Проверяет, что код выполняется в браузере
- */
 function isBrowser(): boolean {
   return (
     typeof window !== "undefined" &&
@@ -14,9 +7,6 @@ function isBrowser(): boolean {
   );
 }
 
-/**
- * Проверяет доступность crypto.subtle
- */
 function isSubtleAvailable(): boolean {
   if (!isBrowser()) {
     return false;

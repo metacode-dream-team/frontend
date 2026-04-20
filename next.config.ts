@@ -4,7 +4,6 @@ function stripTrailingSlashes(url: string): string {
   return url.replace(/\/+$/, "");
 }
 
-/** Единый API gateway (локально :8080). Раздельные цели — только если задать оба env. */
 const defaultGateway = "http://localhost:8080";
 const authProxyTarget = stripTrailingSlashes(
   process.env.BACKEND_PROXY_AUTH ?? defaultGateway,
@@ -14,7 +13,6 @@ const platformProxyTarget = stripTrailingSlashes(
 );
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
   async rewrites() {
     return [
@@ -33,6 +31,22 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "api.dicebear.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "**.ts.net",
+        port: "9000",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "**.ts.net",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "**.ts.net",
         pathname: "/**",
       },
     ],
