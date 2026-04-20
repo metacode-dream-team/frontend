@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import type { ProfileData } from "@/entities/profile";
+import { isRemoteSvgImage } from "@/shared/lib/utils/isRemoteSvgImage";
 import { ProfileAchievementsBlock } from "./profile-achievements-block";
 import {
   ProfileCertificationsSection,
@@ -49,6 +50,7 @@ export function ProfilePageContent({ profile }: ProfilePageContentProps) {
                 className="object-cover"
                 sizes="96px"
                 priority
+                unoptimized={isRemoteSvgImage(profile.avatarUrl)}
               />
             </div>
             <div className="mt-4 min-w-0 sm:ml-4 sm:mt-0">

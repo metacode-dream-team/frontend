@@ -6,6 +6,8 @@ import type {
   MonkeytypeStats,
   RoadmapProgressSummary,
 } from "@/entities/stats";
+import { fetchDashboardIntegration } from "./platformData";
+import { isIntegrationApiConfigured } from "./platformClient";
 import { mockRoadmaps } from "./mockRoadmaps";
 
 function delay(ms: number): Promise<void> {
@@ -90,4 +92,42 @@ export function generateActivityData(days: number = 365): ActivityDay[] {
 export async function getActivityHeatmapData(): Promise<ActivityDay[]> {
   await delay(700);
   return generateActivityData(365);
+}
+
+export type DashboardBundle = {
+  github: GithubStats;
+  leetcode: LeetcodeStats;
+  monkeytype: MonkeytypeStats;
+  roadmap: RoadmapProgressSummary;
+  activity: ActivityDay[];
+};
+
+/**
+ * Один заход: roadmap из мока; при userId и integration API — виджеты с /v1/integration/profile.
+ */
+export async function getDashboardBundle(userId?: string | null): Promise<DashboardBundle> {
+  const roadmap = await getRoadmapStats();
+
+  if (userId && isIntegrationApiConfigured()) {
+    try {
+      const d = await fetchDashboardIntegration(userId);
+      const [github, leetcode, monkeytype, activity] = await Promise.all([
+        d.github ?? getGithubStats(),
+        d.leetcode ?? getLeetcodeStats(),
+        d.monkeytype ?? getMonkeytypeStats(),
+        d.activity ?? getActivityHeatmapData(),
+      ]);
+      return { github, leetcode, monkeytype, roadmap, activity };
+    } catch (e) {
+      console.warn("[Dashboard] Platform API failed, using mock widgets:", e);
+    }
+  }
+
+  const [github, leetcode, monkeytype, activity] = await Promise.all([
+    getGithubStats(),
+    getLeetcodeStats(),
+    getMonkeytypeStats(),
+    getActivityHeatmapData(),
+  ]);
+  return { github, leetcode, monkeytype, roadmap, activity };
 }

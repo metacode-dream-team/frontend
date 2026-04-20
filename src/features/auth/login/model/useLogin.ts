@@ -5,18 +5,24 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/entities/auth";
 import { loginUser } from "../api/login";
 import { validateLoginForm } from "@/shared/lib/utils/validation";
 import type { LoginRequest } from "@/shared/types/api";
 
+function safeInternalPath(raw: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  if (raw.includes("..")) return null;
+  return raw;
+}
+
 export function useLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { setTokens } = useAuthStore();
-
+  const searchParams = useSearchParams();
   const login = async (identifier: string, password: string) => {
     setError(null);
 
@@ -33,11 +39,15 @@ export function useLogin() {
       const data: LoginRequest = { email: identifier.trim(), password };
       const tokens = await loginUser(data);
 
-      // Сохраняем токены в store
-      setTokens(tokens.access_token, tokens.id_token, tokens.expires_in);
+      // Явно через getState(), чтобы всегда писать в единственный экземпляр store
+      useAuthStore.getState().setTokens(
+        tokens.access_token,
+        tokens.id_token,
+        tokens.expires_in,
+      );
 
-      // Перенаправляем на главную страницу
-      router.push("/");
+      const next = safeInternalPath(searchParams.get("redirect"));
+      router.replace(next ?? "/");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Login failed";
       setError(message);

@@ -5,11 +5,11 @@
 "use client";
 
 import { useState } from "react";
-import type { KeycloakIdpHint } from "@/shared/lib/keycloak/keycloak";
-import { startKeycloakIdpLogin } from "@/shared/lib/keycloak/keycloak";
+import { startAuthServiceOAuth } from "@/shared/lib/auth";
+import type { AuthServiceOAuthProvider } from "@/shared/lib/auth";
 import { Button } from "@/shared/ui/Button";
 
-type SocialProvider = Extract<KeycloakIdpHint, "google" | "github">;
+type SocialProvider = AuthServiceOAuthProvider;
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -54,9 +54,9 @@ export function SocialLoginButtons({
 }) {
   const [isLoading, setIsLoading] = useState<SocialProvider | null>(null);
 
-  const handleSocialLogin = async (provider: SocialProvider) => {
+  const handleSocialLogin = (provider: SocialProvider) => {
     setIsLoading(provider);
-    const ok = await startKeycloakIdpLogin(provider);
+    const ok = startAuthServiceOAuth(provider);
     if (!ok) {
       setIsLoading(null);
     }
@@ -83,7 +83,7 @@ export function SocialLoginButtons({
         <Button
           type="button"
           variant="outline"
-          onClick={() => void handleSocialLogin("google")}
+          onClick={() => handleSocialLogin("google")}
           disabled={isLoading !== null}
           isLoading={isLoading === "google"}
           className={btnClass}
@@ -95,7 +95,7 @@ export function SocialLoginButtons({
         <Button
           type="button"
           variant="outline"
-          onClick={() => void handleSocialLogin("github")}
+          onClick={() => handleSocialLogin("github")}
           disabled={isLoading !== null}
           isLoading={isLoading === "github"}
           className={btnClass}

@@ -1,4 +1,7 @@
 import type { ProfileAchievement, ProfileData, ProfileHeatmapDay } from "@/entities/profile";
+import { resolvePlatformUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
+import { isPlatformApiConfigured } from "./platformClient";
+import { buildProfileFromPlatform } from "./platformData";
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -102,9 +105,7 @@ function createAchievements(seed: number): ProfileAchievement[] {
   return list;
 }
 
-export async function getProfileById(id: string): Promise<ProfileData> {
-  await delay(700);
-
+function buildMockProfile(id: string): ProfileData {
   const seed = hash(id || "user");
   const solved = 220 + (seed % 350);
   const easySolved = 100 + (seed % 130);
@@ -220,4 +221,23 @@ export async function getProfileById(id: string): Promise<ProfileData> {
     ],
     techSkills: ["Redis", "Golang", "Docker", "Kubernetes", "gRPC"],
   };
+}
+
+export async function getProfileById(id: string): Promise<ProfileData> {
+  if (isPlatformApiConfigured()) {
+    try {
+      return await buildProfileFromPlatform(id);
+    } catch (e) {
+      const example = resolvePlatformUrlForFetch("/v1/profiles/<username>");
+      console.warn(
+        `[Profile] Platform unreachable (${example}). ` +
+          `SSR: set PLATFORM_API_SERVER_URL inside Docker, or run platform on the host/port from NEXT_PUBLIC_PLATFORM_API_URL. ` +
+          `Mock-only dev: set NEXT_PUBLIC_PLATFORM_API_URL= (empty) or false. Using mock.`,
+        e,
+      );
+    }
+  }
+
+  await delay(700);
+  return buildMockProfile(id);
 }

@@ -6,17 +6,16 @@ import {
   ActivitySourceFilter,
   type ActivityFilterValue,
 } from "@/features/filter-activity-calendar";
+import {
+  countToHeatmapLevel,
+  HEATMAP_MAX_COUNT,
+  heatmapCountClass,
+  heatmapLevelClass,
+  heatmapLevelRange,
+} from "@/shared/lib/utils/calendarHeatmapLevels";
 
 interface ActivityHeatmapProps {
   data: ActivityDay[];
-}
-
-function getIntensityClass(count: number): string {
-  if (count === 0) return "bg-slate-800";
-  if (count <= 2) return "bg-emerald-900";
-  if (count <= 5) return "bg-emerald-700";
-  if (count <= 8) return "bg-emerald-500";
-  return "bg-emerald-300";
 }
 
 function lastDays(days: number): string[] {
@@ -61,13 +60,30 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
 
       <div className="overflow-x-auto rounded-lg border border-slate-800 bg-slate-950/50 p-3">
         <div className="grid min-w-[760px] grid-flow-col grid-rows-7 gap-1">
-          {cells.map((cell) => (
-            <div
-              key={cell.date}
-              title={`${cell.date}: ${cell.count}`}
-              className={`h-3 w-3 rounded-sm ${getIntensityClass(cell.count)}`}
-            />
-          ))}
+          {cells.map((cell) => {
+            const level = countToHeatmapLevel(cell.count);
+            return (
+              <div
+                key={cell.date}
+                title={`${cell.date}: ${cell.count} · level ${level} (${heatmapLevelRange(level)}) · cap ${HEATMAP_MAX_COUNT}`}
+                className={`h-3 w-3 rounded-sm ${heatmapCountClass(cell.count, "emerald")}`}
+              />
+            );
+          })}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center justify-end gap-2 text-[11px] text-slate-500">
+          <span>Less</span>
+          <div className="flex gap-1">
+            {([0, 1, 2, 3, 4] as const).map((lv) => (
+              <span
+                key={lv}
+                className={`h-3 w-3 rounded-sm ${heatmapLevelClass(lv, "emerald")}`}
+                title={heatmapLevelRange(lv)}
+              />
+            ))}
+          </div>
+          <span>More</span>
+          <span className="text-slate-600">(max {HEATMAP_MAX_COUNT})</span>
         </div>
       </div>
     </div>

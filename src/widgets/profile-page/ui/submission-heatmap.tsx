@@ -2,14 +2,13 @@
 
 import { useMemo, type ReactNode } from "react";
 import type { ProfileHeatmapDay } from "@/entities/profile";
-
-function intensityClass(count: number): string {
-  if (count === 0) return "bg-zinc-800";
-  if (count <= 3) return "bg-emerald-900";
-  if (count <= 6) return "bg-emerald-700";
-  if (count <= 9) return "bg-emerald-500";
-  return "bg-emerald-400";
-}
+import {
+  countToHeatmapLevel,
+  HEATMAP_MAX_COUNT,
+  heatmapCountClass,
+  heatmapLevelClass,
+  heatmapLevelRange,
+} from "@/shared/lib/utils/calendarHeatmapLevels";
 
 interface SubmissionHeatmapProps {
   heatmap: ProfileHeatmapDay[];
@@ -84,17 +83,19 @@ export function SubmissionHeatmap({ heatmap, currentStreak, maxStreak }: Submiss
       <div className="overflow-x-auto rounded-xl bg-black/40 p-3">
         <div className="min-w-[760px]">
           <div className="grid grid-flow-col grid-rows-7 gap-[3px]">
-            {heatmapLayout.cells.map((day, index) =>
-              day ? (
+            {heatmapLayout.cells.map((day, index) => {
+              if (!day) {
+                return <div key={`empty-${index}`} className="h-3 w-3 rounded-sm opacity-0" />;
+              }
+              const level = countToHeatmapLevel(day.count);
+              return (
                 <div
                   key={day.date}
-                  title={`${day.date}: ${day.count}`}
-                  className={`h-3 w-3 rounded-sm ${intensityClass(day.count)} transition-opacity hover:opacity-90`}
+                  title={`${day.date}: ${day.count} · level ${level} (${heatmapLevelRange(level)}) · cap ${HEATMAP_MAX_COUNT}`}
+                  className={`h-3 w-3 rounded-sm ${heatmapCountClass(day.count, "zinc")} transition-opacity hover:opacity-90`}
                 />
-              ) : (
-                <div key={`empty-${index}`} className="h-3 w-3 rounded-sm opacity-0" />
-              ),
-            )}
+              );
+            })}
           </div>
 
           <div className="relative mt-3 h-6">
@@ -114,16 +115,19 @@ export function SubmissionHeatmap({ heatmap, currentStreak, maxStreak }: Submiss
             })}
           </div>
 
-          <div className="mt-4 flex items-center justify-end gap-2 text-[11px] text-zinc-500">
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-2 text-[11px] text-zinc-500">
             <span>Less</span>
             <div className="flex gap-1">
-              <span className="h-3 w-3 rounded-sm bg-zinc-800" />
-              <span className="h-3 w-3 rounded-sm bg-emerald-900" />
-              <span className="h-3 w-3 rounded-sm bg-emerald-700" />
-              <span className="h-3 w-3 rounded-sm bg-emerald-500" />
-              <span className="h-3 w-3 rounded-sm bg-emerald-400" />
+              {([0, 1, 2, 3, 4] as const).map((lv) => (
+                <span
+                  key={lv}
+                  className={`h-3 w-3 rounded-sm ${heatmapLevelClass(lv, "zinc")}`}
+                  title={heatmapLevelRange(lv)}
+                />
+              ))}
             </div>
             <span>More</span>
+            <span className="text-zinc-600">(max {HEATMAP_MAX_COUNT})</span>
           </div>
         </div>
       </div>

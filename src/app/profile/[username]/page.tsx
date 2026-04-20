@@ -2,11 +2,12 @@ import { getProfileById } from "@/shared/lib/api/profileApi";
 import { ProfilePageContent } from "@/widgets/profile-page";
 
 interface ProfilePageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ username: string }>;
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
-  const { id } = await params;
+  const { username } = await params;
+  const id = decodeURIComponent(username);
   const profile = await getProfileById(id);
 
   return (

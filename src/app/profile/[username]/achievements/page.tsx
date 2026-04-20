@@ -2,11 +2,12 @@ import { getProfileById } from "@/shared/lib/api/profileApi";
 import { ProfileAchievementsPageContent } from "@/widgets/profile-page/ui/profile-achievements-page-content";
 
 interface AchievementsPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ username: string }>;
 }
 
 export default async function ProfileAchievementsPage({ params }: AchievementsPageProps) {
-  const { id } = await params;
+  const { username } = await params;
+  const id = decodeURIComponent(username);
   const profile = await getProfileById(id);
 
   return (

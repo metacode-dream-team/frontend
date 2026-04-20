@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import leetcodeImg from "@/assets/Leetcode--Streamline-Simple-Icons (2).png";
+import { startAuthServiceOAuth } from "@/shared/lib/auth";
 import type { KeycloakIdpHint } from "@/shared/lib/keycloak/keycloak";
 import { startKeycloakIdpLogin } from "@/shared/lib/keycloak/keycloak";
 import { Button } from "@/shared/ui/Button";
@@ -144,6 +145,11 @@ export function ConnectPlatformsModal({
 
   const connect = async (provider: ConnectProvider) => {
     setLoading(provider);
+    if (provider === "google" || provider === "github") {
+      const ok = startAuthServiceOAuth(provider);
+      if (!ok) setLoading(null);
+      return;
+    }
     const ok = await startKeycloakIdpLogin(provider);
     if (!ok) {
       setLoading(null);

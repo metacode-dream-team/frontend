@@ -1,33 +1,59 @@
 /**
  * Провайдер для инициализации авторизации при загрузке приложения
- * По аналогии с примером: инициализирует auth при монтировании и показывает loader до готовности
+ * Ждёт гидрацию persist (sessionStorage), затем initializeAuth — без гонки с refresh до восстановления токенов
  */
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
-import { diagnoseRefreshToken } from "@/shared/lib/utils/cookie";
+import { useProfileMeStore } from "@/entities/profile";
 import { API_BASE_URL } from "@/shared/config/constants";
+import { diagnoseRefreshToken } from "@/shared/lib/utils/cookie";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
   const isInitialized = useAuthStore((state) => state.isInitialized);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const fetchProfileMe = useProfileMeStore((state) => state.fetchMe);
+  const clearProfileMe = useProfileMeStore((state) => state.clear);
+  const [persistReady, setPersistReady] = useState(false);
 
   useEffect(() => {
-    // Инициализируем авторизацию при монтировании компонента
-    // Аналогично примеру: POST /auth/refresh при монтировании
-    initializeAuth();
-    
+    const api = useAuthStore.persist;
+    if (!api || api.hasHydrated()) {
+      setPersistReady(true);
+      return;
+    }
+    const unsub = api.onFinishHydration(() => setPersistReady(true));
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (!persistReady) {
+      return;
+    }
+    void initializeAuth();
+
     if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
       (window as Window & { debugRefreshToken?: () => void }).debugRefreshToken = () =>
         diagnoseRefreshToken(API_BASE_URL);
     }
-  }, [initializeAuth]);
+  }, [persistReady, initializeAuth]);
 
-  // Показываем loader пока не инициализировано
-  // При отсутствии бэкенда инициализация завершится быстро (обработка network error)
-  if (!isInitialized) {
+  useEffect(() => {
+    if (!persistReady || !isInitialized) {
+      return;
+    }
+    if (isAuthenticated && accessToken) {
+      void fetchProfileMe(accessToken);
+    } else {
+      clearProfileMe();
+    }
+  }, [persistReady, isInitialized, isAuthenticated, accessToken, fetchProfileMe, clearProfileMe]);
+
+  if (!persistReady || !isInitialized) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center space-y-4">

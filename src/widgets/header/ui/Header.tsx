@@ -18,6 +18,10 @@ function linkActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function profileSectionActive(pathname: string) {
+  return pathname === "/profile" || pathname.startsWith("/profile/");
+}
+
 export function Header() {
   const { isAuthenticated, logout } = useAuthStore();
   const [connectOpen, setConnectOpen] = useState(false);
@@ -55,6 +59,16 @@ export function Header() {
                   </li>
                 );
               })}
+              {isAuthenticated && (
+                <li>
+                  <Link
+                    href="/profile"
+                    className={linkClass(profileSectionActive(pathname))}
+                  >
+                    Profile
+                  </Link>
+                </li>
+              )}
               <li>
                 {isAuthenticated ? (
                   <Link
@@ -95,9 +109,9 @@ export function Header() {
                   Dashboard
                 </Link>
                 <Link
-                  href="/dashboard"
+                  href="/profile"
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-purple-900 text-xs font-bold text-white ring-2 ring-violet-500/40 transition hover:ring-violet-400/60"
-                  title="Dashboard"
+                  title="Profile"
                 >
                   ME
                 </Link>

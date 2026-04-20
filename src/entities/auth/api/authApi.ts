@@ -2,6 +2,8 @@
  * API методы для авторизации
  */
 
+import { AUTH_LOGIN_PATH } from "@/shared/config/constants";
+import { resolveAuthUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
 import { apiClient } from "@/shared/lib/api/client";
 import type {
   AuthTokens,
@@ -13,6 +15,59 @@ import type {
   ApiSuccess,
 } from "@/shared/types/api";
 
+async function parseAuthError(response: Response): Promise<string> {
+  try {
+    const data = (await response.json()) as {
+      error?: string;
+      message?: string;
+    };
+    return data.error ?? data.message ?? "Login failed";
+  } catch {
+    return response.status === 401 ? "Invalid email or password" : "Login failed";
+  }
+}
+
+function unwrapTokenPayload(raw: unknown): Record<string, unknown> {
+  if (!raw || typeof raw !== "object") {
+    return {};
+  }
+  const r = raw as Record<string, unknown>;
+  const nested =
+    r.data && typeof r.data === "object"
+      ? (r.data as Record<string, unknown>)
+      : r.tokens && typeof r.tokens === "object"
+        ? (r.tokens as Record<string, unknown>)
+        : r.result && typeof r.result === "object"
+          ? (r.result as Record<string, unknown>)
+          : null;
+  if (!nested) {
+    return r;
+  }
+  // Вложенный объект (data/tokens) должен перекрывать корень по полям токена
+  return { ...r, ...nested };
+}
+
+function normalizeAuthTokens(raw: Record<string, unknown>): AuthTokens {
+  const flat = unwrapTokenPayload(raw);
+  const access =
+    (flat.access_token as string | undefined) ??
+    (flat.accessToken as string | undefined);
+  if (!access) {
+    throw new Error("Invalid login response: missing access token");
+  }
+  return {
+    access_token: access,
+    id_token:
+      (flat.id_token as string | undefined) ??
+      (flat.idToken as string | undefined) ??
+      "",
+    expires_in: Number(flat.expires_in ?? flat.expiresIn ?? 3600),
+    token_type:
+      (flat.token_type as string) ?? (flat.tokenType as string) ?? "Bearer",
+    refresh_token: flat.refresh_token as string | undefined,
+  };
+}
+
 export const authApi = {
   /**
    * Регистрация пользователя
@@ -22,17 +77,28 @@ export const authApi = {
   },
 
   /**
-   * Вход в систему
-   * Бэкенд должен установить refresh_token в httpOnly cookie через Set-Cookie header
+   * Вход: POST {AUTH}/v1/auth/login с телом { email, password }
+   * Refresh cookie — если бэкенд отдаёт Set-Cookie (credentials: include)
    */
   login: async (data: LoginRequest): Promise<AuthTokens> => {
-    console.log("[API] 🔐 Logging in...");
-    console.log("[API] 📍 Endpoint: /v1/login");
-    console.log("[API] 💡 Backend should set refresh_token cookie in response");
-    const response = await apiClient.post<AuthTokens>("/v1/login", data);
-    console.log("[API] ✅ Login successful");
-    console.log("[API] 💡 Check browser DevTools > Application > Cookies for refresh_token");
-    return response;
+    const response = await fetch(resolveAuthUrlForFetch(AUTH_LOGIN_PATH), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(await parseAuthError(response));
+    }
+
+    const raw = (await response.json()) as Record<string, unknown>;
+    return normalizeAuthTokens(raw);
   },
 
   /**

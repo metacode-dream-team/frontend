@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import type { ProfileCertification, ProfileEducation, ProfileExperience } from "@/entities/profile";
+import { isRemoteSvgImage } from "@/shared/lib/utils/isRemoteSvgImage";
 import { ProfileCard, ProfileTag, SectionHeading } from "./profile-primitives";
 
 function CompanyMark({ label }: { label: string }) {
@@ -88,7 +89,14 @@ export function ProfileEducationSection({ items }: { items: ProfileEducation[] }
           >
             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-zinc-900">
               {ed.logoUrl ? (
-                <Image src={ed.logoUrl} alt="" fill className="object-cover" sizes="48px" />
+                <Image
+                  src={ed.logoUrl}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="48px"
+                  unoptimized={isRemoteSvgImage(ed.logoUrl)}
+                />
               ) : (
                 <span className="flex h-full w-full items-center justify-center text-sm font-bold text-zinc-400">
                   {ed.school.charAt(0)}

@@ -2,7 +2,8 @@
  * API клиент с автоматическим refresh токенов
  */
 
-import { API_BASE_URL } from "@/shared/config/constants";
+import { API_BASE_URL, AUTH_REFRESH_PATH } from "@/shared/config/constants";
+import { resolveAuthUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
 import type { ApiError, AuthTokens, RefreshTokenResponse } from "@/shared/types/api";
 
 class ApiClient {
@@ -24,7 +25,8 @@ class ApiClient {
       return this.refreshPromise;
     }
 
-    this.refreshPromise = fetch(`${this.baseUrl}/v1/token/refresh`, {
+    const refreshUrl = resolveAuthUrlForFetch(AUTH_REFRESH_PATH);
+    this.refreshPromise = fetch(refreshUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -41,7 +43,10 @@ class ApiClient {
             errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
           }
 
-          if (response.status !== 401) {
+          // 401 — нет сессии; 404 — неверный путь refresh (см. NEXT_PUBLIC_AUTH_REFRESH_PATH)
+          const silent =
+            response.status === 401 || response.status === 404;
+          if (!silent) {
             console.error("[API] Refresh failed:", response.status, errorData);
           }
 
@@ -52,7 +57,8 @@ class ApiClient {
             isNetworkError?: boolean;
           };
           refreshError.status = response.status;
-          refreshError.isUnauthorized = response.status === 401;
+          refreshError.isUnauthorized =
+            response.status === 401 || response.status === 404;
 
           throw refreshError;
         }
@@ -72,7 +78,7 @@ class ApiClient {
           throw error;
         }
         if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
-          console.warn("[API] Refresh: backend unavailable at", this.baseUrl);
+          console.warn("[API] Refresh: backend unavailable at", refreshUrl);
           const networkError = new Error("Backend unavailable") as Error & { isNetworkError?: boolean };
           networkError.isNetworkError = true;
           throw networkError;
@@ -184,19 +190,6 @@ class ApiClient {
       credentials: "include",
       body: JSON.stringify(data),
     });
-
-    // Логируем Set-Cookie заголовки для диагностики (особенно для /v1/login)
-    if (url.includes("/login")) {
-      console.log("[API] 📋 Login response headers:", Object.fromEntries(response.headers.entries()));
-      const setCookieHeader = response.headers.get("set-cookie");
-      if (setCookieHeader) {
-        console.log("[API] ✅ Backend set cookie:", setCookieHeader);
-        console.log("[API] 💡 Check if refresh_token cookie was set");
-      } else {
-        console.warn("[API] ⚠️ No Set-Cookie header in login response!");
-        console.warn("[API] 💡 Backend should set refresh_token cookie via Set-Cookie header");
-      }
-    }
 
     return this.handleResponse<T>(response, accessToken);
   }

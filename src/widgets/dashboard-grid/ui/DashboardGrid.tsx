@@ -1,14 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useAuthStore } from "@/entities/auth";
+import { useProfileMeStore } from "@/entities/profile";
 import { Button } from "@/shared/ui/Button";
-import {
-  getActivityHeatmapData,
-  getGithubStats,
-  getLeetcodeStats,
-  getMonkeytypeStats,
-  getRoadmapStats,
-} from "@/shared/lib/api/dashboardApi";
+import { getDashboardBundle } from "@/shared/lib/api/dashboardApi";
+import { decodeJwt } from "@/shared/lib/utils/jwt";
 import { StatsWidget } from "@/widgets/stats-widget";
 import { ActivityHeatmap } from "@/widgets/activity-heatmap";
 import { MonkeytypeModeFilter } from "@/features/toggle-monkeytype-mode";
@@ -50,6 +47,15 @@ export function DashboardGrid() {
     onResizeWidget,
   } = useEditDashboard();
 
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const profileUserId = useProfileMeStore((s) => s.profile?.userId);
+  const platformUserId = useMemo(() => {
+    if (profileUserId) return profileUserId;
+    if (!accessToken) return null;
+    const sub = decodeJwt(accessToken)?.sub;
+    return typeof sub === "string" ? sub : null;
+  }, [profileUserId, accessToken]);
+
   const [selectedWidgetType, setSelectedWidgetType] = useState<DashboardWidgetType>("roadmap");
   const [githubStats, setGithubStats] = useState<GithubStats | null>(null);
   const [leetcodeStats, setLeetcodeStats] = useState<LeetcodeStats | null>(null);
@@ -64,14 +70,8 @@ export function DashboardGrid() {
   useEffect(() => {
     setIsLoading(true);
 
-    Promise.all([
-      getGithubStats(),
-      getLeetcodeStats(),
-      getMonkeytypeStats(),
-      getRoadmapStats(),
-      getActivityHeatmapData(),
-    ])
-      .then(([github, leetcode, monkeytype, roadmap, activity]) => {
+    getDashboardBundle(platformUserId)
+      .then(({ github, leetcode, monkeytype, roadmap, activity }) => {
         setGithubStats(github);
         setLeetcodeStats(leetcode);
         setMonkeytypeStats(monkeytype);
@@ -79,7 +79,7 @@ export function DashboardGrid() {
         setActivityData(activity);
       })
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [platformUserId]);
 
   const monkeyRecord = useMemo(() => {
     if (!monkeytypeStats) return null;

@@ -1,139 +1,166 @@
 /**
  * Zustand store для авторизации
- * Access token хранится в памяти (без persist)
- * Refresh token хранится в httpOnly cookie (управляется бэкендом)
+ * Access token: память + sessionStorage (persist), чтобы после F5 оставаться в сессии
+ * Refresh token: httpOnly cookie (бэкенд)
  */
 
 import { create } from "zustand";
-import type { AuthStore } from "./types";
+import { createJSONStorage, persist } from "zustand/middleware";
+import type { AuthState, AuthStore } from "./types";
 import { authApi } from "../api/authApi";
-import { isTokenExpired, getTimeUntilExpiration } from "@/shared/lib/utils/jwt";
-import { API_BASE_URL } from "@/shared/config/constants";
+import { isTokenExpired } from "@/shared/lib/utils/jwt";
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
-  // State
-  accessToken: null,
-  idToken: null,
-  expiresIn: null,
-  isAuthenticated: false,
-  isInitialized: false, // Флаг инициализации
+let refreshTimerId: ReturnType<typeof setTimeout> | null = null;
 
-  // Actions
-  setTokens: (accessToken, idToken, expiresIn) => {
-    console.log("[Auth] Setting tokens, expires in:", expiresIn, "seconds");
-    set({
-      accessToken,
-      idToken,
-      expiresIn,
-      isAuthenticated: true,
-    });
-
-    // Настраиваем автоматическое обновление токена за 1 минуту до истечения
-    const timeUntilExpiration = expiresIn * 1000 - 60000; // минус 1 минута
-    if (timeUntilExpiration > 0) {
-      console.log("[Auth] Scheduled token refresh in", timeUntilExpiration / 1000, "seconds");
-      setTimeout(() => {
-        get().refreshToken();
-      }, timeUntilExpiration);
-    }
-  },
-
-  setAccessToken: (token) => {
-    set({
-      accessToken: token,
-      isAuthenticated: !!token,
-    });
-  },
-
-  logout: () => {
-    set({
+export const useAuthStore = create<AuthStore>()(
+  persist(
+    (set, get) => ({
+      // State
       accessToken: null,
       idToken: null,
       expiresIn: null,
       isAuthenticated: false,
-      isInitialized: true, // Остается true после logout
-    });
-  },
+      isInitialized: false,
 
-  refreshToken: async () => {
-    try {
-      const tokens = await authApi.refreshTokens();
-      get().setTokens(tokens.access_token, tokens.id_token, tokens.expires_in);
-      return tokens;
-    } catch (error) {
-      const err = error as Error & { isUnauthorized?: boolean; isNetworkError?: boolean; message?: string; status?: number };
-      const isUnauthorized = err?.isUnauthorized;
-      const isNetworkError =
-        err?.isNetworkError ||
-        err?.message?.includes("Failed to fetch") ||
-        err?.message?.includes("ERR_CONNECTION_REFUSED") ||
-        err?.message?.includes("NetworkError") ||
-        err?.message?.includes("Backend unavailable");
+      // Actions
+      setTokens: (accessToken, idToken, expiresIn) => {
+        if (refreshTimerId) {
+          clearTimeout(refreshTimerId);
+          refreshTimerId = null;
+        }
+        set({
+          accessToken,
+          idToken,
+          expiresIn,
+          isAuthenticated: true,
+        });
 
-      if (isUnauthorized) {
-        // 401 — нормально для неавторизованных; без лишних логов
-        throw error;
-      }
+        const timeUntilExpiration = expiresIn * 1000 - 60000;
+        if (timeUntilExpiration > 0) {
+          refreshTimerId = setTimeout(() => {
+            refreshTimerId = null;
+            void get().refreshToken();
+          }, timeUntilExpiration);
+        }
+      },
 
-      if (isNetworkError) {
-        console.warn("[Auth] Refresh: backend unavailable");
-        throw error;
-      }
+      setAccessToken: (token) => {
+        set({
+          accessToken: token,
+          isAuthenticated: !!token,
+        });
+      },
 
-      console.error("[Auth] Refresh failed:", err?.status ?? err?.message);
-      get().logout();
-      throw error;
-    }
-  },
+      logout: () => {
+        if (refreshTimerId) {
+          clearTimeout(refreshTimerId);
+          refreshTimerId = null;
+        }
+        set({
+          accessToken: null,
+          idToken: null,
+          expiresIn: null,
+          isAuthenticated: false,
+          isInitialized: true,
+        });
+      },
 
-  /**
-   * Инициализация авторизации при загрузке приложения
-   * Пытается восстановить access token через refresh token из cookie
-   * Устанавливает isInitialized в true после завершения
-   */
-  initializeAuth: async () => {
-    const state = get();
-    
-    // Если уже инициализировано - пропускаем
-    if (state.isInitialized) {
-      return;
-    }
-    
-    if (state.accessToken && !isTokenExpired(state.accessToken)) {
-      set({ isInitialized: true });
-      return;
-    }
+      refreshToken: async () => {
+        try {
+          const tokens = await authApi.refreshTokens();
+          get().setTokens(tokens.access_token, tokens.id_token, tokens.expires_in);
+          return tokens;
+        } catch (error) {
+          const err = error as Error & {
+            isUnauthorized?: boolean;
+            isNetworkError?: boolean;
+            message?: string;
+            status?: number;
+          };
+          const isUnauthorized = err?.isUnauthorized;
+          const isNetworkError =
+            err?.isNetworkError ||
+            err?.message?.includes("Failed to fetch") ||
+            err?.message?.includes("ERR_CONNECTION_REFUSED") ||
+            err?.message?.includes("NetworkError") ||
+            err?.message?.includes("Backend unavailable");
 
-    try {
-      await get().refreshToken();
-      set({ isInitialized: true });
-    } catch (error) {
-      const err = error as Error & { isUnauthorized?: boolean; message?: string };
-      const isUnauthorized = err?.isUnauthorized;
-      const isNetworkError =
-        err?.message?.includes("Failed to fetch") ||
-        err?.message?.includes("ERR_CONNECTION_REFUSED") ||
-        err?.message?.includes("NetworkError") ||
-        err?.message?.includes("Backend unavailable");
+          if (isUnauthorized) {
+            throw error;
+          }
 
-      if (isUnauthorized) {
-        // Нет сессии — нормально для неавторизованных; без логов
-        set({ isInitialized: true });
-        return;
-      }
+          if (isNetworkError) {
+            console.warn("[Auth] Refresh: backend unavailable");
+            throw error;
+          }
 
-      if (isNetworkError) {
-        // Бэкенд недоступен - нормально для разработки без бэкенда
-        // Просто инициализируем приложение без авторизации
-        console.log("[Auth] Backend unavailable - continuing without auth (dev mode)");
-        set({ isInitialized: true });
-        return;
-      }
+          console.error("[Auth] Refresh failed:", err?.status ?? err?.message);
+          get().logout();
+          throw error;
+        }
+      },
 
-      set({ isInitialized: true });
-    }
-  },
-}));
+      initializeAuth: async () => {
+        const state = get();
+
+        if (state.isInitialized) {
+          return;
+        }
+
+        if (state.accessToken && !isTokenExpired(state.accessToken)) {
+          set({ isInitialized: true });
+          return;
+        }
+
+        try {
+          await get().refreshToken();
+          set({ isInitialized: true });
+        } catch (error) {
+          const err = error as Error & { isUnauthorized?: boolean; message?: string };
+          const isUnauthorized = err?.isUnauthorized;
+          const isNetworkError =
+            err?.message?.includes("Failed to fetch") ||
+            err?.message?.includes("ERR_CONNECTION_REFUSED") ||
+            err?.message?.includes("NetworkError") ||
+            err?.message?.includes("Backend unavailable");
+
+          if (isUnauthorized) {
+            get().logout();
+            return;
+          }
+
+          if (isNetworkError) {
+            console.log("[Auth] Backend unavailable - continuing without auth (dev mode)");
+            set({ isInitialized: true });
+            return;
+          }
+
+          set({ isInitialized: true });
+        }
+      },
+    }),
+    {
+      name: "metacode-auth",
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        idToken: state.idToken,
+        expiresIn: state.expiresIn,
+      }),
+      merge: (persisted, current) => {
+        if (!persisted || typeof persisted !== "object") {
+          return current;
+        }
+        const p = persisted as Partial<AuthState>;
+        return {
+          ...current,
+          ...p,
+          isAuthenticated: !!p.accessToken,
+        };
+      },
+    },
+  ),
+);
 
 /**
  * Хук для проверки валидности токена и автоматического refresh
@@ -141,11 +168,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 export function useAuth() {
   const store = useAuthStore();
 
-  // Проверяем токен при монтировании
   if (store.accessToken && isTokenExpired(store.accessToken)) {
-    // Если токен истек, пытаемся обновить
     store.refreshToken().catch(() => {
-      // Если не удалось - разлогиниваем
       store.logout();
     });
   }
