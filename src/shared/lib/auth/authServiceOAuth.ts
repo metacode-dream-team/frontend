@@ -8,6 +8,7 @@ import {
   AUTH_OAUTH_LINK_PATH,
   AUTH_OAUTH_TOKEN_PATH,
   AUTH_SERVICE_URL,
+  FRONTEND_DEV_ORIGIN,
   REDIRECT_URI,
 } from "@/shared/config/constants";
 import { resolveAuthUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
@@ -44,7 +45,7 @@ export function startAuthServiceOAuth(
 
   if (!window.crypto?.subtle) {
     alert(
-      "OAuth requires a secure context. Open the app via http://localhost:3000 or HTTPS.",
+      `OAuth requires a secure context. Open the app via ${FRONTEND_DEV_ORIGIN} or HTTPS.`,
     );
     return false;
   }

@@ -4,9 +4,11 @@
  */
 
 import {
-  KEYCLOAK_URL,
-  KEYCLOAK_REALM,
+  FRONTEND_DEV_ORIGIN,
+  FRONTEND_DEV_PORT,
   KEYCLOAK_CLIENT_ID,
+  KEYCLOAK_REALM,
+  KEYCLOAK_URL,
   REDIRECT_URI,
 } from "@/shared/config/constants";
 import { generatePKCE } from "./pkce";
@@ -73,8 +75,8 @@ export async function startKeycloakIdpLogin(
       `Social login requires a secure context.\n` +
         `Current: ${protocol}//${hostname}\n\n` +
         `Please access the app via:\n` +
-        `- http://localhost:3000 (recommended)\n` +
-        `- http://127.0.0.1:3000\n` +
+        `- ${FRONTEND_DEV_ORIGIN} (recommended)\n` +
+        `- http://127.0.0.1:${FRONTEND_DEV_PORT}\n` +
         `- https:// (in production)`,
     );
     return false;

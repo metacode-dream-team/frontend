@@ -2,12 +2,19 @@
  * Константы приложения
  */
 
+/** Локальный порт Next (`npm run dev`). Подсказки в UI; переопределение: NEXT_PUBLIC_FRONTEND_DEV_PORT */
+export const FRONTEND_DEV_PORT =
+  process.env.NEXT_PUBLIC_FRONTEND_DEV_PORT?.trim() || "5417";
+
+export const FRONTEND_DEV_ORIGIN = `http://localhost:${FRONTEND_DEV_PORT}`;
+
+/** Бизнес-API через gateway (тот же порт, что auth/platform при едином шлюзе). */
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 /**
- * Platform-сервис: профили, интеграции (GitHub / LeetCode / Monkeytype), календарь, достижения.
- * Пример: GET /v1/profiles/{username}, /v1/integration/profile?user_id=…
+ * Профили и прочие platform-маршруты за API gateway (по умолчанию тот же хост :8080, что auth).
+ * Пример: GET /v1/profiles/{username}
  *
  * Пустая строка / "false" / "0" — не ходить в platform (страница профиля сразу mock, без ECONNREFUSED).
  */
@@ -27,7 +34,7 @@ function readOptionalServiceUrl(
 
 export const PLATFORM_API_URL = readOptionalServiceUrl(
   process.env.NEXT_PUBLIC_PLATFORM_API_URL,
-  "http://localhost:8082",
+  "http://localhost:8080",
 );
 
 function stripTrailingSlash(s: string): string {

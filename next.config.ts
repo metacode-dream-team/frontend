@@ -1,9 +1,17 @@
 import type { NextConfig } from "next";
 
-const authProxyTarget =
-  process.env.BACKEND_PROXY_AUTH ?? "http://localhost:8080";
-const platformProxyTarget =
-  process.env.BACKEND_PROXY_PLATFORM ?? "http://localhost:8082";
+function stripTrailingSlashes(url: string): string {
+  return url.replace(/\/+$/, "");
+}
+
+/** Единый API gateway (локально :8080). Раздельные цели — только если задать оба env. */
+const defaultGateway = "http://localhost:8080";
+const authProxyTarget = stripTrailingSlashes(
+  process.env.BACKEND_PROXY_AUTH ?? defaultGateway,
+);
+const platformProxyTarget = stripTrailingSlashes(
+  process.env.BACKEND_PROXY_PLATFORM ?? defaultGateway,
+);
 
 const nextConfig: NextConfig = {
   /* config options here */

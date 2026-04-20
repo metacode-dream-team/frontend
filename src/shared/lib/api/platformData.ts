@@ -1,5 +1,5 @@
 /**
- * Запросы: platform (профили :8082) и integration (:8080 по умолчанию).
+ * Запросы: platform (профили) и integration — за одним API gateway (по умолчанию :8080).
  */
 
 import { integrationGet, platformGet } from "./platformClient";
@@ -24,7 +24,7 @@ export async function fetchProfileByUsername(username: string): Promise<Json> {
   return platformGet<Json>(`/v1/profiles/${enc}`);
 }
 
-/** Тот же хост, что и auth/integration (по умолчанию :8080), не PLATFORM :8082 */
+/** /v1/profiles/me на gateway (тот же базовый URL, что integration, если не вынесли отдельно). */
 export async function fetchProfileMe(accessToken: string): Promise<Json> {
   return integrationGet<Json>("/v1/profiles/me", accessToken);
 }
