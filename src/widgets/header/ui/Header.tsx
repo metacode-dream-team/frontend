@@ -39,9 +39,16 @@ export function Header() {
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:h-16 sm:gap-4 sm:px-6">
           <Link
             href="/"
-            className="shrink-0 text-lg font-bold tracking-tight text-[#9900FF] transition-colors hover:text-[#b84dff] sm:text-xl"
+            className="focus-visible:ring-violet-500/60 flex shrink-0 items-center outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            aria-label="MetaCode home"
           >
-            MetaCode
+            <img
+              src="/logo.svg"
+              alt="MetaCode"
+              className="h-7 w-auto sm:h-8"
+              width={213}
+              height={78}
+            />
           </Link>
 
           <nav

@@ -16,9 +16,16 @@ export function Footer() {
         <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
           <Link
             href="/"
-            className="text-xl font-bold text-[#9900FF] transition-colors hover:text-[#b84dff]"
+            className="focus-visible:ring-violet-500/60 flex shrink-0 items-center outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            aria-label="MetaCode home"
           >
-            MetaCode
+            <img
+              src="/logo.svg"
+              alt="MetaCode"
+              className="h-7 w-auto md:h-8"
+              width={213}
+              height={78}
+            />
           </Link>
 
           <nav className="flex flex-wrap items-center justify-center gap-6">
