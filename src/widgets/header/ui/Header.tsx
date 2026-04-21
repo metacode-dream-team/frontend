@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import { ConnectPlatformsModal } from "@/features/connect-accounts";
@@ -26,6 +26,12 @@ export function Header() {
   const { isAuthenticated, logout } = useAuthStore();
   const [connectOpen, setConnectOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.replace("/");
+  };
 
   const linkClass = (active: boolean) =>
     cn(
@@ -45,7 +51,7 @@ export function Header() {
             <img
               src="/logo.svg"
               alt="MetaCode"
-              className="h-7 w-auto sm:h-8"
+              className="h-9 w-auto sm:h-11"
               width={213}
               height={78}
             />
@@ -124,7 +130,7 @@ export function Header() {
                 </Link>
                 <button
                   type="button"
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="text-sm font-medium text-zinc-400 transition-colors hover:text-white"
                 >
                   Logout

@@ -63,6 +63,9 @@ export const AUTH_LOGIN_PATH =
 export const AUTH_REFRESH_PATH =
   process.env.NEXT_PUBLIC_AUTH_REFRESH_PATH || "/v1/auth/token/refresh";
 
+export const AUTH_LOGOUT_PATH =
+  process.env.NEXT_PUBLIC_AUTH_LOGOUT_PATH || "/v1/auth/logout";
+
 export const KEYCLOAK_URL =
   process.env.NEXT_PUBLIC_KEYCLOAK_URL || "http://localhost:8080";
 export const KEYCLOAK_REALM =

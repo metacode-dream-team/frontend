@@ -1,4 +1,4 @@
-import { AUTH_LOGIN_PATH } from "@/shared/config/constants";
+import { AUTH_LOGIN_PATH, AUTH_LOGOUT_PATH } from "@/shared/config/constants";
 import { resolveAuthUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
 import { apiClient } from "@/shared/lib/api/client";
 import type {
@@ -103,5 +103,20 @@ export const authApi = {
 
   refreshTokens: async (): Promise<RefreshTokenResponse> => {
     return apiClient.refreshAccessToken();
+  },
+
+  logout: async (): Promise<void> => {
+    try {
+      await fetch(resolveAuthUrlForFetch(AUTH_LOGOUT_PATH), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({}),
+      });
+    } catch {
+      // best-effort: ignore network/backend errors so logout still clears local state
+    }
   },
 };

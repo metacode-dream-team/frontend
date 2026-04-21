@@ -12,6 +12,31 @@ import { isTokenExpired } from "@/shared/lib/utils/jwt";
 
 let refreshTimerId: ReturnType<typeof setTimeout> | null = null;
 
+const LOGOUT_FLAG_KEY = "metacode-auth-logged-out";
+
+function setLogoutFlag() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LOGOUT_FLAG_KEY, "1");
+  } catch {}
+}
+
+function clearLogoutFlag() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(LOGOUT_FLAG_KEY);
+  } catch {}
+}
+
+function hasLogoutFlag(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(LOGOUT_FLAG_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
@@ -28,6 +53,7 @@ export const useAuthStore = create<AuthStore>()(
           clearTimeout(refreshTimerId);
           refreshTimerId = null;
         }
+        clearLogoutFlag();
         set({
           accessToken,
           idToken,
@@ -56,6 +82,17 @@ export const useAuthStore = create<AuthStore>()(
           clearTimeout(refreshTimerId);
           refreshTimerId = null;
         }
+
+        setLogoutFlag();
+
+        void authApi.logout();
+
+        if (typeof window !== "undefined") {
+          try {
+            window.sessionStorage.removeItem("metacode-auth");
+          } catch {}
+        }
+
         set({
           accessToken: null,
           idToken: null,
@@ -104,6 +141,17 @@ export const useAuthStore = create<AuthStore>()(
         const state = get();
 
         if (state.isInitialized) {
+          return;
+        }
+
+        if (hasLogoutFlag()) {
+          set({
+            accessToken: null,
+            idToken: null,
+            expiresIn: null,
+            isAuthenticated: false,
+            isInitialized: true,
+          });
           return;
         }
 
