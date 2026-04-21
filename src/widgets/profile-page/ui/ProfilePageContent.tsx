@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import type { ProfileData } from "@/entities/profile";
+import { useState } from "react";
+import type { ProfileData, SkillGroup } from "@/entities/profile";
 import { isRemoteSvgImage } from "@/shared/lib/utils/isRemoteSvgImage";
 import { shouldUseNativeImgForRemoteUrl } from "@/shared/lib/utils/remoteImagePlain";
 import { ProfileAchievementsBlock } from "./profile-achievements-block";
@@ -33,6 +34,41 @@ function MapPinIcon() {
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
       <circle cx="12" cy="10" r="3" />
     </svg>
+  );
+}
+
+const SKILLS_PREVIEW_COUNT = 5;
+
+function SkillGroupBlock({ group }: { group: SkillGroup }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasMore = group.items.length > SKILLS_PREVIEW_COUNT;
+  const visibleItems = expanded ? group.items : group.items.slice(0, SKILLS_PREVIEW_COUNT);
+  const hiddenCount = group.items.length - SKILLS_PREVIEW_COUNT;
+
+  return (
+    <div>
+      <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+        <span className={`h-1.5 w-1.5 rounded-full ${skillLevelDotClass(group.level)}`} />
+        {group.level}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {visibleItems.map((item) => (
+          <ProfileTag key={item.name}>
+            {item.name}
+            <span className="text-zinc-500">×{item.count}</span>
+          </ProfileTag>
+        ))}
+      </div>
+      {hasMore && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-2 text-xs font-medium text-violet-400 transition-colors hover:text-violet-300"
+        >
+          {expanded ? "Show less" : `Show all (+${hiddenCount})`}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -123,20 +159,7 @@ export function ProfilePageContent({ profile }: ProfilePageContentProps) {
             <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Skills</h3>
             <div className="mt-4 space-y-4">
               {profile.skills.map((group) => (
-                <div key={group.level}>
-                  <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                    <span className={`h-1.5 w-1.5 rounded-full ${skillLevelDotClass(group.level)}`} />
-                    {group.level}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {group.items.map((item) => (
-                      <ProfileTag key={item.name}>
-                        {item.name}
-                        <span className="text-zinc-500">×{item.count}</span>
-                      </ProfileTag>
-                    ))}
-                  </div>
-                </div>
+                <SkillGroupBlock key={group.level} group={group} />
               ))}
             </div>
           </section>

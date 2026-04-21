@@ -18,8 +18,8 @@ function linkActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function profileSectionActive(pathname: string) {
-  return pathname === "/profile" || pathname.startsWith("/profile/");
+function dashboardSectionActive(pathname: string) {
+  return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
 }
 
 export function Header() {
@@ -75,10 +75,10 @@ export function Header() {
               {isAuthenticated && (
                 <li>
                   <Link
-                    href="/profile"
-                    className={linkClass(profileSectionActive(pathname))}
+                    href="/dashboard"
+                    className={linkClass(dashboardSectionActive(pathname))}
                   >
-                    Profile
+                    Dashboard
                   </Link>
                 </li>
               )}
@@ -109,18 +109,6 @@ export function Header() {
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {isAuthenticated ? (
               <>
-                <Link
-                  href="/dashboard"
-                  className={cn(
-                    "hidden text-sm font-medium transition-colors sm:inline",
-                    pathname === "/dashboard" ||
-                      pathname.startsWith("/dashboard/")
-                      ? "text-white"
-                      : "text-zinc-400 hover:text-white",
-                  )}
-                >
-                  Dashboard
-                </Link>
                 <Link
                   href="/profile"
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-purple-900 text-xs font-bold text-white ring-2 ring-violet-500/40 transition hover:ring-violet-400/60"
