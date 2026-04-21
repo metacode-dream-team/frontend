@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useAuthStore } from "@/entities/auth";
+import { useProfileMeStore } from "@/entities/profile";
 import { ConnectPlatformsModal } from "@/features/connect-accounts";
 
 const CARD =
@@ -266,9 +268,65 @@ const HEATMAP_COLORS = [
   "#ddd6fe",
 ];
 
+function buildInitials(name: string): string {
+  const parts = name.trim().split(/[\s_.-]+/).filter(Boolean);
+  if (parts.length === 0) return "ME";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+function formatJoined(createdAt: string | null | undefined): string | null {
+  if (!createdAt) return null;
+  const d = new Date(createdAt);
+  if (Number.isNaN(d.getTime())) return null;
+  return `Joined ${d.toLocaleString("en-US", { month: "long", year: "numeric" })}`;
+}
+
+function hashString(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
+
+interface LinkedAccount {
+  provider: "github" | "leetcode" | "monkeytype";
+  label: string;
+  username: string | null;
+  connected: boolean;
+}
+
+function resolveLinkedAccounts(
+  links: { provider: string; username: string | null }[] | undefined,
+): LinkedAccount[] {
+  const byProvider = new Map<string, string | null>();
+  for (const l of links ?? []) {
+    byProvider.set(l.provider.toLowerCase(), l.username?.trim() || null);
+  }
+  const providers: Array<Omit<LinkedAccount, "username" | "connected">> = [
+    { provider: "github", label: "GitHub" },
+    { provider: "leetcode", label: "LeetCode" },
+    { provider: "monkeytype", label: "Monkeytype" },
+  ];
+  return providers.map((p) => {
+    const raw = byProvider.get(p.provider);
+    return {
+      ...p,
+      username: raw ?? null,
+      connected: Boolean(raw),
+    };
+  });
+}
+
 export default function DashboardPage() {
   const heatmapGrid = useMemo(() => generateWeightedHeatmapGrid(), []);
   const [connectOpen, setConnectOpen] = useState(false);
+
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isAuthInitialized = useAuthStore((s) => s.isInitialized);
+  const profile = useProfileMeStore((s) => s.profile);
+  const isProfileLoading = useProfileMeStore((s) => s.isLoading);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -282,6 +340,109 @@ export default function DashboardPage() {
 
   const openConnect = useCallback(() => setConnectOpen(true), []);
 
+  const displayName = useMemo(() => {
+    if (!profile) return "";
+    const full = [profile.firstName, profile.lastName].filter(Boolean).join(" ").trim();
+    return full || profile.username || "";
+  }, [profile]);
+
+  const initials = useMemo(() => buildInitials(displayName || profile?.username || "ME"), [
+    displayName,
+    profile?.username,
+  ]);
+
+  const headline = profile?.headline?.trim() || "Developer";
+  const joinedText = formatJoined(profile?.createdAt);
+
+  const linkedAccounts = useMemo(
+    () => resolveLinkedAccounts(profile?.externalProfileLinks),
+    [profile?.externalProfileLinks],
+  );
+
+  const hasAnyLink = linkedAccounts.some((l) => l.connected);
+
+  const userSeed = useMemo(() => {
+    const base = profile?.userId || profile?.username || displayName || "anon";
+    return hashString(base);
+  }, [profile?.userId, profile?.username, displayName]);
+
+  const stats = useMemo(() => {
+    if (!profile) {
+      return {
+        level: 42,
+        currentXp: 34250,
+        nextLevelXp: 45000,
+        streak: 18,
+        globalRank: 1245,
+      };
+    }
+    const level = 25 + (userSeed % 60);
+    const currentXp = 5000 + (userSeed % 50000);
+    const nextLevelXp = Math.max(currentXp + 2000, Math.ceil((currentXp + 1) / 5000) * 5000);
+    const streak = 2 + (userSeed % 40);
+    const globalRank = 100 + (userSeed % 9900);
+    return { level, currentXp, nextLevelXp, streak, globalRank };
+  }, [profile, userSeed]);
+
+  const xpPercent = Math.min(100, Math.round((stats.currentXp / stats.nextLevelXp) * 100));
+
+  const rankings = useMemo(() => {
+    const base = RANKINGS.filter((r) => !r.highlight);
+    if (!profile) return RANKINGS;
+    return [
+      ...base,
+      {
+        rank: stats.globalRank,
+        name: `${displayName || profile.username || "You"} (You)`,
+        level: stats.level,
+        power: `${Math.round(stats.currentXp / 100)}K`,
+        highlight: true,
+      },
+    ];
+  }, [profile, displayName, stats]);
+
+  if (!isAuthInitialized) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center bg-black text-sm text-zinc-500">
+        Loading…
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-zinc-100">
+        <div className="mx-auto flex max-w-md flex-col items-center justify-center px-6 py-24 text-center">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-violet-600/20 text-violet-300">
+            <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zM8 11V7a4 4 0 1 1 8 0v4" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-white">Dashboard is private</h1>
+          <p className="mt-2 text-sm text-zinc-400">
+            Log in to see your personal metrics, streaks, and connected platforms.
+          </p>
+          <div className="mt-6 flex gap-3">
+            <Link
+              href="/login?redirect=/dashboard"
+              className="rounded-lg bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_20px_rgba(168,85,247,0.35)] transition-colors hover:bg-violet-500"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/"
+              className="rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+            >
+              Back home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const avatarUrl = profile?.avatarUrl?.trim() || null;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-zinc-100">
       <div className="mx-auto max-w-7xl space-y-5 px-4 py-8 pb-16 lg:space-y-6 lg:px-6">
@@ -290,14 +451,22 @@ export default function DashboardPage() {
           <section className={`${CARD} flex flex-col`}>
             <div className="flex gap-4">
               <div className="relative shrink-0">
-                <div
-                  className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-purple-900 text-xl font-bold text-white ring-2 ring-violet-500/50 ring-offset-2 ring-offset-[#0c0c0e] shadow-[0_0_24px_rgba(168,85,247,0.35)]"
-                  aria-hidden
-                >
-                  FH
-                </div>
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={displayName}
+                    className="h-20 w-20 rounded-full object-cover ring-2 ring-violet-500/50 ring-offset-2 ring-offset-[#0c0c0e] shadow-[0_0_24px_rgba(168,85,247,0.35)]"
+                  />
+                ) : (
+                  <div
+                    className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-purple-900 text-xl font-bold text-white ring-2 ring-violet-500/50 ring-offset-2 ring-offset-[#0c0c0e] shadow-[0_0_24px_rgba(168,85,247,0.35)]"
+                    aria-hidden
+                  >
+                    {initials}
+                  </div>
+                )}
                 <span className="absolute -bottom-1 -left-1 rounded-md bg-violet-600 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-lg">
-                  LVL 42
+                  LVL {stats.level}
                 </span>
                 <span
                   className="absolute -right-0.5 -bottom-0.5 h-3.5 w-3.5 rounded-full border-2 border-[#0c0c0e] bg-emerald-500"
@@ -306,13 +475,18 @@ export default function DashboardPage() {
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="text-lg font-bold leading-tight text-white sm:text-xl">
-                  Felix &apos;Neo&apos; Henderson
+                <h1 className="truncate text-lg font-bold leading-tight text-white sm:text-xl">
+                  {displayName || (isProfileLoading ? "Loading…" : "Developer")}
                 </h1>
+                {profile?.username && displayName && profile.username !== displayName && (
+                  <p className="mt-0.5 truncate text-xs text-zinc-500">@{profile.username}</p>
+                )}
                 <p className="mt-2 inline-flex rounded-full border border-violet-500/35 bg-violet-950/40 px-3 py-0.5 text-xs font-semibold text-violet-200">
-                  Full Stack Architect
+                  {headline}
                 </p>
-                <p className="mt-3 text-xs text-zinc-500">Joined March 2024</p>
+                {joinedText && (
+                  <p className="mt-3 text-xs text-zinc-500">{joinedText}</p>
+                )}
               </div>
             </div>
           </section>
@@ -324,15 +498,15 @@ export default function DashboardPage() {
             <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                  34,250{" "}
+                  {stats.currentXp.toLocaleString()}{" "}
                   <span className="text-lg font-semibold text-zinc-500">
-                    / 45,000 XP
+                    / {stats.nextLevelXp.toLocaleString()} XP
                   </span>
                 </p>
                 <div className="mt-3 h-3 w-full max-w-xl overflow-hidden rounded-full bg-zinc-900">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 shadow-[0_0_16px_rgba(168,85,247,0.5)]"
-                    style={{ width: "76%" }}
+                    style={{ width: `${xpPercent}%` }}
                   />
                 </div>
               </div>
@@ -353,7 +527,7 @@ export default function DashboardPage() {
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
                       Current streak
                     </p>
-                    <p className="text-sm font-bold text-white">18 Days</p>
+                    <p className="text-sm font-bold text-white">{stats.streak} Days</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
@@ -377,7 +551,7 @@ export default function DashboardPage() {
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
                       Global rank
                     </p>
-                    <p className="text-sm font-bold text-white">#1,245</p>
+                    <p className="text-sm font-bold text-white">#{stats.globalRank.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
@@ -504,72 +678,75 @@ export default function DashboardPage() {
                 Neural Links
               </h2>
             </div>
-            <p className="mt-1 text-xs text-zinc-500">Live data synchronization</p>
+            <p className="mt-1 text-xs text-zinc-500">
+              {hasAnyLink ? "Live data synchronization" : "Connect at least one platform to sync data"}
+            </p>
             <ul className="mt-5 divide-y divide-zinc-800/60">
-              <li className="flex items-center justify-between gap-3 py-3 first:pt-0">
-                <div className="flex min-w-0 items-center gap-3">
-                  <svg
-                    className="h-5 w-5 shrink-0 text-violet-400"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden
-                  >
-                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z" />
-                  </svg>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-white">GitHub</p>
-                    <p className="text-[11px] text-emerald-400/85">Connected</p>
+              {linkedAccounts.map((acc) => (
+                <li
+                  key={acc.provider}
+                  className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    {acc.provider === "github" ? (
+                      <svg
+                        className="h-5 w-5 shrink-0 text-violet-400"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        aria-hidden
+                      >
+                        <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z" />
+                      </svg>
+                    ) : acc.provider === "leetcode" ? (
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center text-violet-400" aria-hidden>
+                        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="m16 18 6-6-6-6M8 6l-6 6 6 6" />
+                        </svg>
+                      </span>
+                    ) : (
+                      <svg
+                        className="h-5 w-5 shrink-0 text-violet-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden
+                      >
+                        <rect x="2" y="6" width="20" height="12" rx="2" />
+                        <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h.01M12 14h.01M16 14h.01" />
+                      </svg>
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-white">{acc.label}</p>
+                      <p
+                        className={
+                          acc.connected
+                            ? "truncate text-[11px] text-emerald-400/85"
+                            : "truncate text-[11px] text-zinc-500"
+                        }
+                      >
+                        {acc.connected && acc.username ? `@${acc.username}` : acc.connected ? "Connected" : "Not connected"}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <p className="shrink-0 text-[10px] font-semibold tracking-wide text-zinc-500">
-                  1,240 COMMITS
-                </p>
-              </li>
-              <li className="flex items-center justify-between gap-3 py-3">
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center text-violet-400" aria-hidden>
-                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="m16 18 6-6-6-6M8 6l-6 6 6 6" />
-                    </svg>
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-white">LeetCode</p>
-                    <p className="text-[11px] text-emerald-400/85">Connected</p>
-                  </div>
-                </div>
-                <p className="shrink-0 text-[10px] font-semibold tracking-wide text-zinc-500">
-                  452 SOLVED
-                </p>
-              </li>
-              <li className="flex items-center justify-between gap-3 py-3">
-                <div className="flex min-w-0 items-center gap-3">
-                  <svg
-                    className="h-5 w-5 shrink-0 text-violet-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    aria-hidden
-                  >
-                    <rect x="2" y="6" width="20" height="12" rx="2" />
-                    <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h.01M12 14h.01M16 14h.01" />
-                  </svg>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-white">Monkeytype</p>
-                    <p className="text-[11px] text-violet-300/80">Syncing</p>
-                  </div>
-                </div>
-                <p className="shrink-0 text-[10px] font-semibold tracking-wide text-zinc-500">
-                  112 WPM PEAK
-                </p>
-              </li>
+                  {!acc.connected && (
+                    <button
+                      type="button"
+                      onClick={openConnect}
+                      className="shrink-0 rounded-md border border-violet-500/40 bg-violet-950/40 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-violet-200 transition-colors hover:bg-violet-900/60 hover:text-white"
+                    >
+                      Connect
+                    </button>
+                  )}
+                </li>
+              ))}
             </ul>
             <button
               type="button"
               onClick={openConnect}
               className="mt-5 w-full rounded-lg border border-zinc-700/80 bg-zinc-900/40 py-2.5 text-xs font-semibold tracking-wide text-zinc-200 transition-colors hover:border-zinc-600 hover:bg-zinc-800/50 hover:text-white"
             >
-              Connect New Source +
+              {hasAnyLink ? "Manage connections" : "Connect a platform +"}
             </button>
           </section>
 
@@ -673,7 +850,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {RANKINGS.map((row) => (
+                  {rankings.map((row) => (
                     <tr
                       key={row.rank}
                       className={
