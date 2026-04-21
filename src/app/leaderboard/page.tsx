@@ -4,7 +4,20 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { useAuthStore } from "@/entities/auth";
+import { useProfileMeStore } from "@/entities/profile";
 import leetcodeImg from "@/assets/Leetcode--Streamline-Simple-Icons (2).png";
+import firstAvatar from "@/assets/profile/first.jpg";
+import leader1 from "@/assets/profile/1 leader.jpg";
+import leader2 from "@/assets/profile/2 leader.png";
+import leader3 from "@/assets/profile/3 leader.jpg";
+import leader4 from "@/assets/profile/4 leader.jpg";
+import leader5 from "@/assets/profile/5 leader.jpg";
+import leader7 from "@/assets/profile/7 leader.jpg";
+import leader8 from "@/assets/profile/8 leader.jpg";
+import leader9 from "@/assets/profile/9 leader.jpg";
+import leader10 from "@/assets/profile/10 leader.jpg";
+import leaderExtra from "@/assets/profile/leader.jpg";
 
 const PAGE_SIZE = 7;
 const TOTAL_DEVELOPERS = { weekly: 1340, monthly: 2840, alltime: 12500 };
@@ -18,6 +31,7 @@ const PODIUM_DATA = [
     xp: "115,200",
     stats: { github: 880, leetcode: 122, wpm: 195 },
     accent: "silver",
+    avatar: leader2,
   },
   {
     rank: 1,
@@ -28,6 +42,7 @@ const PODIUM_DATA = [
     stats: { github: 1630, leetcode: 450, wpm: 125 },
     accent: "gold",
     elevated: true,
+    avatar: leaderExtra,
   },
   {
     rank: 3,
@@ -37,20 +52,21 @@ const PODIUM_DATA = [
     xp: "108,900",
     stats: { github: 2150, leetcode: 260, wpm: 183 },
     accent: "bronze",
+    avatar: leader3,
   },
 ];
 
 const ALL_TABLE_ROWS = [
-  { id: "4", rank: 4, name: "Elena Rodriguez", level: 54, github: 840, leetcode: 310, wpm: 95, badge: "Mainlainer", xp: "92,400", trend: "Steady" },
-  { id: "5", rank: 5, name: "James Wilson", level: 51, github: 1200, leetcode: 150, wpm: 115, badge: "TypeScript Wizard", xp: "88,100", trend: "+1UP" },
-  { id: "6", rank: 6, name: "Amiya Sato", level: 49, github: 630, leetcode: 420, wpm: 88, badge: "Competition Coder", xp: "81,200", trend: "DOWN" },
-  { id: "7", rank: 7, name: "David Kim", level: 43, github: 450, leetcode: 120, wpm: 155, badge: "Soul Speed", xp: "75,800", trend: "+120MS" },
-  { id: "8", rank: 8, name: "Lisa Varna", level: 45, github: 1100, leetcode: 85, wpm: 322, badge: "AI Artisan", xp: "88,000", trend: "+2UP" },
-  { id: "9", rank: 9, name: "Tom Hiddleston", level: 42, github: 300, leetcode: 200, wpm: 90, badge: "Login Pro", xp: "84,200", trend: "Steady" },
-  { id: "10", rank: 10, name: "Zoe Kravitz", level: 40, github: 560, leetcode: 180, wpm: 115, badge: "Backend Honey", xp: "59,800", trend: "+7 Down" },
-  { id: "11", rank: 11, name: "Alex Morgan", level: 48, github: 720, leetcode: 280, wpm: 102, badge: "Full Stack", xp: "78,500", trend: "+3UP" },
-  { id: "12", rank: 12, name: "Jordan Lee", level: 46, github: 890, leetcode: 190, wpm: 118, badge: "DevOps Pro", xp: "72,100", trend: "Steady" },
-  { id: "13", rank: 13, name: "Sam Taylor", level: 44, github: 540, leetcode: 350, wpm: 95, badge: "Algo Expert", xp: "68,900", trend: "DOWN" },
+  { id: "4", rank: 4, name: "Elena Rodriguez", level: 54, github: 840, leetcode: 310, wpm: 95, badge: "Mainlainer", xp: "92,400", trend: "Steady", avatar: leader1 },
+  { id: "5", rank: 5, name: "James Wilson", level: 51, github: 1200, leetcode: 150, wpm: 115, badge: "TypeScript Wizard", xp: "88,100", trend: "+1UP", avatar: leader4 },
+  { id: "6", rank: 6, name: "Amiya Sato", level: 49, github: 630, leetcode: 420, wpm: 88, badge: "Competition Coder", xp: "81,200", trend: "DOWN", avatar: leader5 },
+  { id: "7", rank: 7, name: "David Kim", level: 43, github: 450, leetcode: 120, wpm: 155, badge: "Soul Speed", xp: "75,800", trend: "+120MS", avatar: leader7 },
+  { id: "8", rank: 8, name: "Lisa Varna", level: 45, github: 1100, leetcode: 85, wpm: 322, badge: "AI Artisan", xp: "88,000", trend: "+2UP", avatar: leader8 },
+  { id: "9", rank: 9, name: "Tom Hiddleston", level: 42, github: 300, leetcode: 200, wpm: 90, badge: "Login Pro", xp: "84,200", trend: "Steady", avatar: leader9 },
+  { id: "10", rank: 10, name: "Zoe Kravitz", level: 40, github: 560, leetcode: 180, wpm: 115, badge: "Backend Honey", xp: "59,800", trend: "+7 Down", avatar: leader10 },
+  { id: "11", rank: 11, name: "Alex Morgan", level: 48, github: 720, leetcode: 280, wpm: 102, badge: "Full Stack", xp: "78,500", trend: "+3UP", avatar: leader7 },
+  { id: "12", rank: 12, name: "Jordan Lee", level: 46, github: 890, leetcode: 190, wpm: 118, badge: "DevOps Pro", xp: "72,100", trend: "Steady", avatar: leader1 },
+  { id: "13", rank: 13, name: "Sam Taylor", level: 44, github: 540, leetcode: 350, wpm: 95, badge: "Algo Expert", xp: "68,900", trend: "DOWN", avatar: leader4 },
 ];
 
 const CUP_COLORS = { gold: "#FFD700", silver: "#C0C0C0", bronze: "#CD7F32" } as const;
@@ -120,6 +136,15 @@ export default function LeaderboardPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [badgeFilter, setBadgeFilter] = useState<string | null>(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
+
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const profileMe = useProfileMeStore((s) => s.profile);
+
+  const currentUserDisplayName = useMemo(() => {
+    if (!profileMe) return "DevUser";
+    const full = [profileMe.firstName, profileMe.lastName].filter(Boolean).join(" ").trim();
+    return full || profileMe.username || "DevUser";
+  }, [profileMe]);
 
   const allBadges = useMemo(
     () => [...new Set(ALL_TABLE_ROWS.map((r) => r.badge))].sort(),
@@ -221,8 +246,12 @@ export default function LeaderboardPage() {
               </div>
               <div className="mb-4 flex justify-center">
                 <div className="relative">
-                  <div
-                    className="h-20 w-20 rounded-full"
+                  <Image
+                    src={p.avatar}
+                    alt={p.name}
+                    width={80}
+                    height={80}
+                    className="h-20 w-20 rounded-full object-cover"
                     style={{ backgroundColor: "#2a2a2a" }}
                   />
                   <div
@@ -393,8 +422,12 @@ export default function LeaderboardPage() {
                     <td className="py-4 text-zinc-500">#{row.rank}</td>
                     <td className="py-4">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="h-9 w-9 shrink-0 rounded-full"
+                        <Image
+                          src={row.avatar}
+                          alt={row.name}
+                          width={36}
+                          height={36}
+                          className="h-9 w-9 shrink-0 rounded-full object-cover"
                           style={{ backgroundColor: "#2a2a2a" }}
                         />
                         <div>
@@ -478,62 +511,79 @@ export default function LeaderboardPage() {
         </div>
       </div>
 
-      {/* 5. User rank card — после таблицы, фиолетовый акцент */}
-      <div className="mx-auto mt-8 max-w-6xl px-6 pb-8">
-        <div
-          className="flex flex-col items-center justify-between gap-4 rounded-2xl px-6 py-5 sm:flex-row"
-          style={{
-            background: "linear-gradient(135deg, #2a0050 0%, #1a0035 50%, #0f0020 100%)",
-            border: "1.5px solid rgba(124,58,237,0.6)",
-            boxShadow: "0 0 30px rgba(124,58,237,0.25), inset 0 1px 0 rgba(255,255,255,0.05)",
-          }}
-        >
-          <div className="flex items-center gap-4">
-            <span
-              className="flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold"
-              style={{ color: "#a78bfa", backgroundColor: "rgba(124,58,237,0.4)" }}
-            >
-              #142
-            </span>
-            <div className="relative">
-              <div
-                className="h-12 w-12 rounded-full"
-                style={{ backgroundColor: "#2a2a2a" }}
-              />
-              <div
-                className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2"
-                style={{ backgroundColor: "#22c55e", borderColor: "#1a0035" }}
-              />
+      {/* 5. User rank card — показывается только залогиненным */}
+      {isAuthenticated && (
+        <div className="mx-auto mt-8 max-w-6xl px-6 pb-8">
+          <div
+            className="flex flex-col items-center justify-between gap-4 rounded-2xl px-6 py-5 sm:flex-row"
+            style={{
+              background: "linear-gradient(135deg, #2a0050 0%, #1a0035 50%, #0f0020 100%)",
+              border: "1.5px solid rgba(124,58,237,0.6)",
+              boxShadow: "0 0 30px rgba(124,58,237,0.25), inset 0 1px 0 rgba(255,255,255,0.05)",
+            }}
+          >
+            <div className="flex items-center gap-4">
+              <span
+                className="flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold"
+                style={{ color: "#a78bfa", backgroundColor: "rgba(124,58,237,0.4)" }}
+              >
+                #142
+              </span>
+              <div className="relative">
+                {profileMe?.avatarUrl ? (
+                  <img
+                    src={profileMe.avatarUrl}
+                    alt={currentUserDisplayName}
+                    width={48}
+                    height={48}
+                    className="h-12 w-12 rounded-full object-cover"
+                    style={{ backgroundColor: "#2a2a2a" }}
+                  />
+                ) : (
+                  <Image
+                    src={firstAvatar}
+                    alt={currentUserDisplayName}
+                    width={48}
+                    height={48}
+                    className="h-12 w-12 rounded-full object-cover"
+                    style={{ backgroundColor: "#2a2a2a" }}
+                  />
+                )}
+                <div
+                  className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2"
+                  style={{ backgroundColor: "#22c55e", borderColor: "#1a0035" }}
+                />
+              </div>
+              <div>
+                <p className="font-bold text-white">You ({currentUserDisplayName})</p>
+                <p className="text-sm text-zinc-400">
+                  You are in the top 15% this week! Keep it up.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="font-bold text-white">You (DevUser)</p>
-              <p className="text-sm text-zinc-400">
-                You are in the top 15% this week! Keep it up.
-              </p>
+            <div className="flex items-center gap-6">
+              <div className="text-right">
+                <p className="text-xl font-bold" style={{ color: "#a78bfa" }}>
+                  12,450 XP
+                </p>
+                <p className="flex items-center justify-end gap-1 text-xs text-[#22c55e]">
+                  <span>↗</span> 24 PLACES UP
+                </p>
+              </div>
+              <Link
+                href="/dashboard"
+                className="rounded-xl px-6 py-3 font-medium text-white transition-all hover:brightness-110"
+                style={{
+                  backgroundColor: "#7c3aed",
+                  boxShadow: "0 0 20px rgba(124,58,237,0.4)",
+                }}
+              >
+                View My Stats
+              </Link>
             </div>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <p className="text-xl font-bold" style={{ color: "#a78bfa" }}>
-                12,450 XP
-              </p>
-              <p className="flex items-center justify-end gap-1 text-xs text-[#22c55e]">
-                <span>↗</span> 24 PLACES UP
-              </p>
-            </div>
-            <Link
-              href="/dashboard"
-              className="rounded-xl px-6 py-3 font-medium text-white transition-all hover:brightness-110"
-              style={{
-                backgroundColor: "#7c3aed",
-                boxShadow: "0 0 20px rgba(124,58,237,0.4)",
-              }}
-            >
-              View My Stats
-            </Link>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
