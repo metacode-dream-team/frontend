@@ -287,7 +287,7 @@ function DifficultyStat({
     tone === "easy" ? "text-emerald-400" : tone === "medium" ? "text-amber-300" : "text-rose-400";
 
   return (
-    <div className="rounded-lg bg-zinc-900/40 px-2 py-2 text-center">
+    <div className="rounded-lg bg-zinc-800/80 px-2 py-2 text-center">
       <p className={`text-[10px] font-semibold tracking-wide ${labelClass}`}>{label}</p>
       <p className="mt-0.5 text-sm font-bold tabular-nums text-white">
         {solved}
