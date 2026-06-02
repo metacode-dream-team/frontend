@@ -1,4 +1,4 @@
-import type { Roadmap } from "@/entities/roadmap";
+import type { Roadmap } from "@/shared/types/roadmap";
 
 export const mockRoadmaps: Roadmap[] = [
   {

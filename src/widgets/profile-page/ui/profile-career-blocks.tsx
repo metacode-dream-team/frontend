@@ -174,7 +174,7 @@ export function ProfileCertificationsSection({ items }: { items: ProfileCertific
 export function ProfileTechSkillsSection({ skills }: { skills: string[] }) {
   return (
     <ProfileCard>
-      <SectionHeading title="Skills" />
+      <SectionHeading title=" Skills" />
       <div className="flex flex-wrap gap-2">
         {skills.map((s) => (
           <ProfileTag key={s}>{s}</ProfileTag>

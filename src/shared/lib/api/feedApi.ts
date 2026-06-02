@@ -28,7 +28,7 @@
  * ```
  */
 
-import type { FeedEvent, GroupedEvent } from "@/entities/event";
+import type { FeedEvent, GroupedEvent } from "@/shared/types/event";
 
 const MOCK_USERNAMES = [
   "alex_dev",

@@ -72,8 +72,14 @@ function SkillGroupBlock({ group }: { group: SkillGroup }) {
   );
 }
 
+function normalizeUrl(url: string): string {
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
+}
+
 export function ProfilePageContent({ profile }: ProfilePageContentProps) {
   const avatarPlain = shouldUseNativeImgForRemoteUrl(profile.avatarUrl);
+  const contacts = profile.contacts;
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
       <aside className="w-full shrink-0 bg-black lg:w-[280px] lg:min-w-[280px]">
@@ -155,8 +161,43 @@ export function ProfilePageContent({ profile }: ProfilePageContentProps) {
             </ul>
           </section>
 
+          {contacts ? (
+            <section className="mt-8 pt-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Contacts</h3>
+              <div className="mt-3 space-y-2 text-sm text-zinc-300">
+                {contacts.email ? (
+                  <a
+                    href={`mailto:${contacts.email}`}
+                    className="block truncate transition-colors hover:text-violet-300"
+                  >
+                    {contacts.email}
+                  </a>
+                ) : null}
+                {contacts.phone ? (
+                  <a
+                    href={`tel:${contacts.phone}`}
+                    className="block transition-colors hover:text-violet-300"
+                  >
+                    {contacts.phone}
+                  </a>
+                ) : null}
+                {contacts.websites.map((site) => (
+                  <a
+                    key={`${site.type}-${site.url}`}
+                    href={normalizeUrl(site.url)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block truncate text-zinc-400 transition-colors hover:text-violet-300"
+                  >
+                    {site.type}: {site.url}
+                  </a>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           <section className="mt-8 pt-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Skills</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">DSA Skills</h3>
             <div className="mt-4 space-y-4">
               {profile.skills.map((group) => (
                 <SkillGroupBlock key={group.level} group={group} />

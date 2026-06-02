@@ -1,4 +1,4 @@
-import type { ActivitySource } from "@/shared/types/stats";
+import type { ActivitySource } from "./stats";
 
 export interface SkillGroup {
   level: "Fundamental" | "Intermediate" | "Advanced";
@@ -104,7 +104,6 @@ export interface ProfileData {
   languages: Array<{ name: string; solved: number }>;
   skills: SkillGroup[];
   heatmap: ProfileHeatmapDay[];
-  /** Из `/v1/integration/profile`: max по дням + разбивка по GitHub / LeetCode / Monkeytype */
   heatmapBySource?: ProfileHeatmapBySource;
   experience: ProfileExperience[];
   education: ProfileEducation[];

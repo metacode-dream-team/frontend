@@ -1,4 +1,4 @@
-import type { Roadmap, RoadmapNode, RoadmapTask } from "@/entities/roadmap";
+import type { Roadmap, RoadmapNode, RoadmapTask } from "@/shared/types/roadmap";
 import { mockRoadmaps } from "./mockRoadmaps";
 
 export interface CreateRoadmapPayload {

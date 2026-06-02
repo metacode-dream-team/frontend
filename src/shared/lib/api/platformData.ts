@@ -10,8 +10,8 @@ import {
   pickUserId,
   unwrapDataPayload,
 } from "./platformMappers";
-import type { ProfileAchievement, ProfileData, ProfileHeatmapDay } from "@/entities/profile";
-import type { ActivityDay, GithubStats, LeetcodeStats, MonkeytypeStats } from "@/entities/stats";
+import type { ProfileAchievement, ProfileData, ProfileHeatmapDay } from "@/shared/types/profile";
+import type { ActivityDay, GithubStats, LeetcodeStats, MonkeytypeStats } from "@/shared/types/stats";
 
 type Json = Record<string, unknown>;
 
@@ -49,6 +49,14 @@ export async function fetchUserAchievements(
     `/v1/activity/user/achievement?${q.toString()}`,
     accessToken,
   );
+}
+
+export async function fetchLeaderboardUser(
+  userId: string,
+  accessToken?: string | null,
+): Promise<Json> {
+  const enc = encodeURIComponent(userId);
+  return integrationGet<Json>(`/v1/activity/leaderboard/user/${enc}`, accessToken);
 }
 
 export async function buildProfileFromPlatform(idFromRoute: string): Promise<ProfileData> {

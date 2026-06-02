@@ -4,13 +4,22 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import type { ProfileAchievement, ProfileData } from "@/entities/profile";
 import { isProfileRouteCurrentUser, mergeProfileWithMe, useProfileMeStore } from "@/entities/profile";
-import { augmentProfileWithIntegration, mapAchievementsPayload } from "@/shared/lib/api/platformMappers";
-import { fetchIntegrationProfile, fetchUserAchievements } from "@/shared/lib/api/platformData";
+import {
+  augmentProfileWithIntegration,
+  mapAchievementsPayload,
+  mapLeaderboardUserRank,
+} from "@/shared/lib/api/platformMappers";
+import {
+  fetchIntegrationProfile,
+  fetchLeaderboardUser,
+  fetchUserAchievements,
+} from "@/shared/lib/api/platformData";
 import { resolveActivityUserId } from "./resolveActivityUserId";
 
 type ClientBundle = {
   achievements?: ProfileAchievement[];
   integrationJson: unknown | null;
+  rank?: number;
 };
 
 /**
@@ -44,18 +53,21 @@ export function useProfileWithClientAchievements(
     let cancelled = false;
     void (async () => {
       try {
-        const [achRaw, intRaw] = await Promise.all([
+        const [achRaw, intRaw, leaderboardRaw] = await Promise.all([
           ownProfile
             ? fetchUserAchievements(userId, accessToken).catch(() => null)
             : Promise.resolve(null),
           fetchIntegrationProfile(userId, accessToken).catch(() => null),
+          fetchLeaderboardUser(userId, accessToken).catch(() => null),
         ]);
         if (cancelled) return;
 
         const achParsed = achRaw ? mapAchievementsPayload(achRaw) : [];
+        const rank = leaderboardRaw ? mapLeaderboardUserRank(leaderboardRaw) : null;
         setBundle({
           achievements: achParsed.length > 0 ? achParsed : undefined,
           integrationJson: intRaw,
+          rank: rank ?? undefined,
         });
       } catch {
         if (!cancelled) {
@@ -80,6 +92,9 @@ export function useProfileWithClientAchievements(
     }
     if (bundle.integrationJson != null) {
       next = augmentProfileWithIntegration(next, bundle.integrationJson);
+    }
+    if (typeof bundle.rank === "number" && Number.isFinite(bundle.rank) && bundle.rank > 0) {
+      next = { ...next, rank: bundle.rank };
     }
     return next;
   }, [initialProfile, me, routeUsername, bundle]);

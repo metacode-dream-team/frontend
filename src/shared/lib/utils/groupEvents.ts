@@ -3,7 +3,7 @@
  * Группирует события одного пользователя, которые произошли в течение короткого времени
  */
 
-import type { FeedEvent, GroupedEvent } from "@/entities/event";
+import type { FeedEvent, GroupedEvent } from "@/shared/types/event";
 
 const GROUPING_TIME_WINDOW_MS = 30 * 60 * 1000; // 30 минут
 

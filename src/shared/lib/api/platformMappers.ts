@@ -1,5 +1,4 @@
 import {
-  formatMeYearMonth,
   type ProfileAchievement,
   type ProfileCertification,
   type ProfileData,
@@ -7,10 +6,42 @@ import {
   type ProfileExperience,
   type ProfileHeatmapBySource,
   type ProfileHeatmapDay,
-} from "@/entities/profile";
-import type { ActivityDay, ActivitySource, GithubStats, LeetcodeStats, MonkeytypeStats } from "@/entities/stats";
+} from "@/shared/types/profile";
+import type { ActivityDay, ActivitySource, GithubStats, LeetcodeStats, MonkeytypeStats } from "@/shared/types/stats";
 
 type Json = Record<string, unknown>;
+
+const MONTH_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
+
+function formatMeYearMonth(value: unknown): string {
+  if (value == null) return "";
+  if (typeof value === "string") {
+    const t = value.trim();
+    return t.length ? t : "";
+  }
+  if (typeof value !== "object") return "";
+  const o = value as Json;
+  const y = o.Year ?? o.year;
+  const m = o.Month ?? o.month;
+  const year = Number(y);
+  if (!Number.isFinite(year)) return "";
+  const month = Number(m);
+  if (!Number.isFinite(month) || month < 1 || month > 12) return String(year);
+  return `${MONTH_SHORT[month - 1]} ${year}`;
+}
 
 export function unwrapDataPayload(raw: unknown): Json {
   if (!raw || typeof raw !== "object") return {};
@@ -37,6 +68,15 @@ function num(v: unknown, fallback = 0): number {
 
 function bool(v: unknown): boolean {
   return v === true || v === "true" || v === 1;
+}
+
+export function mapLeaderboardUserRank(raw: unknown): number | null {
+  const j = unwrapDataPayload(raw);
+  const rank = num(j.rank ?? j.Rank, Number.NaN);
+  if (!Number.isFinite(rank) || rank <= 0) {
+    return null;
+  }
+  return Math.trunc(rank);
 }
 
 export function pickUserId(raw: unknown): string | null {

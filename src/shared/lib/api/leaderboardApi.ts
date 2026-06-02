@@ -2,7 +2,7 @@
  * API для Leaderboard (с моками)
  */
 
-import type { LeaderboardResponse, LeaderboardUser } from "@/entities/leaderboard";
+import type { LeaderboardResponse, LeaderboardUser } from "@/shared/types/leaderboard";
 
 // Моковые данные для генерации
 const MOCK_USERNAMES = [

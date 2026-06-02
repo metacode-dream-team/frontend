@@ -5,7 +5,7 @@ import type {
   LeetcodeStats,
   MonkeytypeStats,
   RoadmapProgressSummary,
-} from "@/entities/stats";
+} from "@/shared/types/stats";
 import { fetchDashboardIntegration } from "./platformData";
 import { isIntegrationApiConfigured } from "./platformClient";
 import { mockRoadmaps } from "./mockRoadmaps";

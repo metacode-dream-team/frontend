@@ -1,4 +1,4 @@
-import type { ProfileAchievement, ProfileData, ProfileHeatmapDay } from "@/entities/profile";
+import type { ProfileAchievement, ProfileData, ProfileHeatmapDay } from "@/shared/types/profile";
 import { resolvePlatformUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
 import { isPlatformApiConfigured } from "./platformClient";
 import { buildProfileFromPlatform } from "./platformData";

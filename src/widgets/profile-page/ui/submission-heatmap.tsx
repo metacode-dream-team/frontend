@@ -51,21 +51,19 @@ function toYmd(y: number, m0: number, day: number): string {
 }
 
 function buildMonthBlocks(points: ProfileHeatmapDay[]): MonthBlock[] {
-  if (points.length === 0) return [];
-
   const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date));
   const byDate = new Map<string, number>();
   for (const p of sorted) {
     byDate.set(p.date, p.count);
   }
 
-  const first = parseLocalDay(sorted[0]!.date);
-  const last = parseLocalDay(sorted[sorted.length - 1]!.date);
-  if (!first || !last) return [];
+  const last = sorted.length > 0 ? parseLocalDay(sorted[sorted.length - 1]!.date) : null;
+  const endAnchor = last
+    ? new Date(last.getFullYear(), last.getMonth(), 1)
+    : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const cursor = new Date(endAnchor.getFullYear(), endAnchor.getMonth() - 11, 1);
 
   const blocks: MonthBlock[] = [];
-  const cursor = new Date(first.getFullYear(), first.getMonth(), 1);
-  const endAnchor = new Date(last.getFullYear(), last.getMonth(), 1);
 
   while (cursor.getTime() <= endAnchor.getTime()) {
     const y = cursor.getFullYear();

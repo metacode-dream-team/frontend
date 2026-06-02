@@ -12,7 +12,6 @@ function isSubtleAvailable(): boolean {
     return false;
   }
 
-  // crypto.subtle доступен только в безопасном контексте (HTTPS или localhost)
   try {
     return (
       typeof crypto.subtle !== "undefined" &&
@@ -42,9 +41,7 @@ export function generateRandomString(length: number = 64): string {
   );
 }
 
-/**
- * Вычисляет SHA256 hash
- */
+
 async function sha256(plain: string): Promise<ArrayBuffer> {
   if (!isBrowser()) {
     throw new Error("sha256 can only be called in the browser");

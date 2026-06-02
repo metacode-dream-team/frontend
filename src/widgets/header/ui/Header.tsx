@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
+import { useProfileMeStore } from "@/entities/profile";
 import { ConnectPlatformsModal } from "@/features/connect-accounts";
 import { Button } from "@/shared/ui/Button";
 import { cn } from "@/shared/lib/utils/cn";
@@ -24,11 +25,27 @@ function dashboardSectionActive(pathname: string) {
 
 export function Header() {
   const { isAuthenticated, logout } = useAuthStore();
+  const meAvatarUrl = useProfileMeStore((s) => s.profile?.avatarUrl?.trim() ?? "");
   const [connectOpen, setConnectOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (target && menuRef.current && !menuRef.current.contains(target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, [menuOpen]);
+
   const handleLogout = () => {
+    setMenuOpen(false);
     logout();
     router.replace("/");
   };
@@ -108,22 +125,52 @@ export function Header() {
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {isAuthenticated ? (
-              <>
-                <Link
-                  href="/profile"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-purple-900 text-xs font-bold text-white ring-2 ring-violet-500/40 transition hover:ring-violet-400/60"
-                  title="Profile"
-                >
-                  ME
-                </Link>
+              <div ref={menuRef} className="relative">
                 <button
                   type="button"
-                  onClick={handleLogout}
-                  className="text-sm font-medium text-zinc-400 transition-colors hover:text-white"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-purple-900 text-xs font-bold text-white ring-2 ring-violet-500/40 transition hover:ring-violet-400/60 focus-visible:outline-none focus-visible:ring-violet-300"
+                  title="Profile menu"
+                  aria-label="Profile menu"
+                  aria-expanded={menuOpen}
+                  aria-haspopup="menu"
                 >
-                  Logout
+                  {meAvatarUrl ? (
+                    <img
+                      src={meAvatarUrl}
+                      alt="Profile avatar"
+                      className="h-full w-full rounded-full object-cover"
+                      loading="eager"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    "ME"
+                  )}
                 </button>
-              </>
+                {menuOpen ? (
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-11 z-50 min-w-[150px] rounded-xl border border-zinc-800 bg-zinc-950/95 p-1.5 shadow-xl backdrop-blur"
+                  >
+                    <Link
+                      href="/profile"
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                      className="block rounded-lg px-3 py-2 text-sm text-zinc-200 transition-colors hover:bg-zinc-800 hover:text-white"
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={handleLogout}
+                      className="block w-full rounded-lg px-3 py-2 text-left text-sm text-rose-300 transition-colors hover:bg-zinc-800 hover:text-rose-200"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             ) : (
               <>
                 <Link
