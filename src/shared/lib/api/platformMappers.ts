@@ -52,6 +52,23 @@ export function unwrapDataPayload(raw: unknown): Json {
   return r;
 }
 
+/** Извлекает массив из `{ data: [...] }`, голого массива или вложенной обёртки. */
+export function extractArrayPayload(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) return raw;
+  if (!raw || typeof raw !== "object") return [];
+  const r = raw as Json;
+  if (Array.isArray(r.data)) return r.data as unknown[];
+  if (Array.isArray(r.items)) return r.items as unknown[];
+  const inner = unwrapDataPayload(raw);
+  if (Array.isArray(inner)) return inner;
+  if (inner && typeof inner === "object") {
+    const j = inner as Json;
+    if (Array.isArray(j.data)) return j.data as unknown[];
+    if (Array.isArray(j.items)) return j.items as unknown[];
+  }
+  return [];
+}
+
 function str(v: unknown, fallback = ""): string {
   if (v === null || v === undefined) return fallback;
   return String(v);

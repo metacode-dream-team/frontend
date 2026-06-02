@@ -16,6 +16,11 @@ interface EventCardProps {
   omitAvatar?: boolean;
 }
 
+function profileHref(username: string): string {
+  const slug = username.trim();
+  return slug ? `/profile/${encodeURIComponent(slug)}` : "/profile";
+}
+
 export function EventCard({ event, className, omitAvatar = false }: EventCardProps) {
   const content = renderEventContent(event);
 
@@ -27,7 +32,7 @@ export function EventCard({ event, className, omitAvatar = false }: EventCardPro
       )}
     >
       {!omitAvatar && (
-        <Link href={`/profile/${event.userId}`} className="shrink-0 pt-0.5">
+        <Link href={profileHref(event.username)} className="shrink-0 pt-0.5">
           <Avatar src={event.userAvatar} alt={event.username} size="sm" />
         </Link>
       )}
@@ -44,7 +49,7 @@ export function EventCard({ event, className, omitAvatar = false }: EventCardPro
               <>
                 {" "}
                 <Link
-                  href={`/profile/${event.userId}`}
+                  href={profileHref(event.username)}
                   className="font-medium text-zinc-200 hover:text-white"
                 >
                   {event.username}
@@ -166,18 +171,41 @@ function renderEventContent(event: FeedEvent): {
       };
 
     case "DISCUSSION_CREATE":
+    case "DISCUSSION_CREATED":
       return {
         text: (
           <>
             создал дискуссию{" "}
             <Link
-              href={event.payload.discussionSlug ? `/discussions/${event.payload.discussionSlug}` : `#`}
+              href={
+                event.payload.discussionSlug
+                  ? `/discussions/${event.payload.discussionSlug}`
+                  : `#`
+              }
               className="font-medium text-blue-500 hover:text-blue-400"
             >
               {event.payload.discussionTitle}
             </Link>
           </>
         ),
+      };
+
+    case "ACHIEVEMENT_GRANTED":
+      return {
+        text: (
+          <>
+            получил достижение{" "}
+            <span className="font-medium text-violet-300">{event.payload.name}</span>
+          </>
+        ),
+        details: event.payload.description ? (
+          <span>{event.payload.description}</span>
+        ) : undefined,
+      };
+
+    case "AVATAR_UPDATED":
+      return {
+        text: <>обновил аватар</>,
       };
 
     default:

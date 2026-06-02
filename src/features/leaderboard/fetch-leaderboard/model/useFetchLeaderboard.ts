@@ -1,82 +1,80 @@
 /**
- * Хук для загрузки данных leaderboard
+ * Хук для загрузки глобального leaderboard
  */
 
 import { useEffect } from "react";
+import { useAuthStore } from "@/entities/auth";
 import { useLeaderboardStore } from "@/entities/leaderboard";
+import { useProfileMeStore } from "@/entities/profile";
 import { getLeaderboard } from "@/shared/lib/api/leaderboardApi";
-
-const LIMIT = 20;
+import type { LeaderboardUser } from "@/shared/types/leaderboard";
 
 export function useFetchLeaderboard() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const profileMe = useProfileMeStore((s) => s.profile);
+  const currentUserId = profileMe?.userId ?? null;
+
   const {
     users,
-    currentPage,
-    hasMore,
     isLoading,
+    hasMore,
     currentUserRank,
     currentUser,
     setUsers,
-    appendUsers,
-    setCurrentPage,
-    setHasMore,
     setIsLoading,
+    setHasMore,
     setCurrentUserRank,
     setCurrentUser,
     reset,
   } = useLeaderboardStore();
 
-  // Загрузка первой страницы при монтировании
   useEffect(() => {
-    loadPage(0);
+    void loadLeaderboard();
+    return () => reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [accessToken, currentUserId]);
 
-  const loadPage = async (page: number) => {
-    if (isLoading || (!hasMore && page > 0)) {
-      return;
-    }
+  const loadLeaderboard = async () => {
+    if (isLoading) return;
 
     setIsLoading(true);
 
     try {
-      // При первой загрузке используем null, чтобы API сам установил ранг
-      // При последующих загрузках используем сохраненный ранг
-      const userRankForRequest = page === 0 ? null : currentUserRank;
-
-      const response = await getLeaderboard(page, LIMIT, userRankForRequest);
-
-      if (page === 0) {
-        setUsers(response.users);
-      } else {
-        appendUsers(response.users);
-      }
-
-      setHasMore(response.hasMore);
-      setCurrentPage(page);
-
-      // Устанавливаем данные текущего пользователя, если они есть
-      if (response.currentUserRank !== undefined) {
-        setCurrentUserRank(response.currentUserRank);
-      }
-      if (response.currentUser) {
-        setCurrentUser(response.currentUser);
-      }
+      const response = await getLeaderboard(
+        0,
+        20,
+        null,
+        accessToken,
+        currentUserId,
+      );
+      setUsers(response.users);
+      setHasMore(false);
+      setCurrentUserRank(response.currentUserRank ?? null);
+      setCurrentUser(response.currentUser ?? null);
     } catch (error) {
-      console.error("[Leaderboard] Failed to load page:", error);
+      console.error("[Leaderboard] Failed to load:", error);
+      setUsers([]);
+      setHasMore(false);
+      setCurrentUserRank(null);
+      setCurrentUser(null);
     } finally {
       setIsLoading(false);
     }
   };
 
   const loadNextPage = () => {
-    if (hasMore && !isLoading) {
-      loadPage(currentPage + 1);
-    }
+    if (!hasMore || isLoading) return;
   };
+
+  const topThree = users.filter((u) => u.rank <= 3);
+  const podiumDisplayOrder = buildPodiumDisplayOrder(topThree);
+  const tableUsers = users.filter((u) => u.rank > 3);
 
   return {
     users,
+    topThree,
+    podiumDisplayOrder,
+    tableUsers,
     currentUserRank,
     currentUser,
     isLoading,
@@ -86,3 +84,12 @@ export function useFetchLeaderboard() {
   };
 }
 
+/** Визуальный порядок подиума: 2 — 1 — 3 */
+export function buildPodiumDisplayOrder(
+  topThree: LeaderboardUser[],
+): LeaderboardUser[] {
+  const byRank = new Map(topThree.map((u) => [u.rank, u]));
+  return [2, 1, 3]
+    .map((rank) => byRank.get(rank))
+    .filter((u): u is LeaderboardUser => u != null);
+}

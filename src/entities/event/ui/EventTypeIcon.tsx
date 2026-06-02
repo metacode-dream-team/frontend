@@ -2,6 +2,7 @@
  * Компонент иконки типа события
  */
 
+import type React from "react";
 import { cn } from "@/shared/lib/utils/cn";
 import type { EventType } from "../model/types";
 
@@ -10,8 +11,16 @@ interface EventTypeIconProps {
   className?: string;
 }
 
+type IconComponent = ({ className }: { className?: string }) => React.ReactNode;
+
+type IconConfig = {
+  icon: IconComponent;
+  color: string;
+  bgColor: string;
+};
+
 export function EventTypeIcon({ type, className }: EventTypeIconProps) {
-  const iconConfig = {
+  const iconConfig: Record<EventType, IconConfig> = {
     GITHUB_COMMIT: {
       icon: GitHubIcon,
       color: "text-gray-400",
@@ -42,9 +51,30 @@ export function EventTypeIcon({ type, className }: EventTypeIconProps) {
       color: "text-green-400",
       bgColor: "bg-green-900/20",
     },
+    DISCUSSION_CREATED: {
+      icon: DiscussionIcon,
+      color: "text-green-400",
+      bgColor: "bg-green-900/20",
+    },
+    ACHIEVEMENT_GRANTED: {
+      icon: TrophyIcon,
+      color: "text-violet-400",
+      bgColor: "bg-violet-900/25",
+    },
+    AVATAR_UPDATED: {
+      icon: AvatarIcon,
+      color: "text-sky-400",
+      bgColor: "bg-sky-900/20",
+    },
   };
 
-  const config = iconConfig[type];
+  const config =
+    iconConfig[type] ??
+    ({
+      icon: GenericIcon,
+      color: "text-zinc-400",
+      bgColor: "bg-zinc-800",
+    } satisfies IconConfig);
   const IconComponent = config.icon;
 
   return (
@@ -132,6 +162,63 @@ function MonkeytypeIcon({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <path d="M13 1l-12 12h8l-1 8 12-12h-8l1-8z" />
+    </svg>
+  );
+}
+
+function TrophyIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M8 21h8M12 17v4M7 4h10l1 4H6l1-4zm0 4v3a5 5 0 0010 0V8H7z"
+      />
+    </svg>
+  );
+}
+
+function AvatarIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+      />
+    </svg>
+  );
+}
+
+function GenericIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   );
 }

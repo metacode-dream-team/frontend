@@ -11,6 +11,9 @@ export type {
   RoadmapFavoriteEvent,
   MonkeytypeEvent,
   DiscussionEvent,
+  AchievementGrantedEvent,
+  AvatarUpdatedEvent,
+  DiscussionCreatedEvent,
   EventType,
   GroupedEvent,
 } from "./model/types";

@@ -1,2 +1,5 @@
-export { useFetchLeaderboard } from "./model/useFetchLeaderboard";
+export {
+  buildPodiumDisplayOrder,
+  useFetchLeaderboard,
+} from "./model/useFetchLeaderboard";
 

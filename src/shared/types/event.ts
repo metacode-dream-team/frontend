@@ -4,7 +4,10 @@ export type EventType =
   | "ROADMAP_CREATE"
   | "ROADMAP_FAVORITE"
   | "MONKEYTYPE_RECORD"
-  | "DISCUSSION_CREATE";
+  | "DISCUSSION_CREATE"
+  | "ACHIEVEMENT_GRANTED"
+  | "AVATAR_UPDATED"
+  | "DISCUSSION_CREATED";
 
 export interface BaseEvent {
   id: string;
@@ -60,11 +63,37 @@ export interface MonkeytypeEvent extends BaseEvent {
   };
 }
 
+/** Legacy mock shape */
 export interface DiscussionEvent extends BaseEvent {
   type: "DISCUSSION_CREATE";
   payload: {
     discussionTitle: string;
     discussionId: string;
+    discussionSlug?: string;
+  };
+}
+
+export interface AchievementGrantedEvent extends BaseEvent {
+  type: "ACHIEVEMENT_GRANTED";
+  payload: {
+    name: string;
+    description: string;
+    achievementId?: string;
+  };
+}
+
+export interface AvatarUpdatedEvent extends BaseEvent {
+  type: "AVATAR_UPDATED";
+  payload: {
+    avatarUrl?: string;
+  };
+}
+
+export interface DiscussionCreatedEvent extends BaseEvent {
+  type: "DISCUSSION_CREATED";
+  payload: {
+    discussionTitle: string;
+    discussionId?: string;
     discussionSlug?: string;
   };
 }
@@ -75,7 +104,10 @@ export type FeedEvent =
   | RoadmapCreateEvent
   | RoadmapFavoriteEvent
   | MonkeytypeEvent
-  | DiscussionEvent;
+  | DiscussionEvent
+  | AchievementGrantedEvent
+  | AvatarUpdatedEvent
+  | DiscussionCreatedEvent;
 
 export interface GroupedEvent {
   userId: string;

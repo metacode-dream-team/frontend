@@ -3,6 +3,7 @@ export interface LeaderboardUser {
   rank: number;
   username: string;
   avatarUrl: string;
+  totalScore: number;
   githubCommits: number;
   leetcodeSolved: number;
   monkeytypeRecord: number;

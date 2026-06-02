@@ -15,6 +15,11 @@ interface GroupedEventCardProps {
   className?: string;
 }
 
+function profileHref(username: string): string {
+  const slug = username.trim();
+  return slug ? `/profile/${encodeURIComponent(slug)}` : "/profile";
+}
+
 export function GroupedEventCard({ groupedEvent, className }: GroupedEventCardProps) {
   const isMultiple = groupedEvent.events.length > 1;
 
@@ -25,13 +30,13 @@ export function GroupedEventCard({ groupedEvent, className }: GroupedEventCardPr
   return (
     <div className={cn(className)}>
       <div className="flex gap-3 sm:gap-4">
-        <Link href={`/profile/${groupedEvent.userId}`} className="shrink-0 pt-0.5">
+        <Link href={profileHref(groupedEvent.username)} className="shrink-0 pt-0.5">
           <Avatar src={groupedEvent.userAvatar} alt={groupedEvent.username} size="sm" />
         </Link>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm">
             <Link
-              href={`/profile/${groupedEvent.userId}`}
+              href={profileHref(groupedEvent.username)}
               className="font-medium text-zinc-200 hover:text-white"
             >
               {groupedEvent.username}
