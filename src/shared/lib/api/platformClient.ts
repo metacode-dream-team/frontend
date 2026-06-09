@@ -156,6 +156,45 @@ export async function integrationPatch<T>(
   return res.json() as Promise<T>;
 }
 
+export async function integrationMultipartPost<T>(
+  pathAndQuery: string,
+  formData: FormData,
+  accessToken?: string | null,
+): Promise<T> {
+  const path = pathAndQuery.startsWith("/") ? pathAndQuery : `/${pathAndQuery}`;
+  const url = resolveIntegrationUrlForFetch(path);
+  const headers: HeadersInit = {
+    Accept: "application/json",
+  };
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers,
+    body: formData,
+    credentials: "omit",
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Integration API ${res.status}: ${text.slice(0, 240)}`);
+  }
+
+  if (res.status === 204) {
+    return undefined as T;
+  }
+
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    return undefined as T;
+  }
+
+  return res.json() as Promise<T>;
+}
+
 export async function integrationDelete<T>(
   pathAndQuery: string,
   accessToken?: string | null,

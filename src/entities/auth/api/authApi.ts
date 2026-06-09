@@ -1,4 +1,8 @@
-import { AUTH_LOGIN_PATH, AUTH_LOGOUT_PATH } from "@/shared/config/constants";
+import {
+  AUTH_LOGIN_PATH,
+  AUTH_LOGOUT_PATH,
+  AUTH_REGISTER_PATH,
+} from "@/shared/config/constants";
 import { resolveAuthUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
 import { apiClient } from "@/shared/lib/api/client";
 import type {
@@ -65,7 +69,20 @@ function normalizeAuthTokens(raw: Record<string, unknown>): AuthTokens {
 
 export const authApi = {
   register: async (data: RegisterRequest): Promise<ApiSuccess> => {
-    return apiClient.post<ApiSuccess>("/v1/register", data);
+    const response = await fetch(resolveAuthUrlForFetch(AUTH_REGISTER_PATH), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(await parseAuthError(response));
+    }
+
+    return response.json() as Promise<ApiSuccess>;
   },
 
   login: async (data: LoginRequest): Promise<AuthTokens> => {

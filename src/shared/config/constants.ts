@@ -60,6 +60,9 @@ export const AUTH_OAUTH_TOKEN_PATH =
 export const AUTH_LOGIN_PATH =
   process.env.NEXT_PUBLIC_AUTH_LOGIN_PATH || "/v1/auth/login";
 
+export const AUTH_REGISTER_PATH =
+  process.env.NEXT_PUBLIC_AUTH_REGISTER_PATH || "/v1/auth/register";
+
 export const AUTH_REFRESH_PATH =
   process.env.NEXT_PUBLIC_AUTH_REFRESH_PATH || "/v1/auth/token/refresh";
 

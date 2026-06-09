@@ -3,7 +3,12 @@
 import { useEffect, useId } from "react";
 import { useRouter } from "next/navigation";
 import { useProfileMeStore } from "@/entities/profile";
-import { ProfileBasicsFields, useProfileBasicsForm } from "@/features/profile-basics";
+import {
+  ProfileAvatarUpload,
+  ProfileBasicsFields,
+  useProfileBasicsForm,
+  useUploadProfileAvatar,
+} from "@/features/profile-basics";
 import { Button } from "@/shared/ui/Button";
 
 interface EditProfileBasicsModalProps {
@@ -35,10 +40,14 @@ export function EditProfileBasicsModal({
       },
     });
 
+  const avatarUpload = useUploadProfileAvatar();
+  const formBusy = isLoading || avatarUpload.isUploading;
+
   useEffect(() => {
     if (!open) return;
     resetFromProfile(profile);
-  }, [open, profile, resetFromProfile]);
+    avatarUpload.clearPreview();
+  }, [open, profile, resetFromProfile, avatarUpload.clearPreview]);
 
   useEffect(() => {
     if (!open) return;
@@ -52,13 +61,13 @@ export function EditProfileBasicsModal({
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !isLoading) {
+      if (e.key === "Escape" && !formBusy) {
         onOpenChange(false);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onOpenChange, isLoading]);
+  }, [open, onOpenChange, formBusy]);
 
   if (!open) {
     return null;
@@ -75,7 +84,7 @@ export function EditProfileBasicsModal({
         type="button"
         className="absolute inset-0 bg-black/75 backdrop-blur-[2px]"
         aria-label="Close"
-        disabled={isLoading}
+        disabled={formBusy}
         onClick={() => onOpenChange(false)}
       />
 
@@ -93,11 +102,22 @@ export function EditProfileBasicsModal({
             Edit profile
           </h2>
           <p className="mt-1 text-sm text-zinc-400">
-            Update your name, username, headline, links, and location.
+            Update your photo, name, username, headline, links, and location.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <ProfileAvatarUpload
+            avatarUrl={profile?.avatarUrl}
+            previewUrl={avatarUpload.previewUrl}
+            isUploading={avatarUpload.isUploading}
+            error={avatarUpload.error}
+            disabled={formBusy}
+            inputRef={avatarUpload.inputRef}
+            onOpenFilePicker={avatarUpload.openFilePicker}
+            onFileChange={avatarUpload.handleFileChange}
+          />
+
           {error && (
             <div
               role="alert"
@@ -110,7 +130,7 @@ export function EditProfileBasicsModal({
           <ProfileBasicsFields
             values={values}
             setField={setField}
-            disabled={isLoading}
+            disabled={formBusy}
             showLinks
           />
 
@@ -119,7 +139,7 @@ export function EditProfileBasicsModal({
               type="button"
               variant="outline"
               className="flex-1 border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800/80"
-              disabled={isLoading}
+              disabled={formBusy}
               onClick={() => onOpenChange(false)}
             >
               Cancel
@@ -129,7 +149,7 @@ export function EditProfileBasicsModal({
               variant="accent"
               className="flex-1"
               isLoading={isLoading}
-              disabled={isLoading}
+              disabled={formBusy}
             >
               Save changes
             </Button>

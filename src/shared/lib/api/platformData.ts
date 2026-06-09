@@ -1,10 +1,12 @@
 import {
   integrationDelete,
   integrationGet,
+  integrationMultipartPost,
   integrationPatch,
   integrationPost,
   platformGet,
 } from "./platformClient";
+import { parseAvatarUploadResponse } from "@/shared/lib/utils/parseAvatarUploadResponse";
 import {
   augmentProfileWithIntegration,
   mapAchievementsPayload,
@@ -42,6 +44,20 @@ export async function fetchProfileByUsername(username: string): Promise<Json> {
 
 export async function fetchProfileMe(accessToken: string): Promise<Json> {
   return integrationGet<Json>("/v1/profiles/me", accessToken);
+}
+
+export async function uploadProfileAvatar(
+  accessToken: string,
+  file: File,
+): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const raw = await integrationMultipartPost<unknown>(
+    "/v1/fileservice/upload/avatar",
+    formData,
+    accessToken,
+  );
+  return parseAvatarUploadResponse(raw);
 }
 
 export async function fillProfileMe(
