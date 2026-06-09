@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { useAuthStore } from "@/entities/auth";
 import { useProfileMeStore } from "@/entities/profile";
@@ -24,6 +24,7 @@ function isAllowlisted(pathname: string): boolean {
 export function ProfileCompletionGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const accessToken = useAuthStore((s) => s.accessToken);
   const profile = useProfileMeStore((s) => s.profile);
@@ -62,7 +63,12 @@ export function ProfileCompletionGate({ children }: { children: React.ReactNode 
     }
 
     if (profile.isComplete && onCompletePage) {
-      router.replace("/dashboard");
+      const redirect = searchParams?.get("redirect");
+      const safe =
+        redirect && redirect.startsWith("/") && !redirect.startsWith("//") && !redirect.includes("..")
+          ? redirect
+          : "/profile";
+      router.replace(safe);
     }
   }, [
     isAuthenticated,
@@ -72,6 +78,7 @@ export function ProfileCompletionGate({ children }: { children: React.ReactNode 
     profileError,
     pathname,
     router,
+    searchParams,
   ]);
 
   return <>{children}</>;

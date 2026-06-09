@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, type ReactNode } from "react";
+import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { Button } from "@/shared/ui/Button";
 
 interface ProfileFormModalProps {
@@ -32,14 +33,7 @@ export function ProfileFormModal({
 }: ProfileFormModalProps) {
   const titleId = useId();
 
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) return;

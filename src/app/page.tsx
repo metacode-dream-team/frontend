@@ -92,12 +92,12 @@ export default function Home() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col gap-4 sm:flex-row w-full sm:w-auto justify-center lg:justify-start">
-            <Link href={isAuthenticated ? "/dashboard" : "/login"} className="w-full sm:w-auto">
+            <Link href={isAuthenticated ? "/profile" : "/login"} className="w-full sm:w-auto">
               <Button
                 className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-400 hover:to-violet-400 border-0 text-white! px-8 py-3 text-base font-semibold shadow-[0_0_15px_rgba(168,85,247,0.5)] hover:shadow-[0_0_25px_rgba(168,85,247,0.7)] transition-shadow"
                 size="lg"
               >
-                {isAuthenticated ? "Open Dashboard" : "Connect Accounts"}
+                {isAuthenticated ? "View Profile" : "Connect Accounts"}
               </Button>
             </Link>
             <Link href="/leaderboard" className="w-full sm:w-auto">

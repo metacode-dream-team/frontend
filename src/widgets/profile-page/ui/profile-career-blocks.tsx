@@ -16,6 +16,7 @@ import {
   SectionAddButton,
   SectionDeleteButton,
   SectionHeading,
+  TagRemoveButton,
 } from "./profile-primitives";
 
 function CompanyMark({ label }: { label: string }) {
@@ -104,15 +105,15 @@ export function ProfileExperienceSection({
                     <p className="mt-2 text-sm leading-relaxed text-zinc-400">{job.description}</p>
                   ) : null}
                 </div>
-                <div className="flex shrink-0 items-start gap-1">
-                  <p className="rounded-md bg-zinc-950/80 px-2 py-1 text-xs text-zinc-400">
+                <div className="flex shrink-0 items-center gap-1.5 self-start">
+                  <p className="whitespace-nowrap rounded-md bg-zinc-950/80 px-2 py-1 text-xs leading-none text-zinc-400">
                     {job.start} — {job.end}
                   </p>
                   {canEdit && onDelete && canDeleteProfileItemId(job.id) ? (
                     <SectionDeleteButton
                       onClick={() => onDelete(job.id, job.title)}
                       label={`Delete ${job.title}`}
-                      className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                      className="h-7 w-7 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                     />
                   ) : null}
                 </div>
@@ -306,16 +307,16 @@ export function ProfileTechSkillsSection({
       ) : (
         <div className="flex flex-wrap gap-2">
           {skills.map((skill) => (
-            <div key={skill.id} className="group relative inline-flex items-center">
-              <ProfileTag>{skill.name}</ProfileTag>
+            <ProfileTag key={skill.id} className="group/skill gap-1 pr-1">
+              {skill.name}
               {canEdit && onDelete && canDeleteProfileItemId(skill.id) ? (
-                <SectionDeleteButton
+                <TagRemoveButton
                   onClick={() => onDelete(skill.id, skill.name)}
                   label={`Delete ${skill.name}`}
-                  className="absolute -right-1 -top-1 h-6 w-6 rounded-full bg-zinc-900 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                  className="opacity-100 sm:opacity-0 sm:group-hover/skill:opacity-100"
                 />
               ) : null}
-            </div>
+            </ProfileTag>
           ))}
         </div>
       )}

@@ -73,11 +73,11 @@ export function CommandCenterSection() {
             The Developer Command Center
           </h2>
           <p className="mt-3 text-zinc-500">
-            Everything you need to showcase your talent, available in one sleek dashboard.
+            Everything you need to showcase your talent, available in one unified profile.
           </p>
         </div>
 
-        {/* Dashboard card */}
+        {/* Preview card */}
         <div
           className="overflow-hidden rounded-2xl border border-[#222]"
           style={{ backgroundColor: "#0f0f0f" }}
@@ -188,11 +188,11 @@ export function CommandCenterSection() {
         {/* CTA Button */}
         <div className="mt-10 flex justify-center">
           <Link
-            href="/dashboard"
+            href="/profile"
             className="inline-flex items-center gap-2 rounded-lg px-7 py-3 font-medium text-white transition-all hover:brightness-110"
             style={{ backgroundColor: "#7c3aed" }}
           >
-            Launch Dashboard
+            View Profile
             <span className="text-lg">›</span>
           </Link>
         </div>

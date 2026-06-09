@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import leetcodeImg from "@/assets/Leetcode--Streamline-Simple-Icons (2).png";
+import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { startAuthServiceOAuth } from "@/shared/lib/auth";
 import type { KeycloakIdpHint } from "@/shared/lib/keycloak/keycloak";
 import { startKeycloakIdpLogin } from "@/shared/lib/keycloak/keycloak";
@@ -109,16 +110,7 @@ export function ConnectPlatformsModal({
   const titleId = useId();
   const [loading, setLoading] = useState<ConnectProvider | null>(null);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) {

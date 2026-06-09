@@ -2,6 +2,7 @@
 
 import { useEffect, useId } from "react";
 import { useProfileMeStore } from "@/entities/profile";
+import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { Button } from "@/shared/ui/Button";
 import { cn } from "@/shared/lib/utils/cn";
 import { useEditProfileAbout } from "../model/useEditProfileAbout";
@@ -28,14 +29,7 @@ export function EditProfileAboutModal({
     resetFromProfile(profile?.about);
   }, [open, profile?.about, resetFromProfile]);
 
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) return;

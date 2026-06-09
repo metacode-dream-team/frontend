@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { Button } from "@/shared/ui/Button";
 import { cn } from "@/shared/lib/utils/cn";
 
@@ -338,6 +339,8 @@ function SubmitIdeaModal({ open, onClose, onSubmit }: SubmitIdeaModalProps) {
   const [owners, setOwners] = useState(1);
   const [selectedTeams, setSelectedTeams] = useState<Team[]>([]);
   const [priority, setPriority] = useState<Priority>("high");
+
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) {

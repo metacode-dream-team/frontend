@@ -208,13 +208,15 @@ export function ProfilePageContent({
             <span className="font-medium text-zinc-200">{profile.followers}</span> Followers
           </p>
 
-          <button
-            type="button"
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-800/90 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-zinc-800"
-          >
-            <CheckIcon />
-            Following
-          </button>
+          {!canEdit ? (
+            <button
+              type="button"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-800/90 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-zinc-800"
+            >
+              <CheckIcon />
+              Following
+            </button>
+          ) : null}
 
           <ProfileSpokenLanguagesSection
             items={profile.spokenLanguages}

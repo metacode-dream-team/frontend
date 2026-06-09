@@ -251,7 +251,7 @@ export async function buildProfileFromPlatform(idFromRoute: string): Promise<Pro
   return base;
 }
 
-export async function fetchDashboardIntegration(userId: string): Promise<{
+export async function fetchUserIntegrationStats(userId: string): Promise<{
   github: GithubStats | null;
   leetcode: LeetcodeStats | null;
   monkeytype: MonkeytypeStats | null;

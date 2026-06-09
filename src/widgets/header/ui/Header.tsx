@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import { useProfileMeStore } from "@/entities/profile";
-import { ConnectPlatformsModal } from "@/features/connect-accounts";
+import { ConnectPlatformsModal, IntegrationsModal } from "@/features/connect-accounts";
 import { Button } from "@/shared/ui/Button";
 import { cn } from "@/shared/lib/utils/cn";
 
@@ -19,14 +19,11 @@ function linkActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function dashboardSectionActive(pathname: string) {
-  return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
-}
-
 export function Header() {
   const { isAuthenticated, logout } = useAuthStore();
   const meAvatarUrl = useProfileMeStore((s) => s.profile?.avatarUrl?.trim() ?? "");
   const [connectOpen, setConnectOpen] = useState(false);
+  const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
@@ -43,6 +40,11 @@ export function Header() {
     document.addEventListener("mousedown", onPointerDown);
     return () => document.removeEventListener("mousedown", onPointerDown);
   }, [menuOpen]);
+
+  const handleConnect = () => {
+    setMenuOpen(false);
+    setIntegrationsOpen(true);
+  };
 
   const handleLogout = () => {
     setMenuOpen(false);
@@ -89,37 +91,6 @@ export function Header() {
                   </li>
                 );
               })}
-              {isAuthenticated && (
-                <li>
-                  <Link
-                    href="/dashboard"
-                    className={linkClass(dashboardSectionActive(pathname))}
-                  >
-                    Dashboard
-                  </Link>
-                </li>
-              )}
-              <li>
-                {isAuthenticated ? (
-                  <Link
-                    href="/dashboard#neural-links"
-                    className={linkClass(
-                      pathname === "/dashboard" ||
-                        pathname.startsWith("/dashboard"),
-                    )}
-                  >
-                    Integrations
-                  </Link>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setConnectOpen(true)}
-                    className={linkClass(false)}
-                  >
-                    Integrations
-                  </button>
-                )}
-              </li>
             </ul>
           </nav>
 
@@ -163,6 +134,14 @@ export function Header() {
                     <button
                       type="button"
                       role="menuitem"
+                      onClick={handleConnect}
+                      className="block w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-200 transition-colors hover:bg-zinc-800 hover:text-white"
+                    >
+                      Connect
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
                       onClick={handleLogout}
                       className="block w-full rounded-lg px-3 py-2 text-left text-sm text-rose-300 transition-colors hover:bg-zinc-800 hover:text-rose-200"
                     >
@@ -193,6 +172,13 @@ export function Header() {
           </div>
         </div>
       </header>
+
+      {isAuthenticated && (
+        <IntegrationsModal
+          open={integrationsOpen}
+          onOpenChange={setIntegrationsOpen}
+        />
+      )}
 
       {!isAuthenticated && (
         <ConnectPlatformsModal

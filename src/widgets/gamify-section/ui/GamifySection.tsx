@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { generateActivityData } from "@/shared/lib/api/dashboardApi";
+import { generateActivityData } from "@/shared/lib/api/mockActivityData";
 
 const CARD_STYLE =
   "rounded-2xl bg-neutral-900/50 backdrop-blur-xl p-6 shadow-xl";

@@ -401,7 +401,7 @@ export default function LeaderboardPage() {
                 </p>
               </div>
               <Link
-                href="/dashboard"
+                href="/profile"
                 className="rounded-xl px-6 py-3 font-medium text-white transition-all hover:brightness-110"
                 style={{
                   backgroundColor: "#7c3aed",

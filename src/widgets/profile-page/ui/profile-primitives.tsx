@@ -68,6 +68,48 @@ export function SectionAddButton({
   );
 }
 
+export function CloseIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  );
+}
+
+export function TagRemoveButton({
+  onClick,
+  label,
+  className,
+}: {
+  onClick: () => void;
+  label: string;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className={cn(
+        "inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-sm text-zinc-500 transition-colors hover:bg-zinc-700/80 hover:text-zinc-200",
+        className,
+      )}
+    >
+      <CloseIcon />
+    </button>
+  );
+}
+
 export function TrashIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>

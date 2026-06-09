@@ -51,7 +51,7 @@ export default function ProfileEntryPage() {
       return;
     }
 
-    router.replace("/dashboard");
+    router.replace("/profile");
   }, [isInitialized, accessToken, router, profile, isLoadingMe]);
 
   return (

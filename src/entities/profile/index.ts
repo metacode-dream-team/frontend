@@ -11,6 +11,7 @@ export type {
   ProfileWorkMode,
   ProfileHeatmapBySource,
   HeatmapSourceTab,
+  HeatmapRangeTab,
 } from "./model/types";
 export type { CurrentUserProfile, ExternalProfileLink } from "./model/currentUserProfile";
 export {

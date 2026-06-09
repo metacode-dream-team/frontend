@@ -9,6 +9,7 @@ import {
   useProfileBasicsForm,
   useUploadProfileAvatar,
 } from "@/features/profile-basics";
+import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { Button } from "@/shared/ui/Button";
 
 interface EditProfileBasicsModalProps {
@@ -53,14 +54,7 @@ export function EditProfileBasicsModal({
     avatarUpload.clearPreview();
   }, [open, profile, resetFromProfile, avatarUpload.clearPreview]);
 
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) return;

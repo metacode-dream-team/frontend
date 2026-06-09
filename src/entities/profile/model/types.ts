@@ -15,6 +15,9 @@ export interface ProfileHeatmapDay {
 
 export type HeatmapSourceTab = "all" | ActivitySource;
 
+/** Диапазон теплокарты: текущий календарный год или скользящий год / вся история */
+export type HeatmapRangeTab = "current" | "year";
+
 export interface ProfileHeatmapBySource {
   combinedMax: ProfileHeatmapDay[];
   github: ProfileHeatmapDay[];

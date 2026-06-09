@@ -22,7 +22,7 @@ export function useCompleteProfile() {
     useProfileBasicsForm({
       onSuccess: () => {
         const next = safeInternalPath(searchParams.get("redirect"));
-        router.replace(next ?? "/dashboard");
+        router.replace(next ?? "/profile");
       },
     });
 
