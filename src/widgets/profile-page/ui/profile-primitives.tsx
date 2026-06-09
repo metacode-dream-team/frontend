@@ -42,35 +42,61 @@ export function SectionHeading({
   return (
     <div className="mb-4 flex items-center justify-between gap-3">
       <h2 className="text-base font-semibold tracking-tight text-white">{title}</h2>
-      <div className="flex shrink-0 items-center gap-1 text-zinc-500">
-        {right ?? (
-          <>
-            <button
-              type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-800/80 hover:text-zinc-300"
-              aria-label="Add"
-            >
-              <span className="text-lg leading-none">+</span>
-            </button>
-            <button
-              type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-800/80 hover:text-zinc-300"
-              aria-label="Edit"
-            >
-              <PencilIcon />
-            </button>
-          </>
-        )}
-      </div>
+      {right ? (
+        <div className="flex shrink-0 items-center gap-1 text-zinc-500">{right}</div>
+      ) : null}
     </div>
   );
 }
 
-function PencilIcon() {
+export function SectionAddButton({
+  onClick,
+  label,
+}: {
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-800/80 hover:text-zinc-300"
+      aria-label={label}
+    >
+      <span className="text-lg leading-none">+</span>
+    </button>
+  );
+}
+
+export function PencilIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
     </svg>
+  );
+}
+
+export function ProfileEditButton({
+  onClick,
+  className,
+  "aria-label": ariaLabel = "Edit",
+}: {
+  onClick?: () => void;
+  className?: string;
+  "aria-label"?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-800/80 hover:text-zinc-300",
+        className,
+      )}
+      aria-label={ariaLabel}
+    >
+      <PencilIcon />
+    </button>
   );
 }
 

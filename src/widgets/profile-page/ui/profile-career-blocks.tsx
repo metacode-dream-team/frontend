@@ -4,7 +4,12 @@ import Image from "next/image";
 import type { ProfileCertification, ProfileEducation, ProfileExperience } from "@/entities/profile";
 import { isRemoteSvgImage } from "@/shared/lib/utils/isRemoteSvgImage";
 import { shouldUseNativeImgForRemoteUrl } from "@/shared/lib/utils/remoteImagePlain";
-import { ProfileCard, ProfileTag, SectionHeading } from "./profile-primitives";
+import {
+  ProfileCard,
+  ProfileTag,
+  SectionAddButton,
+  SectionHeading,
+} from "./profile-primitives";
 
 function CompanyMark({ label }: { label: string }) {
   const letter = label.trim().charAt(0).toUpperCase() || "?";
@@ -44,10 +49,30 @@ function ProviderMark({ provider }: { provider: ProfileCertification["provider"]
   );
 }
 
-export function ProfileExperienceSection({ items }: { items: ProfileExperience[] }) {
+export function ProfileExperienceSection({
+  items,
+  canEdit = false,
+  onAdd,
+}: {
+  items: ProfileExperience[];
+  canEdit?: boolean;
+  onAdd?: () => void;
+}) {
   return (
     <ProfileCard>
-      <SectionHeading title="Experience" />
+      <SectionHeading
+        title="Experience"
+        right={
+          canEdit && onAdd ? (
+            <SectionAddButton onClick={onAdd} label="Add experience" />
+          ) : undefined
+        }
+      />
+      {items.length === 0 ? (
+        <p className="text-sm text-zinc-500">
+          {canEdit ? "No experience yet. Add your first role." : "No experience yet."}
+        </p>
+      ) : null}
       <ul className="space-y-8">
         {items.map((job) => (
           <li key={job.id} className="flex gap-3">
@@ -78,10 +103,30 @@ export function ProfileExperienceSection({ items }: { items: ProfileExperience[]
   );
 }
 
-export function ProfileEducationSection({ items }: { items: ProfileEducation[] }) {
+export function ProfileEducationSection({
+  items,
+  canEdit = false,
+  onAdd,
+}: {
+  items: ProfileEducation[];
+  canEdit?: boolean;
+  onAdd?: () => void;
+}) {
   return (
     <ProfileCard>
-      <SectionHeading title="Education" />
+      <SectionHeading
+        title="Education"
+        right={
+          canEdit && onAdd ? (
+            <SectionAddButton onClick={onAdd} label="Add education" />
+          ) : undefined
+        }
+      />
+      {items.length === 0 ? (
+        <p className="text-sm text-zinc-500">
+          {canEdit ? "No education yet. Add your first one." : "No education yet."}
+        </p>
+      ) : null}
       <ul className="space-y-4">
         {items.map((ed) => (
           <li
@@ -136,10 +181,30 @@ export function ProfileEducationSection({ items }: { items: ProfileEducation[] }
   );
 }
 
-export function ProfileCertificationsSection({ items }: { items: ProfileCertification[] }) {
+export function ProfileCertificationsSection({
+  items,
+  canEdit = false,
+  onAdd,
+}: {
+  items: ProfileCertification[];
+  canEdit?: boolean;
+  onAdd?: () => void;
+}) {
   return (
     <ProfileCard>
-      <SectionHeading title="Licenses & Certifications" />
+      <SectionHeading
+        title="Licenses & Certifications"
+        right={
+          canEdit && onAdd ? (
+            <SectionAddButton onClick={onAdd} label="Add certification" />
+          ) : undefined
+        }
+      />
+      {items.length === 0 ? (
+        <p className="text-sm text-zinc-500">
+          {canEdit ? "No certifications yet. Add your first one." : "No certifications yet."}
+        </p>
+      ) : null}
       <ul className="space-y-3">
         {items.map((c) => (
           <li
@@ -171,15 +236,36 @@ export function ProfileCertificationsSection({ items }: { items: ProfileCertific
   );
 }
 
-export function ProfileTechSkillsSection({ skills }: { skills: string[] }) {
+export function ProfileTechSkillsSection({
+  skills,
+  canEdit = false,
+  onAdd,
+}: {
+  skills: string[];
+  canEdit?: boolean;
+  onAdd?: () => void;
+}) {
   return (
     <ProfileCard>
-      <SectionHeading title=" Skills" />
-      <div className="flex flex-wrap gap-2">
-        {skills.map((s) => (
-          <ProfileTag key={s}>{s}</ProfileTag>
-        ))}
-      </div>
+      <SectionHeading
+        title="Skills"
+        right={
+          canEdit && onAdd ? (
+            <SectionAddButton onClick={onAdd} label="Add skill" />
+          ) : undefined
+        }
+      />
+      {skills.length === 0 ? (
+        <p className="text-sm text-zinc-500">
+          {canEdit ? "No skills yet. Add your first one." : "No skills yet."}
+        </p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {skills.map((s, index) => (
+            <ProfileTag key={`${s}-${index}`}>{s}</ProfileTag>
+          ))}
+        </div>
+      )}
     </ProfileCard>
   );
 }

@@ -57,6 +57,12 @@ export interface ProfileCertification {
   provider: "aws" | "huawei" | "google" | "other";
 }
 
+export interface ProfileSpokenLanguage {
+  id: string;
+  code: string;
+  level: string;
+}
+
 export interface ProfileAchievement {
   id: string;
   title: string;
@@ -71,10 +77,27 @@ export interface ProfileContactWebsite {
   url: string;
 }
 
+export interface ProfileContactPhone {
+  type: string;
+  value: string;
+}
+
+export interface ProfileBirthDate {
+  year: number;
+  month: number;
+  day: number;
+}
+
 export interface ProfileContacts {
   email?: string;
-  phone?: string;
+  phone?: ProfileContactPhone;
   websites: ProfileContactWebsite[];
+}
+
+export interface ProfilePersonal {
+  address?: string;
+  birthDate?: ProfileBirthDate;
+  gender?: string;
 }
 
 export interface ProfileData {
@@ -101,6 +124,8 @@ export interface ProfileData {
   currentStreak: number;
   maxStreak: number;
   contacts?: ProfileContacts;
+  personal?: ProfilePersonal;
+  spokenLanguages: ProfileSpokenLanguage[];
   languages: Array<{ name: string; solved: number }>;
   skills: SkillGroup[];
   heatmap: ProfileHeatmapDay[];
@@ -109,4 +134,89 @@ export interface ProfileData {
   education: ProfileEducation[];
   certifications: ProfileCertification[];
   techSkills: string[];
+}
+
+export interface ProfileFillPayload {
+  username: string;
+  first_name: string;
+  last_name: string;
+  headline: string;
+  country: string;
+  city: string;
+}
+
+export interface ProfileIntroPayload {
+  first_name: string;
+  last_name: string;
+  headline: string;
+  position_link?: string;
+  school_link?: string;
+  country: string;
+  city: string;
+}
+
+export interface ProfileAboutPayload {
+  about: string;
+}
+
+export interface ProfileContactsPayload {
+  email?: string;
+  phone?: { type: string; value: string };
+  websites: { type: string; url: string }[];
+}
+
+export interface ProfilePersonalPayload {
+  address?: string;
+  birth_date?: { year: number; month: number; day: number };
+  gender?: string;
+}
+
+export interface ProfileYearMonth {
+  year: number;
+  month: number;
+}
+
+export interface ProfileCertificationPayload {
+  name: string;
+  issuer: string;
+  issue_date: ProfileYearMonth;
+  expire_date?: ProfileYearMonth;
+  credential_url?: string;
+}
+
+export interface ProfileEducationPayload {
+  school: string;
+  degree: string;
+  field_of_study?: string;
+  start_date: ProfileYearMonth;
+  end_date?: ProfileYearMonth;
+  grade?: string;
+  description?: string;
+}
+
+export interface ProfileExperienceLocationPayload {
+  country: string;
+  city: string;
+}
+
+export interface ProfileLanguagePayload {
+  code: string;
+  level: string;
+}
+
+export interface ProfileSkillPayload {
+  name: string;
+}
+
+export interface ProfileExperiencePayload {
+  title: string;
+  employment_type: string;
+  company: string;
+  start_date: ProfileYearMonth;
+  end_date?: ProfileYearMonth;
+  is_current: boolean;
+  location: ProfileExperienceLocationPayload;
+  location_type: string;
+  description?: string;
+  profile_headline?: string;
 }

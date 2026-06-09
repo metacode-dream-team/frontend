@@ -5,9 +5,12 @@ import {
 } from "./currentUserProfile";
 import type {
   ProfileContacts,
+  ProfileContactPhone,
   ProfileData,
   ProfileEducation,
   ProfileExperience,
+  ProfilePersonal,
+  ProfileSpokenLanguage,
 } from "./types";
 import { mapApiCertificationsToProfile } from "@/shared/lib/api/platformMappers";
 
@@ -98,15 +101,27 @@ function mapMeSkillsToTechSkills(raw: unknown): string[] {
     .filter((s) => s.length > 0);
 }
 
+function mapMePhoneToProfile(raw: unknown): ProfileContactPhone | undefined {
+  if (!raw) return undefined;
+  if (typeof raw === "object") {
+    const o = raw as MeJson;
+    const value = sid(o.Value ?? o.value).trim();
+    if (!value) return undefined;
+    return {
+      type: sid(o.Type ?? o.type).trim() || "mobile",
+      value,
+    };
+  }
+  const value = sid(raw).trim();
+  if (!value) return undefined;
+  return { type: "mobile", value };
+}
+
 function mapMeContactsToProfile(raw: unknown): ProfileContacts | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as MeJson;
   const email = sid(o.Email ?? o.email).trim();
-  const phoneRaw = o.Phone ?? o.phone;
-  const phone =
-    phoneRaw && typeof phoneRaw === "object"
-      ? sid((phoneRaw as MeJson).Value ?? (phoneRaw as MeJson).value).trim()
-      : sid(phoneRaw).trim();
+  const phone = mapMePhoneToProfile(o.Phone ?? o.phone);
   const websitesRaw = o.Websites ?? o.websites;
   const websites = Array.isArray(websitesRaw)
     ? websitesRaw
@@ -122,14 +137,51 @@ function mapMeContactsToProfile(raw: unknown): ProfileContacts | null {
         .filter((item): item is NonNullable<typeof item> => item !== null)
     : [];
 
-  if (!email && !phone && websites.length === 0) {
+  if (!email && !phone?.value && websites.length === 0) {
     return null;
   }
 
   return {
     email: email || undefined,
-    phone: phone || undefined,
+    phone,
     websites,
+  };
+}
+
+function preferMeList<T>(meRaw: unknown, mapped: T[], fallback: T[]): T[] {
+  return Array.isArray(meRaw) ? mapped : fallback;
+}
+
+function mapMeLanguagesToProfile(raw: unknown): ProfileSpokenLanguage[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item, i) => {
+      const o = item as MeJson;
+      const code = sid(o.Code ?? o.code).trim().toLowerCase();
+      const level = sid(o.Level ?? o.level).trim().toLowerCase();
+      if (!code || !level) return null;
+      return {
+        id: sid(o.ID ?? o.id) || `lang-me-${i}`,
+        code,
+        level,
+      };
+    })
+    .filter((item): item is ProfileSpokenLanguage => item !== null);
+}
+
+function mapMePersonalToProfile(me: CurrentUserProfile): ProfilePersonal | null {
+  const address = me.address?.trim();
+  const gender = me.gender?.trim();
+  const birthDate = me.birthDateParts ?? undefined;
+
+  if (!address && !gender && !birthDate) {
+    return null;
+  }
+
+  return {
+    address: address || undefined,
+    gender: gender || undefined,
+    birthDate,
   };
 }
 
@@ -171,7 +223,8 @@ export function mergeProfileWithMe(
   const fromMeCertifications = mapApiCertificationsToProfile(me.certifications);
   const fromMeTechSkills = mapMeSkillsToTechSkills(me.skills);
   const fromMeContacts = mapMeContactsToProfile(me.contacts);
-  const about = me.about?.trim();
+  const fromMePersonal = mapMePersonalToProfile(me);
+  const fromMeLanguages = mapMeLanguagesToProfile(me.languages);
 
   return {
     ...base,
@@ -180,12 +233,18 @@ export function mergeProfileWithMe(
     avatarUrl: avatar || base.avatarUrl,
     location: me.location?.trim() || base.location,
     role: me.headline?.trim() || base.role,
-    ...(about ? { about } : {}),
-    ...(fromMeContacts ? { contacts: fromMeContacts } : {}),
-    experience: fromMeExperience.length > 0 ? fromMeExperience : base.experience,
-    education: fromMeEducation.length > 0 ? fromMeEducation : base.education,
-    certifications: fromMeCertifications.length > 0 ? fromMeCertifications : base.certifications,
-    techSkills: fromMeTechSkills.length > 0 ? fromMeTechSkills : base.techSkills,
+    about: me.about?.trim() || undefined,
+    contacts: fromMeContacts ?? undefined,
+    personal: fromMePersonal ?? undefined,
+    experience: preferMeList(me.experiences, fromMeExperience, base.experience),
+    education: preferMeList(me.educations, fromMeEducation, base.education),
+    certifications: preferMeList(
+      me.certifications,
+      fromMeCertifications,
+      base.certifications,
+    ),
+    techSkills: preferMeList(me.skills, fromMeTechSkills, base.techSkills),
+    spokenLanguages: preferMeList(me.languages, fromMeLanguages, base.spokenLanguages),
     following: me.followingCount ?? 0,
     followers: me.followersCount ?? 0,
   };

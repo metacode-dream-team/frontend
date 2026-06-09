@@ -1,4 +1,4 @@
-import { integrationGet, platformGet } from "./platformClient";
+import { integrationGet, integrationPatch, integrationPost, platformGet } from "./platformClient";
 import {
   augmentProfileWithIntegration,
   mapAchievementsPayload,
@@ -10,7 +10,21 @@ import {
   pickUserId,
   unwrapDataPayload,
 } from "./platformMappers";
-import type { ProfileAchievement, ProfileData, ProfileHeatmapDay } from "@/shared/types/profile";
+import type {
+  ProfileAboutPayload,
+  ProfileAchievement,
+  ProfileCertificationPayload,
+  ProfileContactsPayload,
+  ProfileEducationPayload,
+  ProfileExperiencePayload,
+  ProfileData,
+  ProfileFillPayload,
+  ProfileHeatmapDay,
+  ProfileIntroPayload,
+  ProfileLanguagePayload,
+  ProfilePersonalPayload,
+  ProfileSkillPayload,
+} from "@/shared/types/profile";
 import type { ActivityDay, GithubStats, LeetcodeStats, MonkeytypeStats } from "@/shared/types/stats";
 
 type Json = Record<string, unknown>;
@@ -22,6 +36,76 @@ export async function fetchProfileByUsername(username: string): Promise<Json> {
 
 export async function fetchProfileMe(accessToken: string): Promise<Json> {
   return integrationGet<Json>("/v1/profiles/me", accessToken);
+}
+
+export async function fillProfileMe(
+  accessToken: string,
+  body: ProfileFillPayload,
+): Promise<Json> {
+  return integrationPatch<Json>("/v1/profiles/me/fill", body, accessToken);
+}
+
+export async function updateProfileIntro(
+  accessToken: string,
+  body: ProfileIntroPayload,
+): Promise<Json> {
+  return integrationPatch<Json>("/v1/profiles/me/intro", body, accessToken);
+}
+
+export async function updateProfileAbout(
+  accessToken: string,
+  body: ProfileAboutPayload,
+): Promise<Json> {
+  return integrationPatch<Json>("/v1/profiles/me/about", body, accessToken);
+}
+
+export async function updateProfileContacts(
+  accessToken: string,
+  body: ProfileContactsPayload,
+): Promise<Json> {
+  return integrationPatch<Json>("/v1/profiles/me/contacts", body, accessToken);
+}
+
+export async function updateProfilePersonal(
+  accessToken: string,
+  body: ProfilePersonalPayload,
+): Promise<Json> {
+  return integrationPatch<Json>("/v1/profiles/me/personal", body, accessToken);
+}
+
+export async function createProfileCertification(
+  accessToken: string,
+  body: ProfileCertificationPayload,
+): Promise<Json> {
+  return integrationPost<Json>("/v1/profiles/me/certifications", body, accessToken);
+}
+
+export async function createProfileEducation(
+  accessToken: string,
+  body: ProfileEducationPayload,
+): Promise<Json> {
+  return integrationPost<Json>("/v1/profiles/me/educations", body, accessToken);
+}
+
+export async function createProfileExperience(
+  accessToken: string,
+  body: ProfileExperiencePayload,
+): Promise<Json> {
+  return integrationPost<Json>("/v1/profiles/me/experiences", body, accessToken);
+}
+
+export async function createProfileLanguage(
+  accessToken: string,
+  body: ProfileLanguagePayload,
+): Promise<Json> {
+  return integrationPost<Json>("/v1/profiles/me/languages", body, accessToken);
+}
+
+export async function createProfileSkill(
+  accessToken: string,
+  body: ProfileSkillPayload,
+): Promise<Json> {
+  return integrationPost<Json>("/v1/profiles/me/skills", body, accessToken);
 }
 
 export async function fetchIntegrationProfile(

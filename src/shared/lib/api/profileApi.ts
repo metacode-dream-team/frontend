@@ -135,6 +135,7 @@ function buildMockProfile(id: string): ProfileData {
     achievements: createAchievements(seed),
     currentStreak: 2 + (seed % 8),
     maxStreak: 7 + (seed % 20),
+    spokenLanguages: [],
     languages: [
       { name: "Go", solved: 400 + (seed % 120) },
       { name: "TypeScript", solved: 70 + (seed % 80) },

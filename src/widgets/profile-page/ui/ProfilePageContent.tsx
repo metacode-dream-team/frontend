@@ -3,6 +3,17 @@
 import Image from "next/image";
 import { useState } from "react";
 import type { ProfileData, SkillGroup } from "@/entities/profile";
+import { AddProfileCertificationModal } from "@/features/add-profile-certification";
+import { AddProfileEducationModal } from "@/features/add-profile-education";
+import { AddProfileExperienceModal } from "@/features/add-profile-experience";
+import { AddProfileLanguageModal } from "@/features/add-profile-language";
+import { AddProfileSkillModal } from "@/features/add-profile-skill";
+import { EditProfileAboutModal } from "@/features/edit-profile-about";
+import { EditProfileBasicsModal } from "@/features/edit-profile-basics";
+import { EditProfileContactsModal } from "@/features/edit-profile-contacts";
+import { EditProfilePersonalModal } from "@/features/edit-profile-personal";
+import { ContactInfoModal } from "@/features/profile-contacts";
+import { PersonalInfoModal } from "@/features/profile-personal";
 import { isRemoteSvgImage } from "@/shared/lib/utils/isRemoteSvgImage";
 import { shouldUseNativeImgForRemoteUrl } from "@/shared/lib/utils/remoteImagePlain";
 import { ProfileAchievementsBlock } from "./profile-achievements-block";
@@ -12,12 +23,19 @@ import {
   ProfileExperienceSection,
   ProfileTechSkillsSection,
 } from "./profile-career-blocks";
-import { ProfileCard, ProfileTag, skillLevelDotClass } from "./profile-primitives";
+import {
+  ProfileCard,
+  ProfileEditButton,
+  ProfileTag,
+  skillLevelDotClass,
+} from "./profile-primitives";
 import { SolvedProgressRing } from "./solved-progress-ring";
+import { ProfileSpokenLanguagesSection } from "./profile-languages-section";
 import { SubmissionHeatmap } from "./submission-heatmap";
 
 interface ProfilePageContentProps {
   profile: ProfileData;
+  canEdit?: boolean;
 }
 
 function CheckIcon() {
@@ -72,14 +90,22 @@ function SkillGroupBlock({ group }: { group: SkillGroup }) {
   );
 }
 
-function normalizeUrl(url: string): string {
-  if (/^https?:\/\//i.test(url)) return url;
-  return `https://${url}`;
-}
-
-export function ProfilePageContent({ profile }: ProfilePageContentProps) {
+export function ProfilePageContent({
+  profile,
+  canEdit = false,
+}: ProfilePageContentProps) {
+  const [editBasicsOpen, setEditBasicsOpen] = useState(false);
+  const [editAboutOpen, setEditAboutOpen] = useState(false);
+  const [addCertificationOpen, setAddCertificationOpen] = useState(false);
+  const [addEducationOpen, setAddEducationOpen] = useState(false);
+  const [addExperienceOpen, setAddExperienceOpen] = useState(false);
+  const [addLanguageOpen, setAddLanguageOpen] = useState(false);
+  const [addSkillOpen, setAddSkillOpen] = useState(false);
+  const [contactViewOpen, setContactViewOpen] = useState(false);
+  const [contactEditOpen, setContactEditOpen] = useState(false);
+  const [personalViewOpen, setPersonalViewOpen] = useState(false);
+  const [personalEditOpen, setPersonalEditOpen] = useState(false);
   const avatarPlain = shouldUseNativeImgForRemoteUrl(profile.avatarUrl);
-  const contacts = profile.contacts;
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
       <aside className="w-full shrink-0 bg-black lg:w-[280px] lg:min-w-[280px]">
@@ -110,17 +136,49 @@ export function ProfilePageContent({ profile }: ProfilePageContentProps) {
             <div className="mt-4 min-w-0 sm:ml-4 sm:mt-0">
               <h1 className="text-lg font-semibold tracking-tight text-white">{profile.fullName}</h1>
               <p className="mt-0.5 text-sm text-zinc-500">{profile.username}</p>
-              <p className="mt-2 text-sm">
-                <span className="text-zinc-500">Rank </span>
-                <span className="font-semibold tabular-nums text-[#b84dff]">{profile.rank.toLocaleString()}</span>
-              </p>
+              <div className="mt-2 flex items-center justify-center gap-1.5 sm:justify-start">
+                <p className="text-sm">
+                  <span className="text-zinc-500">Rank </span>
+                  <span className="font-semibold tabular-nums text-[#b84dff]">
+                    {profile.rank.toLocaleString()}
+                  </span>
+                </p>
+                {canEdit ? (
+                  <ProfileEditButton
+                    onClick={() => setEditBasicsOpen(true)}
+                    aria-label="Edit profile"
+                  />
+                ) : null}
+              </div>
             </div>
           </div>
 
           <p className="mt-4 text-center text-sm font-medium text-[#b84dff] sm:text-left">{profile.role}</p>
-          {profile.about ? (
-            <p className="mt-2 text-center text-sm leading-relaxed text-zinc-400 sm:text-left">{profile.about}</p>
-          ) : null}
+          {(profile.about || canEdit) && (
+            <div className="relative mt-2 pr-9">
+              {canEdit ? (
+                <div className="absolute right-0 top-0">
+                  <ProfileEditButton
+                    onClick={() => setEditAboutOpen(true)}
+                    aria-label="Edit about"
+                  />
+                </div>
+              ) : null}
+              {profile.about ? (
+                <p className="text-center text-sm leading-relaxed text-zinc-400 sm:text-left">
+                  {profile.about}
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setEditAboutOpen(true)}
+                  className="w-full text-center text-sm italic text-zinc-600 transition-colors hover:text-zinc-400 sm:text-left"
+                >
+                  Add a short bio…
+                </button>
+              )}
+            </div>
+          )}
           <p className="mt-1 flex items-center justify-center gap-1.5 text-xs text-zinc-500 sm:justify-start">
             <MapPinIcon />
             {profile.location}
@@ -128,6 +186,15 @@ export function ProfilePageContent({ profile }: ProfilePageContentProps) {
 
           <button
             type="button"
+            onClick={() => setPersonalViewOpen(true)}
+            className="mt-1 w-full text-center text-xs font-medium text-zinc-500 transition-colors hover:text-[#b84dff] sm:text-left"
+          >
+            Personal info
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setContactViewOpen(true)}
             className="mt-1 w-full text-center text-xs font-medium text-zinc-500 transition-colors hover:text-[#b84dff] sm:text-left"
           >
             Contact info
@@ -147,52 +214,27 @@ export function ProfilePageContent({ profile }: ProfilePageContentProps) {
             Following
           </button>
 
-          <section className="mt-8 pt-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Languages</h3>
-            <ul className="mt-3 space-y-2">
-              {profile.languages.map((lang) => (
-                <li key={lang.name} className="flex items-center justify-between gap-2 text-sm">
-                  <ProfileTag>
-                    {lang.name}
-                    <span className="tabular-nums text-zinc-500">{lang.solved}</span>
-                  </ProfileTag>
-                </li>
-              ))}
-            </ul>
-          </section>
+          <ProfileSpokenLanguagesSection
+            items={profile.spokenLanguages}
+            canEdit={canEdit}
+            onAdd={() => setAddLanguageOpen(true)}
+          />
 
-          {contacts ? (
+          {profile.languages.length > 0 ? (
             <section className="mt-8 pt-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Contacts</h3>
-              <div className="mt-3 space-y-2 text-sm text-zinc-300">
-                {contacts.email ? (
-                  <a
-                    href={`mailto:${contacts.email}`}
-                    className="block truncate transition-colors hover:text-violet-300"
-                  >
-                    {contacts.email}
-                  </a>
-                ) : null}
-                {contacts.phone ? (
-                  <a
-                    href={`tel:${contacts.phone}`}
-                    className="block transition-colors hover:text-violet-300"
-                  >
-                    {contacts.phone}
-                  </a>
-                ) : null}
-                {contacts.websites.map((site) => (
-                  <a
-                    key={`${site.type}-${site.url}`}
-                    href={normalizeUrl(site.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block truncate text-zinc-400 transition-colors hover:text-violet-300"
-                  >
-                    {site.type}: {site.url}
-                  </a>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                Solved by language
+              </h3>
+              <ul className="mt-3 space-y-2">
+                {profile.languages.map((lang) => (
+                  <li key={lang.name} className="flex items-center justify-between gap-2 text-sm">
+                    <ProfileTag>
+                      {lang.name}
+                      <span className="tabular-nums text-zinc-500">{lang.solved}</span>
+                    </ProfileTag>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </section>
           ) : null}
 
@@ -249,14 +291,30 @@ export function ProfilePageContent({ profile }: ProfilePageContentProps) {
           maxStreak={profile.maxStreak}
         />
 
-        <ProfileExperienceSection items={profile.experience} />
+        <ProfileExperienceSection
+          items={profile.experience}
+          canEdit={canEdit}
+          onAdd={() => setAddExperienceOpen(true)}
+        />
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <ProfileEducationSection items={profile.education} />
-          <ProfileCertificationsSection items={profile.certifications} />
+          <ProfileEducationSection
+            items={profile.education}
+            canEdit={canEdit}
+            onAdd={() => setAddEducationOpen(true)}
+          />
+          <ProfileCertificationsSection
+            items={profile.certifications}
+            canEdit={canEdit}
+            onAdd={() => setAddCertificationOpen(true)}
+          />
         </div>
 
-        <ProfileTechSkillsSection skills={profile.techSkills} />
+        <ProfileTechSkillsSection
+          skills={profile.techSkills}
+          canEdit={canEdit}
+          onAdd={() => setAddSkillOpen(true)}
+        />
 
         <div className="flex justify-center pb-2">
           <button
@@ -268,6 +326,71 @@ export function ProfilePageContent({ profile }: ProfilePageContentProps) {
           </button>
         </div>
       </main>
+
+      <ContactInfoModal
+        open={contactViewOpen}
+        onOpenChange={setContactViewOpen}
+        contacts={profile.contacts}
+        canEdit={canEdit}
+        onEdit={() => {
+          setContactViewOpen(false);
+          setContactEditOpen(true);
+        }}
+      />
+
+      <PersonalInfoModal
+        open={personalViewOpen}
+        onOpenChange={setPersonalViewOpen}
+        personal={profile.personal}
+        canEdit={canEdit}
+        onEdit={() => {
+          setPersonalViewOpen(false);
+          setPersonalEditOpen(true);
+        }}
+      />
+
+      {canEdit ? (
+        <>
+          <EditProfileBasicsModal
+            open={editBasicsOpen}
+            onOpenChange={setEditBasicsOpen}
+          />
+          <EditProfileAboutModal
+            open={editAboutOpen}
+            onOpenChange={setEditAboutOpen}
+          />
+          <AddProfileCertificationModal
+            open={addCertificationOpen}
+            onOpenChange={setAddCertificationOpen}
+          />
+          <AddProfileEducationModal
+            open={addEducationOpen}
+            onOpenChange={setAddEducationOpen}
+          />
+          <AddProfileExperienceModal
+            open={addExperienceOpen}
+            onOpenChange={setAddExperienceOpen}
+          />
+          <AddProfileLanguageModal
+            open={addLanguageOpen}
+            onOpenChange={setAddLanguageOpen}
+          />
+          <AddProfileSkillModal
+            open={addSkillOpen}
+            onOpenChange={setAddSkillOpen}
+          />
+          <EditProfileContactsModal
+            open={contactEditOpen}
+            onOpenChange={setContactEditOpen}
+            contacts={profile.contacts}
+          />
+          <EditProfilePersonalModal
+            open={personalEditOpen}
+            onOpenChange={setPersonalEditOpen}
+            personal={profile.personal}
+          />
+        </>
+      ) : null}
     </div>
   );
 }

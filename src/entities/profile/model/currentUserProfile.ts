@@ -33,6 +33,28 @@ function optNum(v: unknown): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
+export function parseBirthDateParts(
+  raw: unknown,
+): { year: number; month: number; day: number } | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Json;
+  const year = Number(o.Year ?? o.year);
+  const month = Number(o.Month ?? o.month);
+  const day = Number(o.Day ?? o.day);
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(day) ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return null;
+  }
+  return { year: Math.trunc(year), month: Math.trunc(month), day: Math.trunc(day) };
+}
+
 export function formatMeLocation(value: unknown): string | null {
   if (value == null) return null;
   if (typeof value === "string") {
@@ -107,6 +129,7 @@ export interface CurrentUserProfile {
   location: string | null;
   address: string | null;
   birthDate: string | null;
+  birthDateParts: { year: number; month: number; day: number } | null;
   headline: string | null;
   positionLink: string | null;
   schoolLink: string | null;
@@ -158,6 +181,9 @@ export function normalizeProfileMe(payload: unknown): CurrentUserProfile {
       const raw = d.BirthDate ?? d.birth_date ?? d.birthDate;
       return formatMeBirthDate(raw) ?? (typeof raw === "string" ? optStr(raw) : null);
     })(),
+    birthDateParts: parseBirthDateParts(
+      d.BirthDate ?? d.birth_date ?? d.birthDate,
+    ),
     headline: optStr(d.Headline ?? d.headline),
     positionLink: optStr(d.PositionLink ?? d.position_link ?? d.positionLink),
     schoolLink: optStr(d.SchoolLink ?? d.school_link ?? d.schoolLink),

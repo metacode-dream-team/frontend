@@ -169,6 +169,7 @@ export function mapProfileDocument(
     achievements: extras.achievements,
     currentStreak: num(raw.CurrentStreak ?? raw.current_streak ?? raw.currentStreak),
     maxStreak: num(raw.MaxStreak ?? raw.max_streak ?? raw.maxStreak),
+    spokenLanguages: [],
     languages: mapLanguages(raw.Languages ?? raw.languages ?? raw.language_stats),
     skills: mapSkillGroups(raw.SkillGroups ?? raw.skill_groups ?? raw.skills),
     heatmap: extras.heatmap,

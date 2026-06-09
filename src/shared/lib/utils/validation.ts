@@ -2,6 +2,8 @@
  * Утилиты для валидации
  */
 
+import { validateOptionalUrl } from "./normalizeUrl";
+
 export function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -23,8 +25,96 @@ export interface ValidationResult {
   errors: string[];
 }
 
-function validateUsernameIdentifier(id: string): boolean {
+export function validateUsernameIdentifier(id: string): boolean {
   return /^[a-zA-Z0-9._-]{3,64}$/.test(id);
+}
+
+export interface CompleteProfileFormValues {
+  username: string;
+  firstName: string;
+  lastName: string;
+  headline: string;
+  positionLink: string;
+  schoolLink: string;
+  country: string;
+  city: string;
+}
+
+export function validateCompleteProfileForm(
+  values: CompleteProfileFormValues,
+): ValidationResult {
+  const errors: string[] = [];
+  const username = values.username.trim();
+
+  if (!username) {
+    errors.push("Username is required");
+  } else if (!validateUsernameIdentifier(username)) {
+    errors.push("Username must be 3–64 characters (letters, digits, . _ -)");
+  }
+
+  if (!values.firstName.trim()) {
+    errors.push("First name is required");
+  }
+  if (!values.lastName.trim()) {
+    errors.push("Last name is required");
+  }
+  if (!values.headline.trim()) {
+    errors.push("Headline is required");
+  }
+  if (!values.country.trim()) {
+    errors.push("Country is required");
+  }
+  if (!values.city.trim()) {
+    errors.push("City is required");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+}
+
+export function validateProfileIntroForm(
+  values: CompleteProfileFormValues,
+  options?: { requireUsername?: boolean },
+): ValidationResult {
+  const errors: string[] = [];
+
+  if (options?.requireUsername) {
+    const username = values.username.trim();
+    if (!username) {
+      errors.push("Username is required");
+    } else if (!validateUsernameIdentifier(username)) {
+      errors.push("Username must be 3–64 characters (letters, digits, . _ -)");
+    }
+  }
+
+  if (!values.firstName.trim()) {
+    errors.push("First name is required");
+  }
+  if (!values.lastName.trim()) {
+    errors.push("Last name is required");
+  }
+  if (!values.headline.trim()) {
+    errors.push("Headline is required");
+  }
+  if (!values.country.trim()) {
+    errors.push("Country is required");
+  }
+  if (!values.city.trim()) {
+    errors.push("City is required");
+  }
+
+  const positionError = validateOptionalUrl(values.positionLink, "Position link");
+  if (positionError) errors.push(positionError);
+
+  const schoolError = validateOptionalUrl(values.schoolLink, "School link");
+  if (schoolError) errors.push(schoolError);
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
 }
 
 export function validateLoginForm(

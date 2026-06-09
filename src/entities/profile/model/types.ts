@@ -57,6 +57,12 @@ export interface ProfileCertification {
   provider: "aws" | "huawei" | "google" | "other";
 }
 
+export interface ProfileSpokenLanguage {
+  id: string;
+  code: string;
+  level: string;
+}
+
 export interface ProfileAchievement {
   id: string;
   title: string;
@@ -71,10 +77,27 @@ export interface ProfileContactWebsite {
   url: string;
 }
 
+export interface ProfileContactPhone {
+  type: string;
+  value: string;
+}
+
+export interface ProfileBirthDate {
+  year: number;
+  month: number;
+  day: number;
+}
+
 export interface ProfileContacts {
   email?: string;
-  phone?: string;
+  phone?: ProfileContactPhone;
   websites: ProfileContactWebsite[];
+}
+
+export interface ProfilePersonal {
+  address?: string;
+  birthDate?: ProfileBirthDate;
+  gender?: string;
 }
 
 export interface ProfileData {
@@ -101,6 +124,8 @@ export interface ProfileData {
   currentStreak: number;
   maxStreak: number;
   contacts?: ProfileContacts;
+  personal?: ProfilePersonal;
+  spokenLanguages: ProfileSpokenLanguage[];
   languages: Array<{ name: string; solved: number }>;
   skills: SkillGroup[];
   heatmap: ProfileHeatmapDay[];
