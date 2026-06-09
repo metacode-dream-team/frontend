@@ -63,6 +63,9 @@ export const AUTH_LOGIN_PATH =
 export const AUTH_REGISTER_PATH =
   process.env.NEXT_PUBLIC_AUTH_REGISTER_PATH || "/v1/auth/register";
 
+export const PROFILE_FILL_PATH =
+  process.env.NEXT_PUBLIC_PROFILE_FILL_PATH || "/v1/profiles/me/fill";
+
 export const AUTH_REFRESH_PATH =
   process.env.NEXT_PUBLIC_AUTH_REFRESH_PATH || "/v1/auth/token/refresh";
 

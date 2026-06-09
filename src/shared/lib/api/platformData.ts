@@ -1,4 +1,7 @@
+import { PROFILE_FILL_PATH } from "@/shared/config/constants";
 import {
+  authBackendDelete,
+  authBackendPatch,
   integrationDelete,
   integrationGet,
   integrationMultipartPost,
@@ -64,7 +67,7 @@ export async function fillProfileMe(
   accessToken: string,
   body: ProfileFillPayload,
 ): Promise<Json> {
-  return integrationPatch<Json>("/v1/profiles/me/fill", body, accessToken);
+  return authBackendPatch<Json>(PROFILE_FILL_PATH, body, accessToken);
 }
 
 export async function updateProfileIntro(
@@ -135,7 +138,7 @@ export async function deleteProfileCertification(
   id: string,
 ): Promise<void> {
   const enc = encodeURIComponent(id);
-  return integrationDelete<void>(`/v1/profiles/me/certifications/${enc}`, accessToken);
+  return authBackendDelete<void>(`/v1/profiles/me/certifications/${enc}`, accessToken);
 }
 
 export async function deleteProfileEducation(
