@@ -24,11 +24,53 @@ export function isIntegrationApiConfigured(): boolean {
   return Boolean(INTEGRATION_API_URL?.trim());
 }
 
+function normalizePath(pathAndQuery: string): string {
+  return pathAndQuery.startsWith("/") ? pathAndQuery : `/${pathAndQuery}`;
+}
+
+async function parseMutationResponse<T>(res: Response, label: string): Promise<T> {
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`${label} ${res.status}: ${text.slice(0, 240)}`);
+  }
+
+  if (res.status === 204) {
+    return undefined as T;
+  }
+
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    return undefined as T;
+  }
+
+  return res.json() as Promise<T>;
+}
+
+async function authBackendRequest<T>(
+  pathAndQuery: string,
+  accessToken: string,
+  init: RequestInit,
+): Promise<T> {
+  const url = resolveAuthUrlForFetch(normalizePath(pathAndQuery));
+  const headers = new Headers(init.headers);
+  headers.set("Accept", "application/json");
+  headers.set("Authorization", `Bearer ${accessToken}`);
+
+  const res = await fetch(url, {
+    ...init,
+    headers,
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  return parseMutationResponse<T>(res, "Backend API");
+}
+
 export async function platformGet<T>(
   pathAndQuery: string,
   accessToken?: string | null,
 ): Promise<T> {
-  const path = pathAndQuery.startsWith("/") ? pathAndQuery : `/${pathAndQuery}`;
+  const path = normalizePath(pathAndQuery);
   const url = resolvePlatformUrlForFetch(path);
   const headers: HeadersInit = {
     Accept: "application/json",
@@ -56,7 +98,7 @@ export async function integrationGet<T>(
   pathAndQuery: string,
   accessToken?: string | null,
 ): Promise<T> {
-  const path = pathAndQuery.startsWith("/") ? pathAndQuery : `/${pathAndQuery}`;
+  const path = normalizePath(pathAndQuery);
   const url = resolveIntegrationUrlForFetch(path);
   const headers: HeadersInit = {
     Accept: "application/json",
@@ -85,72 +127,33 @@ export async function authBackendPatch<T>(
   body: unknown,
   accessToken: string,
 ): Promise<T> {
-  const path = pathAndQuery.startsWith("/") ? pathAndQuery : `/${pathAndQuery}`;
-  const url = resolveAuthUrlForFetch(path);
-  const headers: HeadersInit = {
-    Accept: "application/json",
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${accessToken}`,
-  };
-
-  const res = await fetch(url, {
+  return authBackendRequest<T>(pathAndQuery, accessToken, {
     method: "PATCH",
-    headers,
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(body),
-    credentials: "include",
-    cache: "no-store",
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Backend API ${res.status}: ${text.slice(0, 240)}`);
-  }
-
-  if (res.status === 204) {
-    return undefined as T;
-  }
-
-  const contentType = res.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) {
-    return undefined as T;
-  }
-
-  return res.json() as Promise<T>;
 }
 
 export async function authBackendDelete<T>(
   pathAndQuery: string,
   accessToken: string,
 ): Promise<T> {
-  const path = pathAndQuery.startsWith("/") ? pathAndQuery : `/${pathAndQuery}`;
-  const url = resolveAuthUrlForFetch(path);
-  const headers: HeadersInit = {
-    Accept: "application/json",
-    Authorization: `Bearer ${accessToken}`,
-  };
-
-  const res = await fetch(url, {
+  return authBackendRequest<T>(pathAndQuery, accessToken, {
     method: "DELETE",
-    headers,
-    credentials: "include",
-    cache: "no-store",
   });
+}
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Backend API ${res.status}: ${text.slice(0, 240)}`);
-  }
-
-  if (res.status === 204) {
-    return undefined as T;
-  }
-
-  const contentType = res.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) {
-    return undefined as T;
-  }
-
-  return res.json() as Promise<T>;
+export async function authBackendMultipartPost<T>(
+  pathAndQuery: string,
+  formData: FormData,
+  accessToken: string,
+): Promise<T> {
+  return authBackendRequest<T>(pathAndQuery, accessToken, {
+    method: "POST",
+    body: formData,
+  });
 }
 
 export async function integrationPost<T>(
@@ -158,7 +161,7 @@ export async function integrationPost<T>(
   body: unknown,
   accessToken?: string | null,
 ): Promise<T> {
-  const path = pathAndQuery.startsWith("/") ? pathAndQuery : `/${pathAndQuery}`;
+  const path = normalizePath(pathAndQuery);
   const url = resolveIntegrationUrlForFetch(path);
   const headers: HeadersInit = {
     Accept: "application/json",
@@ -176,21 +179,7 @@ export async function integrationPost<T>(
     cache: "no-store",
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Integration API ${res.status}: ${text.slice(0, 240)}`);
-  }
-
-  if (res.status === 204) {
-    return undefined as T;
-  }
-
-  const contentType = res.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) {
-    return undefined as T;
-  }
-
-  return res.json() as Promise<T>;
+  return parseMutationResponse<T>(res, "Integration API");
 }
 
 export async function integrationPatch<T>(
@@ -198,7 +187,7 @@ export async function integrationPatch<T>(
   body: unknown,
   accessToken?: string | null,
 ): Promise<T> {
-  const path = pathAndQuery.startsWith("/") ? pathAndQuery : `/${pathAndQuery}`;
+  const path = normalizePath(pathAndQuery);
   const url = resolveIntegrationUrlForFetch(path);
   const headers: HeadersInit = {
     Accept: "application/json",
@@ -216,67 +205,14 @@ export async function integrationPatch<T>(
     cache: "no-store",
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Integration API ${res.status}: ${text.slice(0, 240)}`);
-  }
-
-  if (res.status === 204) {
-    return undefined as T;
-  }
-
-  const contentType = res.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) {
-    return undefined as T;
-  }
-
-  return res.json() as Promise<T>;
-}
-
-export async function integrationMultipartPost<T>(
-  pathAndQuery: string,
-  formData: FormData,
-  accessToken?: string | null,
-): Promise<T> {
-  const path = pathAndQuery.startsWith("/") ? pathAndQuery : `/${pathAndQuery}`;
-  const url = resolveIntegrationUrlForFetch(path);
-  const headers: HeadersInit = {
-    Accept: "application/json",
-  };
-  if (accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
-  }
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers,
-    body: formData,
-    credentials: "omit",
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Integration API ${res.status}: ${text.slice(0, 240)}`);
-  }
-
-  if (res.status === 204) {
-    return undefined as T;
-  }
-
-  const contentType = res.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) {
-    return undefined as T;
-  }
-
-  return res.json() as Promise<T>;
+  return parseMutationResponse<T>(res, "Integration API");
 }
 
 export async function integrationDelete<T>(
   pathAndQuery: string,
   accessToken?: string | null,
 ): Promise<T> {
-  const path = pathAndQuery.startsWith("/") ? pathAndQuery : `/${pathAndQuery}`;
+  const path = normalizePath(pathAndQuery);
   const url = resolveIntegrationUrlForFetch(path);
   const headers: HeadersInit = {
     Accept: "application/json",
@@ -292,19 +228,5 @@ export async function integrationDelete<T>(
     cache: "no-store",
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Integration API ${res.status}: ${text.slice(0, 240)}`);
-  }
-
-  if (res.status === 204) {
-    return undefined as T;
-  }
-
-  const contentType = res.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) {
-    return undefined as T;
-  }
-
-  return res.json() as Promise<T>;
+  return parseMutationResponse<T>(res, "Integration API");
 }

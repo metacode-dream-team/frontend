@@ -1,10 +1,9 @@
-import { PROFILE_FILL_PATH } from "@/shared/config/constants";
+import { AVATAR_UPLOAD_PATH, PROFILE_FILL_PATH } from "@/shared/config/constants";
 import {
   authBackendDelete,
+  authBackendMultipartPost,
   authBackendPatch,
-  integrationDelete,
   integrationGet,
-  integrationMultipartPost,
   integrationPatch,
   integrationPost,
   platformGet,
@@ -40,6 +39,10 @@ import type { ActivityDay, GithubStats, LeetcodeStats, MonkeytypeStats } from "@
 
 type Json = Record<string, unknown>;
 
+function profileMeItemPath(segment: string, id: string): string {
+  return `/v1/profiles/me/${segment}/${encodeURIComponent(id)}`;
+}
+
 export async function fetchProfileByUsername(username: string): Promise<Json> {
   const enc = encodeURIComponent(username);
   return platformGet<Json>(`/v1/profiles/${enc}`);
@@ -52,15 +55,17 @@ export async function fetchProfileMe(accessToken: string): Promise<Json> {
 export async function uploadProfileAvatar(
   accessToken: string,
   file: File,
-): Promise<string> {
+): Promise<void> {
   const formData = new FormData();
   formData.append("file", file);
-  const raw = await integrationMultipartPost<unknown>(
-    "/v1/fileservice/upload/avatar",
+  const raw = await authBackendMultipartPost<unknown>(
+    AVATAR_UPLOAD_PATH,
     formData,
     accessToken,
   );
-  return parseAvatarUploadResponse(raw);
+  if (raw != null) {
+    parseAvatarUploadResponse(raw);
+  }
 }
 
 export async function fillProfileMe(
@@ -137,40 +142,38 @@ export async function deleteProfileCertification(
   accessToken: string,
   id: string,
 ): Promise<void> {
-  const enc = encodeURIComponent(id);
-  return authBackendDelete<void>(`/v1/profiles/me/certifications/${enc}`, accessToken);
+  return authBackendDelete<void>(
+    profileMeItemPath("certifications", id),
+    accessToken,
+  );
 }
 
 export async function deleteProfileEducation(
   accessToken: string,
   id: string,
 ): Promise<void> {
-  const enc = encodeURIComponent(id);
-  return integrationDelete<void>(`/v1/profiles/me/educations/${enc}`, accessToken);
+  return authBackendDelete<void>(profileMeItemPath("educations", id), accessToken);
 }
 
 export async function deleteProfileExperience(
   accessToken: string,
   id: string,
 ): Promise<void> {
-  const enc = encodeURIComponent(id);
-  return integrationDelete<void>(`/v1/profiles/me/experiences/${enc}`, accessToken);
+  return authBackendDelete<void>(profileMeItemPath("experiences", id), accessToken);
 }
 
 export async function deleteProfileLanguage(
   accessToken: string,
   id: string,
 ): Promise<void> {
-  const enc = encodeURIComponent(id);
-  return integrationDelete<void>(`/v1/profiles/me/languages/${enc}`, accessToken);
+  return authBackendDelete<void>(profileMeItemPath("languages", id), accessToken);
 }
 
 export async function deleteProfileSkill(
   accessToken: string,
   id: string,
 ): Promise<void> {
-  const enc = encodeURIComponent(id);
-  return integrationDelete<void>(`/v1/profiles/me/skills/${enc}`, accessToken);
+  return authBackendDelete<void>(profileMeItemPath("skills", id), accessToken);
 }
 
 export async function fetchIntegrationProfile(

@@ -77,5 +77,8 @@ export function formatProfileFillError(err: unknown): string {
   if (message.includes("400")) {
     return "Some fields are invalid. Check your input and try again.";
   }
-  return message.replace(/^(?:Integration|Backend) API \d+: /, "") || message;
+  if (message.startsWith("Invalid avatar upload response:")) {
+    return "Avatar uploaded, but the server response was unexpected. Refresh the page.";
+  }
+  return message.replace(/^(?:Integration|Backend|Platform) API \d+: /, "") || message;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useProfileMeStore } from "@/entities/profile";
 import {
@@ -42,9 +42,13 @@ export function EditProfileBasicsModal({
 
   const avatarUpload = useUploadProfileAvatar();
   const formBusy = isLoading || avatarUpload.isUploading;
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
-    if (!open) return;
+    const justOpened = open && !wasOpenRef.current;
+    wasOpenRef.current = open;
+
+    if (!justOpened) return;
     resetFromProfile(profile);
     avatarUpload.clearPreview();
   }, [open, profile, resetFromProfile, avatarUpload.clearPreview]);
