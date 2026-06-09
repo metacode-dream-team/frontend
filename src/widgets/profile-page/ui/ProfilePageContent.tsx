@@ -14,6 +14,7 @@ import { EditProfileContactsModal } from "@/features/edit-profile-contacts";
 import { EditProfilePersonalModal } from "@/features/edit-profile-personal";
 import { ContactInfoModal } from "@/features/profile-contacts";
 import { PersonalInfoModal } from "@/features/profile-personal";
+import { ProfileConfirmDialog, useProfileDeleteItem } from "@/features/profile-forms";
 import { isRemoteSvgImage } from "@/shared/lib/utils/isRemoteSvgImage";
 import { shouldUseNativeImgForRemoteUrl } from "@/shared/lib/utils/remoteImagePlain";
 import { ProfileAchievementsBlock } from "./profile-achievements-block";
@@ -105,6 +106,7 @@ export function ProfilePageContent({
   const [contactEditOpen, setContactEditOpen] = useState(false);
   const [personalViewOpen, setPersonalViewOpen] = useState(false);
   const [personalEditOpen, setPersonalEditOpen] = useState(false);
+  const deleteItem = useProfileDeleteItem();
   const avatarPlain = shouldUseNativeImgForRemoteUrl(profile.avatarUrl);
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
@@ -218,6 +220,11 @@ export function ProfilePageContent({
             items={profile.spokenLanguages}
             canEdit={canEdit}
             onAdd={() => setAddLanguageOpen(true)}
+            onDelete={
+              canEdit
+                ? (id, label) => deleteItem.requestDelete("languages", id, label)
+                : undefined
+            }
           />
 
           {profile.languages.length > 0 ? (
@@ -295,6 +302,11 @@ export function ProfilePageContent({
           items={profile.experience}
           canEdit={canEdit}
           onAdd={() => setAddExperienceOpen(true)}
+          onDelete={
+            canEdit
+              ? (id, label) => deleteItem.requestDelete("experiences", id, label)
+              : undefined
+          }
         />
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
@@ -302,11 +314,21 @@ export function ProfilePageContent({
             items={profile.education}
             canEdit={canEdit}
             onAdd={() => setAddEducationOpen(true)}
+            onDelete={
+              canEdit
+                ? (id, label) => deleteItem.requestDelete("educations", id, label)
+                : undefined
+            }
           />
           <ProfileCertificationsSection
             items={profile.certifications}
             canEdit={canEdit}
             onAdd={() => setAddCertificationOpen(true)}
+            onDelete={
+              canEdit
+                ? (id, label) => deleteItem.requestDelete("certifications", id, label)
+                : undefined
+            }
           />
         </div>
 
@@ -314,6 +336,11 @@ export function ProfilePageContent({
           skills={profile.techSkills}
           canEdit={canEdit}
           onAdd={() => setAddSkillOpen(true)}
+          onDelete={
+            canEdit
+              ? (id, label) => deleteItem.requestDelete("skills", id, label)
+              : undefined
+          }
         />
 
         <div className="flex justify-center pb-2">
@@ -347,6 +374,17 @@ export function ProfilePageContent({
           setPersonalViewOpen(false);
           setPersonalEditOpen(true);
         }}
+      />
+
+      <ProfileConfirmDialog
+        open={Boolean(deleteItem.pending)}
+        title={
+          deleteItem.pending ? `Delete ${deleteItem.pending.label}?` : "Delete item?"
+        }
+        isLoading={deleteItem.isDeleting}
+        error={deleteItem.error}
+        onConfirm={deleteItem.confirmDelete}
+        onCancel={deleteItem.cancelDelete}
       />
 
       {canEdit ? (

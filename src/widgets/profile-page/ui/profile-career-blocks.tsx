@@ -1,13 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import type { ProfileCertification, ProfileEducation, ProfileExperience } from "@/entities/profile";
+import type {
+  ProfileCertification,
+  ProfileEducation,
+  ProfileExperience,
+  ProfileTechSkill,
+} from "@/entities/profile";
+import { canDeleteProfileItemId } from "@/shared/lib/utils/canDeleteProfileItemId";
 import { isRemoteSvgImage } from "@/shared/lib/utils/isRemoteSvgImage";
 import { shouldUseNativeImgForRemoteUrl } from "@/shared/lib/utils/remoteImagePlain";
 import {
   ProfileCard,
   ProfileTag,
   SectionAddButton,
+  SectionDeleteButton,
   SectionHeading,
 } from "./profile-primitives";
 
@@ -49,14 +56,18 @@ function ProviderMark({ provider }: { provider: ProfileCertification["provider"]
   );
 }
 
+type ProfileItemDeleteHandler = (id: string, label: string) => void;
+
 export function ProfileExperienceSection({
   items,
   canEdit = false,
   onAdd,
+  onDelete,
 }: {
   items: ProfileExperience[];
   canEdit?: boolean;
   onAdd?: () => void;
+  onDelete?: ProfileItemDeleteHandler;
 }) {
   return (
     <ProfileCard>
@@ -75,7 +86,7 @@ export function ProfileExperienceSection({
       ) : null}
       <ul className="space-y-8">
         {items.map((job) => (
-          <li key={job.id} className="flex gap-3">
+          <li key={job.id} className="group flex gap-3">
             <CompanyMark label={job.company} />
             <div className="min-w-0 flex-1">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -89,11 +100,22 @@ export function ProfileExperienceSection({
                   <p className="mt-1 text-xs text-zinc-500">
                     {job.workMode} · {job.location}
                   </p>
-                  {job.description ? <p className="mt-2 text-sm leading-relaxed text-zinc-400">{job.description}</p> : null}
+                  {job.description ? (
+                    <p className="mt-2 text-sm leading-relaxed text-zinc-400">{job.description}</p>
+                  ) : null}
                 </div>
-                <p className="shrink-0 rounded-md bg-zinc-950/80 px-2 py-1 text-xs text-zinc-400">
-                  {job.start} — {job.end}
-                </p>
+                <div className="flex shrink-0 items-start gap-1">
+                  <p className="rounded-md bg-zinc-950/80 px-2 py-1 text-xs text-zinc-400">
+                    {job.start} — {job.end}
+                  </p>
+                  {canEdit && onDelete && canDeleteProfileItemId(job.id) ? (
+                    <SectionDeleteButton
+                      onClick={() => onDelete(job.id, job.title)}
+                      label={`Delete ${job.title}`}
+                      className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                    />
+                  ) : null}
+                </div>
               </div>
             </div>
           </li>
@@ -107,10 +129,12 @@ export function ProfileEducationSection({
   items,
   canEdit = false,
   onAdd,
+  onDelete,
 }: {
   items: ProfileEducation[];
   canEdit?: boolean;
   onAdd?: () => void;
+  onDelete?: ProfileItemDeleteHandler;
 }) {
   return (
     <ProfileCard>
@@ -131,7 +155,7 @@ export function ProfileEducationSection({
         {items.map((ed) => (
           <li
             key={ed.id}
-            className="flex flex-col gap-3 rounded-xl bg-black/25 p-4 sm:flex-row sm:items-center"
+            className="group flex flex-col gap-3 rounded-xl bg-black/25 p-4 sm:flex-row sm:items-center"
           >
             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-zinc-900">
               {ed.logoUrl ? (
@@ -165,9 +189,18 @@ export function ProfileEducationSection({
                   <p className="font-semibold text-white">{ed.degree}</p>
                   <p className="text-sm font-medium text-[#b84dff]">{ed.school}</p>
                 </div>
-                <p className="shrink-0 rounded-md bg-zinc-900/80 px-2 py-1 text-xs text-zinc-400">
-                  {ed.start} — {ed.end}
-                </p>
+                <div className="flex shrink-0 items-center gap-1">
+                  <p className="rounded-md bg-zinc-900/80 px-2 py-1 text-xs text-zinc-400">
+                    {ed.start} — {ed.end}
+                  </p>
+                  {canEdit && onDelete && canDeleteProfileItemId(ed.id) ? (
+                    <SectionDeleteButton
+                      onClick={() => onDelete(ed.id, ed.degree || ed.school)}
+                      label={`Delete ${ed.degree || ed.school}`}
+                      className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                    />
+                  ) : null}
+                </div>
               </div>
               <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-500">
                 {ed.gpa ? <span>GPA: {ed.gpa}</span> : null}
@@ -185,10 +218,12 @@ export function ProfileCertificationsSection({
   items,
   canEdit = false,
   onAdd,
+  onDelete,
 }: {
   items: ProfileCertification[];
   canEdit?: boolean;
   onAdd?: () => void;
+  onDelete?: ProfileItemDeleteHandler;
 }) {
   return (
     <ProfileCard>
@@ -209,7 +244,7 @@ export function ProfileCertificationsSection({
         {items.map((c) => (
           <li
             key={c.id}
-            className="flex gap-3 rounded-xl bg-black/25 p-3 transition-colors hover:bg-black/35"
+            className="group flex gap-3 rounded-xl bg-black/25 p-3 transition-colors hover:bg-black/35"
           >
             <ProviderMark provider={c.provider} />
             <div className="min-w-0 flex-1">
@@ -229,6 +264,13 @@ export function ProfileCertificationsSection({
                 </a>
               ) : null}
             </div>
+            {canEdit && onDelete && canDeleteProfileItemId(c.id) ? (
+              <SectionDeleteButton
+                onClick={() => onDelete(c.id, c.title)}
+                label={`Delete ${c.title}`}
+                className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+              />
+            ) : null}
           </li>
         ))}
       </ul>
@@ -240,10 +282,12 @@ export function ProfileTechSkillsSection({
   skills,
   canEdit = false,
   onAdd,
+  onDelete,
 }: {
-  skills: string[];
+  skills: ProfileTechSkill[];
   canEdit?: boolean;
   onAdd?: () => void;
+  onDelete?: ProfileItemDeleteHandler;
 }) {
   return (
     <ProfileCard>
@@ -261,8 +305,17 @@ export function ProfileTechSkillsSection({
         </p>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {skills.map((s, index) => (
-            <ProfileTag key={`${s}-${index}`}>{s}</ProfileTag>
+          {skills.map((skill) => (
+            <div key={skill.id} className="group relative inline-flex items-center">
+              <ProfileTag>{skill.name}</ProfileTag>
+              {canEdit && onDelete && canDeleteProfileItemId(skill.id) ? (
+                <SectionDeleteButton
+                  onClick={() => onDelete(skill.id, skill.name)}
+                  label={`Delete ${skill.name}`}
+                  className="absolute -right-1 -top-1 h-6 w-6 rounded-full bg-zinc-900 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                />
+              ) : null}
+            </div>
           ))}
         </div>
       )}

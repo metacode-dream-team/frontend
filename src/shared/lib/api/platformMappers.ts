@@ -136,7 +136,7 @@ export function mapProfileDocument(
     raw.Experiences ?? raw.experience ?? raw.work_experience,
   );
   const edu = mapEducation(raw.Educations ?? raw.education);
-  const tech = mapStringArray(
+  const tech = mapTechSkills(
     raw.tech_skills ?? raw.techSkills ?? raw.skills_tags ?? raw.TechSkills,
   );
 
@@ -265,9 +265,24 @@ export function mapApiCertificationsToProfile(raw: unknown): ProfileCertificatio
   return out;
 }
 
-function mapStringArray(raw: unknown): string[] {
+function mapTechSkills(raw: unknown): ProfileData["techSkills"] {
   if (!Array.isArray(raw)) return [];
-  return raw.map((x) => String(x)).filter(Boolean);
+  return raw
+    .map((item, i) => {
+      if (typeof item === "string") {
+        const name = item.trim();
+        if (!name) return null;
+        return { id: `tech${i}`, name };
+      }
+      const o = item as Json;
+      const name = str(o.name ?? o.Name, "").trim();
+      if (!name) return null;
+      return {
+        id: str(o.id ?? o.ID, `tech${i}`),
+        name,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 }
 
 function mapLanguages(raw: unknown): ProfileData["languages"] {

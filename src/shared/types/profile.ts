@@ -63,6 +63,11 @@ export interface ProfileSpokenLanguage {
   level: string;
 }
 
+export interface ProfileTechSkill {
+  id: string;
+  name: string;
+}
+
 export interface ProfileAchievement {
   id: string;
   title: string;
@@ -133,7 +138,7 @@ export interface ProfileData {
   experience: ProfileExperience[];
   education: ProfileEducation[];
   certifications: ProfileCertification[];
-  techSkills: string[];
+  techSkills: ProfileTechSkill[];
 }
 
 export interface ProfileFillPayload {

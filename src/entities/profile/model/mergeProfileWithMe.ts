@@ -91,14 +91,19 @@ function mapMeExperiencesToProfile(raw: unknown): ProfileExperience[] {
     .filter((item) => item.title.length > 0);
 }
 
-function mapMeSkillsToTechSkills(raw: unknown): string[] {
+function mapMeSkillsToTechSkills(raw: unknown): ProfileData["techSkills"] {
   if (!Array.isArray(raw)) return [];
   return raw
-    .map((item) => {
+    .map((item, i) => {
       const o = item as MeJson;
-      return sid(o.Name ?? o.name).trim();
+      const name = sid(o.Name ?? o.name).trim();
+      if (!name) return null;
+      return {
+        id: sid(o.ID ?? o.id) || `skill-me-${i}`,
+        name,
+      };
     })
-    .filter((s) => s.length > 0);
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 }
 
 function mapMePhoneToProfile(raw: unknown): ProfileContactPhone | undefined {

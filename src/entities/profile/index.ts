@@ -7,6 +7,7 @@ export type {
   ProfileCertification,
   ProfileAchievement,
   ProfileSpokenLanguage,
+  ProfileTechSkill,
   ProfileWorkMode,
   ProfileHeatmapBySource,
   HeatmapSourceTab,

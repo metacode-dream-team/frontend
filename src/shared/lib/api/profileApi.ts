@@ -220,7 +220,13 @@ function buildMockProfile(id: string): ProfileData {
         provider: "huawei",
       },
     ],
-    techSkills: ["Redis", "Golang", "Docker", "Kubernetes", "gRPC"],
+    techSkills: [
+      { id: "skill-mock-1", name: "Redis" },
+      { id: "skill-mock-2", name: "Golang" },
+      { id: "skill-mock-3", name: "Docker" },
+      { id: "skill-mock-4", name: "Kubernetes" },
+      { id: "skill-mock-5", name: "gRPC" },
+    ],
   };
 }
 

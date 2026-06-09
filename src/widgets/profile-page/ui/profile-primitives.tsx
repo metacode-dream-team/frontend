@@ -68,6 +68,39 @@ export function SectionAddButton({
   );
 }
 
+export function TrashIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
+export function SectionDeleteButton({
+  onClick,
+  label,
+  className,
+}: {
+  onClick: () => void;
+  label: string;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-red-950/40 hover:text-red-300 focus-visible:opacity-100",
+        className,
+      )}
+      aria-label={label}
+    >
+      <TrashIcon />
+    </button>
+  );
+}
+
 export function PencilIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>

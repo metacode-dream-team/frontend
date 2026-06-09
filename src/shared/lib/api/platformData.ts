@@ -1,4 +1,10 @@
-import { integrationGet, integrationPatch, integrationPost, platformGet } from "./platformClient";
+import {
+  integrationDelete,
+  integrationGet,
+  integrationPatch,
+  integrationPost,
+  platformGet,
+} from "./platformClient";
 import {
   augmentProfileWithIntegration,
   mapAchievementsPayload,
@@ -106,6 +112,46 @@ export async function createProfileSkill(
   body: ProfileSkillPayload,
 ): Promise<Json> {
   return integrationPost<Json>("/v1/profiles/me/skills", body, accessToken);
+}
+
+export async function deleteProfileCertification(
+  accessToken: string,
+  id: string,
+): Promise<void> {
+  const enc = encodeURIComponent(id);
+  return integrationDelete<void>(`/v1/profiles/me/certifications/${enc}`, accessToken);
+}
+
+export async function deleteProfileEducation(
+  accessToken: string,
+  id: string,
+): Promise<void> {
+  const enc = encodeURIComponent(id);
+  return integrationDelete<void>(`/v1/profiles/me/educations/${enc}`, accessToken);
+}
+
+export async function deleteProfileExperience(
+  accessToken: string,
+  id: string,
+): Promise<void> {
+  const enc = encodeURIComponent(id);
+  return integrationDelete<void>(`/v1/profiles/me/experiences/${enc}`, accessToken);
+}
+
+export async function deleteProfileLanguage(
+  accessToken: string,
+  id: string,
+): Promise<void> {
+  const enc = encodeURIComponent(id);
+  return integrationDelete<void>(`/v1/profiles/me/languages/${enc}`, accessToken);
+}
+
+export async function deleteProfileSkill(
+  accessToken: string,
+  id: string,
+): Promise<void> {
+  const enc = encodeURIComponent(id);
+  return integrationDelete<void>(`/v1/profiles/me/skills/${enc}`, accessToken);
 }
 
 export async function fetchIntegrationProfile(
