@@ -32,6 +32,7 @@ import {
 } from "./profile-primitives";
 import { SolvedProgressRing } from "./solved-progress-ring";
 import { ProfileSpokenLanguagesSection } from "./profile-languages-section";
+import { resolveStreakDisplay, StreakBadge } from "@/widgets/profile-streak";
 import { SubmissionHeatmap } from "./submission-heatmap";
 
 interface ProfilePageContentProps {
@@ -108,6 +109,7 @@ export function ProfilePageContent({
   const [personalEditOpen, setPersonalEditOpen] = useState(false);
   const deleteItem = useProfileDeleteItem();
   const avatarPlain = shouldUseNativeImgForRemoteUrl(profile.avatarUrl);
+  const { count: streakCount, activeToday: streakActive } = resolveStreakDisplay(profile);
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
       <aside className="w-full shrink-0 bg-black lg:w-[280px] lg:min-w-[280px]">
@@ -137,7 +139,10 @@ export function ProfilePageContent({
             </div>
             <div className="mt-4 min-w-0 sm:ml-4 sm:mt-0">
               <h1 className="text-lg font-semibold tracking-tight text-white">{profile.fullName}</h1>
-              <p className="mt-0.5 text-sm text-zinc-500">{profile.username}</p>
+              <p className="mt-0.5 flex items-center justify-center gap-2 text-sm text-zinc-500 sm:justify-start">
+                <span>{profile.username}</span>
+                <StreakBadge count={streakCount} activeToday={streakActive} />
+              </p>
               <div className="mt-2 flex items-center justify-center gap-1.5 sm:justify-start">
                 <p className="text-sm">
                   <span className="text-zinc-500">Rank </span>

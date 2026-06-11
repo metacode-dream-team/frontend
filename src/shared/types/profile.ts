@@ -105,6 +105,8 @@ export interface ProfilePersonal {
   gender?: string;
 }
 
+import type { ActivityStreak } from "./streak";
+
 export interface ProfileData {
   id: string;
   username: string;
@@ -128,6 +130,8 @@ export interface ProfileData {
   achievements: ProfileAchievement[];
   currentStreak: number;
   maxStreak: number;
+  /** Серия из `/v1/activity/streak` (GitHub + LeetCode + Monkeytype) */
+  activityStreak?: ActivityStreak;
   contacts?: ProfileContacts;
   personal?: ProfilePersonal;
   spokenLanguages: ProfileSpokenLanguage[];

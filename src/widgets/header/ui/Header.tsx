@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import { useProfileMeStore } from "@/entities/profile";
 import { ConnectPlatformsModal, IntegrationsModal } from "@/features/connect-accounts";
+import { StreakBadge, streakFromActivity, useUserStreak } from "@/widgets/profile-streak";
 import { Button } from "@/shared/ui/Button";
 import { cn } from "@/shared/lib/utils/cn";
 
@@ -20,8 +21,11 @@ function linkActive(pathname: string, href: string) {
 }
 
 export function Header() {
-  const { isAuthenticated, logout } = useAuthStore();
-  const meAvatarUrl = useProfileMeStore((s) => s.profile?.avatarUrl?.trim() ?? "");
+  const { isAuthenticated, logout, accessToken } = useAuthStore();
+  const me = useProfileMeStore((s) => s.profile);
+  const meAvatarUrl = me?.avatarUrl?.trim() ?? "";
+  const streak = useUserStreak(me?.userId, accessToken);
+  const { count: streakCount, activeToday: streakActive } = streakFromActivity(streak);
   const [connectOpen, setConnectOpen] = useState(false);
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -96,7 +100,8 @@ export function Header() {
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {isAuthenticated ? (
-              <div ref={menuRef} className="relative">
+              <div ref={menuRef} className="relative flex items-center gap-2.5">
+                <StreakBadge count={streakCount} activeToday={streakActive} />
                 <button
                   type="button"
                   onClick={() => setMenuOpen((v) => !v)}

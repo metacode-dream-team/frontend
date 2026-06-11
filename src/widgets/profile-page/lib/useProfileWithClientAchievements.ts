@@ -5,14 +5,17 @@ import { useAuthStore } from "@/entities/auth";
 import type { ProfileAchievement, ProfileData } from "@/entities/profile";
 import { isProfileRouteCurrentUser, mergeProfileWithMe, useProfileMeStore } from "@/entities/profile";
 import {
+  applyActivityStreakToProfile,
   augmentProfileWithIntegration,
   mapAchievementsPayload,
   mapLeaderboardUserRank,
+  mapStreakPayload,
 } from "@/shared/lib/api/platformMappers";
 import {
   fetchIntegrationProfile,
   fetchLeaderboardUser,
   fetchUserAchievements,
+  fetchUserStreak,
 } from "@/shared/lib/api/platformData";
 import { resolveActivityUserId } from "./resolveActivityUserId";
 
@@ -20,11 +23,13 @@ type ClientBundle = {
   achievements?: ProfileAchievement[];
   integrationJson: unknown | null;
   rank?: number;
+  streakJson: unknown | null;
 };
 
 /**
  * После SSR подмешивает с клиента (Bearer) только то, что не дублирует третий лишний слой:
  * - `GET /v1/activity/user/achievement?user_id=<UserID>` — если смотришь **свой** профиль
+ * - `GET /v1/activity/streak?user_id=<UserID>` — платформенная серия (огонёк)
  * - `GET /v1/integration/profile?user_id=<UserID>` — теплокарта GitHub / LeetCode / Monkeytype
  *
  * Данные «о себе» из `GET /v1/profiles/me` приходят через `mergeProfileWithMe` + `useProfileMeStore`.
@@ -53,12 +58,13 @@ export function useProfileWithClientAchievements(
     let cancelled = false;
     void (async () => {
       try {
-        const [achRaw, intRaw, leaderboardRaw] = await Promise.all([
+        const [achRaw, intRaw, leaderboardRaw, streakRaw] = await Promise.all([
           ownProfile
             ? fetchUserAchievements(userId, accessToken).catch(() => null)
             : Promise.resolve(null),
           fetchIntegrationProfile(userId, accessToken).catch(() => null),
           fetchLeaderboardUser(userId, accessToken).catch(() => null),
+          fetchUserStreak(userId, accessToken).catch(() => null),
         ]);
         if (cancelled) return;
 
@@ -68,10 +74,11 @@ export function useProfileWithClientAchievements(
           achievements: achParsed.length > 0 ? achParsed : undefined,
           integrationJson: intRaw,
           rank: rank ?? undefined,
+          streakJson: streakRaw,
         });
       } catch {
         if (!cancelled) {
-          setBundle({ integrationJson: null });
+          setBundle({ integrationJson: null, streakJson: null });
         }
       }
     })();
@@ -95,6 +102,9 @@ export function useProfileWithClientAchievements(
     }
     if (typeof bundle.rank === "number" && Number.isFinite(bundle.rank) && bundle.rank > 0) {
       next = { ...next, rank: bundle.rank };
+    }
+    if (bundle.streakJson != null) {
+      next = applyActivityStreakToProfile(next, mapStreakPayload(bundle.streakJson));
     }
     return next;
   }, [initialProfile, me, routeUsername, bundle]);

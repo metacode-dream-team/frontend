@@ -10,8 +10,10 @@ import {
 } from "./platformClient";
 import { parseAvatarUploadResponse } from "@/shared/lib/utils/parseAvatarUploadResponse";
 import {
+  applyActivityStreakToProfile,
   augmentProfileWithIntegration,
   mapAchievementsPayload,
+  mapStreakPayload,
   mapCalendarToActivityDays,
   mapCalendarToProfileHeatmap,
   mapIntegrationProfileToActivityDays,
@@ -203,6 +205,14 @@ export async function fetchUserAchievements(
   );
 }
 
+export async function fetchUserStreak(
+  userId: string,
+  accessToken?: string | null,
+): Promise<Json> {
+  const q = new URLSearchParams({ user_id: userId });
+  return integrationGet<Json>(`/v1/activity/streak?${q.toString()}`, accessToken);
+}
+
 export async function fetchLeaderboardUser(
   userId: string,
   accessToken?: string | null,
@@ -221,12 +231,14 @@ export async function buildProfileFromPlatform(idFromRoute: string): Promise<Pro
   let heatmapFromCalendar: ProfileHeatmapDay[] = [];
 
   let integrationJson: Json | null = null;
+  let streakJson: Json | null = null;
 
   if (userId) {
-    const [achJson, calJson, integJson] = await Promise.all([
+    const [achJson, calJson, integJson, streakRaw] = await Promise.all([
       fetchUserAchievements(userId, null).catch(() => null),
       fetchIntegrationCalendar(userId, null).catch(() => null),
       fetchIntegrationProfile(userId, null).catch(() => null),
+      fetchUserStreak(userId, null).catch(() => null),
     ]);
     if (achJson) {
       achievements = mapAchievementsPayload(achJson);
@@ -237,6 +249,7 @@ export async function buildProfileFromPlatform(idFromRoute: string): Promise<Pro
     if (integJson) {
       integrationJson = integJson;
     }
+    streakJson = streakRaw;
   }
 
   let base = mapProfileDocument(doc, idFromRoute, {
@@ -246,6 +259,10 @@ export async function buildProfileFromPlatform(idFromRoute: string): Promise<Pro
 
   if (integrationJson) {
     base = augmentProfileWithIntegration(base, integrationJson);
+  }
+
+  if (userId && streakJson) {
+    base = applyActivityStreakToProfile(base, mapStreakPayload(streakJson));
   }
 
   return base;

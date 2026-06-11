@@ -108,6 +108,8 @@ export interface ProfilePersonal {
   gender?: string;
 }
 
+import type { ActivityStreak } from "@/shared/types/streak";
+
 export interface ProfileData {
   id: string;
   username: string;
@@ -131,6 +133,7 @@ export interface ProfileData {
   achievements: ProfileAchievement[];
   currentStreak: number;
   maxStreak: number;
+  activityStreak?: ActivityStreak;
   contacts?: ProfileContacts;
   personal?: ProfilePersonal;
   spokenLanguages: ProfileSpokenLanguage[];

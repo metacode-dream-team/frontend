@@ -7,6 +7,7 @@ import {
   type ProfileHeatmapBySource,
   type ProfileHeatmapDay,
 } from "@/shared/types/profile";
+import type { ActivityStreak } from "@/shared/types/streak";
 import type { ActivityDay, ActivitySource, GithubStats, LeetcodeStats, MonkeytypeStats } from "@/shared/types/stats";
 
 type Json = Record<string, unknown>;
@@ -310,6 +311,42 @@ function mapSkillGroups(raw: unknown): ProfileData["skills"] {
       : [];
     return { level, items };
   });
+}
+
+function toYmdLocal(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export function mapStreakPayload(raw: unknown): ActivityStreak | null {
+  const root = unwrapDataPayload(raw);
+  if (!Object.keys(root).length) return null;
+
+  const lastRaw = str(
+    root.LastUpdateDate ?? root.last_update_date ?? root.lastUpdateDate,
+    "",
+  );
+  const lastActiveDate = lastRaw ? lastRaw.slice(0, 10) : null;
+  const today = toYmdLocal(new Date());
+
+  return {
+    current: num(root.CurrentStreak ?? root.current_streak ?? root.currentStreak),
+    longest: num(root.LongestStreak ?? root.longest_streak ?? root.longestStreak),
+    lastActiveDate,
+    activeToday: lastActiveDate === today,
+  };
+}
+
+export function applyActivityStreakToProfile(
+  profile: ProfileData,
+  streak: ActivityStreak | null,
+): ProfileData {
+  if (!streak) return profile;
+  return {
+    ...profile,
+    activityStreak: streak,
+    currentStreak: streak.current > 0 ? streak.current : profile.currentStreak,
+    maxStreak: Math.max(streak.longest, profile.maxStreak),
+  };
 }
 
 export function mapAchievementsPayload(raw: unknown): ProfileAchievement[] {
