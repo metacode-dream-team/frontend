@@ -78,8 +78,8 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-zinc-900/80 bg-black">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 sm:h-16 sm:gap-4 sm:px-6">
+      <header className="sticky top-0 z-50 w-full overflow-visible border-b border-zinc-900/80 bg-black">
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 overflow-visible px-4 sm:h-16 sm:gap-4 sm:px-6">
           <Link
             href="/"
             className="focus-visible:ring-violet-500/60 flex shrink-0 items-center outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
@@ -111,34 +111,35 @@ export function Header() {
 
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3 md:ml-0">
             {isAuthenticated ? (
-              <div ref={menuRef} className="relative flex items-center gap-2.5">
+              <div ref={menuRef} className="relative flex items-center gap-2.5 overflow-visible">
                 <StreakBadge count={streakCount} activeToday={streakActive} />
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen((v) => !v)}
-                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-purple-900 text-[10px] font-bold text-white ring-2 ring-violet-500/40 transition hover:ring-violet-400/60 focus-visible:outline-none focus-visible:ring-violet-300"
-                  title="Profile menu"
-                  aria-label="Profile menu"
-                  aria-expanded={menuOpen}
-                  aria-haspopup="menu"
-                >
-                  {meAvatarUrl ? (
-                    <img
-                      src={meAvatarUrl}
-                      alt="Profile avatar"
-                      className="h-full w-full rounded-full object-cover"
-                      loading="eager"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    "ME"
-                  )}
-                </button>
-                {menuOpen ? (
-                  <div
-                    role="menu"
-                    className="absolute right-0 top-9 z-50 min-w-[150px] rounded-xl border border-zinc-800 bg-zinc-950/95 p-1.5 shadow-xl backdrop-blur"
+                <div className="relative overflow-visible">
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen((v) => !v)}
+                    className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-purple-900 text-[10px] font-bold text-white ring-2 ring-violet-500/40 transition hover:ring-violet-400/60 focus-visible:outline-none focus-visible:ring-violet-300"
+                    title="Profile menu"
+                    aria-label="Profile menu"
+                    aria-expanded={menuOpen}
+                    aria-haspopup="menu"
                   >
+                    {meAvatarUrl ? (
+                      <img
+                        src={meAvatarUrl}
+                        alt="Profile avatar"
+                        className="h-full w-full rounded-full object-cover"
+                        loading="eager"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      "ME"
+                    )}
+                  </button>
+                  {menuOpen ? (
+                    <div
+                      role="menu"
+                      className="absolute right-0 top-full z-[60] mt-1.5 min-w-[150px] overflow-visible rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-xl"
+                    >
                     <Link
                       href="/profile"
                       role="menuitem"
@@ -165,6 +166,7 @@ export function Header() {
                     </button>
                   </div>
                 ) : null}
+                </div>
               </div>
             ) : (
               <>
