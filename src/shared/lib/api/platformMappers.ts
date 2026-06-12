@@ -369,6 +369,16 @@ export function mapAchievementsPayload(raw: unknown): ProfileAchievement[] {
       ),
       title: str(o.Name ?? o.title ?? o.name, "Achievement"),
       description: str(o.Description ?? o.description ?? o.desc, ""),
+      iconUrl:
+        str(
+          o.IconURL ??
+            o.icon_url ??
+            o.iconUrl ??
+            o.image_url ??
+            o.imageUrl ??
+            "",
+          "",
+        ) || undefined,
       tone: tones[i % 3]!,
       unlocked,
       unlockedAt: unlocked

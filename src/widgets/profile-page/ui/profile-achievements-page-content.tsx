@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ProfileAchievement } from "@/entities/profile";
 import { cn } from "@/shared/lib/utils/cn";
+import { AchievementLogo } from "./achievement-logo";
 
 const toneBorder: Record<ProfileAchievement["tone"], string> = {
   emerald: "border-l-emerald-500/80",
@@ -49,17 +50,22 @@ export function ProfileAchievementsPageContent({
               !a.unlocked && "bg-zinc-950/30 opacity-60",
             )}
           >
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <p className="text-base font-medium text-zinc-100">{a.title}</p>
-              {!a.unlocked ? (
-                <span className="shrink-0 rounded-md bg-zinc-800/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
-                  Locked
-                </span>
-              ) : a.unlockedAt ? (
-                <span className="shrink-0 text-xs font-medium text-zinc-500">{a.unlockedAt}</span>
-              ) : null}
+            <div className="flex items-start gap-4">
+              <AchievementLogo achievement={a} size="xl" />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <p className="text-base font-medium text-zinc-100">{a.title}</p>
+                  {!a.unlocked ? (
+                    <span className="shrink-0 rounded-md bg-zinc-800/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                      Locked
+                    </span>
+                  ) : a.unlockedAt ? (
+                    <span className="shrink-0 text-xs font-medium text-zinc-500">{a.unlockedAt}</span>
+                  ) : null}
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-500">{a.description}</p>
+              </div>
             </div>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-500">{a.description}</p>
           </li>
         ))}
       </ul>

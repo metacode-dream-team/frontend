@@ -30,7 +30,7 @@ import {
   ProfileTag,
   skillLevelDotClass,
 } from "./profile-primitives";
-import { SolvedProgressRing } from "./solved-progress-ring";
+import { SolvedProgressCard } from "./solved-progress-card";
 import { ProfileSpokenLanguagesSection } from "./profile-languages-section";
 import { SubmissionHeatmap } from "./submission-heatmap";
 
@@ -229,27 +229,6 @@ export function ProfilePageContent({
             }
           />
 
-          {profile.languages.length > 0 ? (
-            <section className="mt-8 pt-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                Solved by language
-              </h3>
-              <ul className="mt-3 space-y-2">
-                {profile.languages.map((lang, index) => (
-                  <li
-                    key={`${lang.name}-${lang.solved}-${index}`}
-                    className="flex items-center justify-between gap-2 text-sm"
-                  >
-                    <ProfileTag>
-                      {lang.name}
-                      <span className="tabular-nums text-zinc-500">{lang.solved}</span>
-                    </ProfileTag>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-
           <section className="mt-8 pt-2">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">DSA Skills</h3>
             <div className="mt-4 space-y-4">
@@ -266,24 +245,17 @@ export function ProfilePageContent({
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(280px,400px)_minmax(480px,1fr)] xl:items-stretch">
       <ProfileCard className="mx-auto flex h-full w-full max-w-[320px] flex-col p-3 sm:max-w-[360px] sm:p-4 xl:mx-0 xl:max-w-full xl:min-h-0">
         <div className="flex w-full flex-1 items-center gap-0.5 xl:min-h-0">
-              <div className="shrink-0 xl:ml-4">
-                <SolvedProgressRing
-                  solved={profile.solved}
-                  total={profile.totalProblems}
-                  attempting={profile.attempting}
-                  easySolved={profile.easySolved}
-                  easyTotal={profile.easyTotal}
-                  mediumSolved={profile.mediumSolved}
-                  mediumTotal={profile.mediumTotal}
-                  hardSolved={profile.hardSolved}
-                  hardTotal={profile.hardTotal}
-                />
-              </div>
-              <div className="ml-auto flex w-[36%] min-w-[88px] max-w-[116px] shrink-0 flex-col gap-1.5 sm:max-w-[128px] sm:gap-2 xl:mr-4">
-                <DifficultyStat label="EASY" tone="easy" solved={profile.easySolved} total={profile.easyTotal} />
-                <DifficultyStat label="MED." tone="medium" solved={profile.mediumSolved} total={profile.mediumTotal} />
-                <DifficultyStat label="HARD" tone="hard" solved={profile.hardSolved} total={profile.hardTotal} />
-              </div>
+              <SolvedProgressCard
+                solved={profile.solved}
+                total={profile.totalProblems}
+                attempting={profile.attempting}
+                easySolved={profile.easySolved}
+                easyTotal={profile.easyTotal}
+                mediumSolved={profile.mediumSolved}
+                mediumTotal={profile.mediumTotal}
+                hardSolved={profile.hardSolved}
+                hardTotal={profile.hardTotal}
+              />
             </div>
           </ProfileCard>
 
@@ -432,31 +404,6 @@ export function ProfilePageContent({
           />
         </>
       ) : null}
-    </div>
-  );
-}
-
-function DifficultyStat({
-  label,
-  tone,
-  solved,
-  total,
-}: {
-  label: string;
-  tone: "easy" | "medium" | "hard";
-  solved: number;
-  total: number;
-}) {
-  const labelClass =
-    tone === "easy" ? "text-emerald-400" : tone === "medium" ? "text-amber-300" : "text-rose-400";
-
-  return (
-    <div className="rounded-lg bg-zinc-800/80 px-2 py-2 text-center">
-      <p className={`text-[10px] font-semibold tracking-wide ${labelClass}`}>{label}</p>
-      <p className="mt-0.5 text-sm font-bold tabular-nums text-white">
-        {solved}
-        <span className="text-xs font-semibold text-zinc-500">/{total}</span>
-      </p>
     </div>
   );
 }

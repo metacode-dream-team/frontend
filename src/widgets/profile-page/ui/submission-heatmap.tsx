@@ -338,19 +338,22 @@ export function SubmissionHeatmap({
           <HeatmapScrollArea monthBlocks={monthBlocks} cap={cap} />
         )}
 
-        <div className="mt-3 flex flex-wrap items-center justify-end gap-1.5 text-[9px] text-zinc-500 sm:mt-4 sm:gap-2 sm:text-[10px] md:text-[11px]">
-          <span>Less</span>
-          <div className="flex gap-px sm:gap-0.5">
-            {([0, 1, 2, 3, 4] as const).map((lv) => (
-              <span
-                key={lv}
-                className={`size-[3px] rounded-[1px] sm:size-1.5 md:size-2 lg:size-2.5 xl:size-3 ${heatmapLevelClass(lv, "zinc")}`}
-                title={heatmapLevelRange(lv, cap)}
-              />
-            ))}
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 text-[9px] text-zinc-500 sm:mt-4 sm:gap-2 sm:text-[10px] md:text-[11px]">
+          <span className="text-zinc-600">Updates every 30 min</span>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <span>Less</span>
+            <div className="flex gap-px sm:gap-0.5">
+              {([0, 1, 2, 3, 4] as const).map((lv) => (
+                <span
+                  key={lv}
+                  className={`size-[3px] rounded-[1px] sm:size-1.5 md:size-2 lg:size-2.5 xl:size-3 ${heatmapLevelClass(lv, "zinc")}`}
+                  title={heatmapLevelRange(lv, cap)}
+                />
+              ))}
+            </div>
+            <span>More</span>
+            <span className="text-zinc-600">(max {cap})</span>
           </div>
-          <span>More</span>
-          <span className="text-zinc-600">(max {cap})</span>
         </div>
       </div>
     </ProfileHeatmapCard>

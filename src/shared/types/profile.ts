@@ -72,6 +72,7 @@ export interface ProfileAchievement {
   id: string;
   title: string;
   description: string;
+  iconUrl?: string;
   tone: "emerald" | "amber" | "violet";
   unlocked: boolean;
   unlockedAt?: string;

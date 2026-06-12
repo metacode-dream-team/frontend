@@ -1,5 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
+type DifficultyZone = "easy" | "medium" | "hard";
+
 interface SolvedProgressRingProps {
   solved: number;
   total: number;
@@ -10,6 +14,7 @@ interface SolvedProgressRingProps {
   mediumTotal: number;
   hardSolved: number;
   hardTotal: number;
+  focusedZone?: DifficultyZone | null;
 }
 
 /** Видимая дуга ~300° с зазором сверху/снизу. */
@@ -86,6 +91,97 @@ function colorJunction(lenA: number, lenB: number): number {
   return Math.min(2.2, Math.max(0.5, Math.min(lenA, lenB) * 0.22));
 }
 
+const RING_SEGMENT_TRANSITION =
+  "opacity 0.38s ease, stroke-width 0.38s ease, filter 0.38s ease";
+
+const FILL_DURATION_MS = 900;
+
+function easeOutCubic(t: number): number {
+  return 1 - (1 - t) ** 3;
+}
+
+function useFillProgress(trigger: string, delayMs: number, enabled: boolean): number {
+  const [progress, setProgress] = useState(enabled ? 0 : 1);
+
+  useEffect(() => {
+    if (!enabled) {
+      setProgress(1);
+      return;
+    }
+
+    const reducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reducedMotion) {
+      setProgress(1);
+      return;
+    }
+
+    setProgress(0);
+    let raf = 0;
+    let start = 0;
+
+    const timeout = window.setTimeout(() => {
+      const tick = (ts: number) => {
+        if (!start) start = ts;
+        const t = Math.min((ts - start) / FILL_DURATION_MS, 1);
+        setProgress(easeOutCubic(t));
+        if (t < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    }, delayMs);
+
+    return () => {
+      clearTimeout(timeout);
+      cancelAnimationFrame(raf);
+    };
+  }, [trigger, delayMs, enabled]);
+
+  return progress;
+}
+
+function RingSegment({
+  visible,
+  emphasized,
+  cx,
+  cy,
+  r,
+  stroke,
+  strokeWidth,
+  dasharray,
+  offset,
+}: {
+  visible: boolean;
+  emphasized?: boolean;
+  cx: number;
+  cy: number;
+  r: number;
+  stroke: string;
+  strokeWidth: number;
+  dasharray: string;
+  offset: number;
+}) {
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={r}
+      fill="none"
+      stroke={stroke}
+      strokeWidth={emphasized ? strokeWidth + 0.75 : strokeWidth}
+      strokeLinecap="round"
+      strokeDasharray={dasharray}
+      strokeDashoffset={offset}
+      style={{
+        opacity: visible ? 1 : 0,
+        transition: RING_SEGMENT_TRANSITION,
+        filter: emphasized ? `drop-shadow(0 0 6px ${stroke})` : "none",
+      }}
+    />
+  );
+}
+
 export function SolvedProgressRing({
   solved,
   total,
@@ -96,6 +192,7 @@ export function SolvedProgressRing({
   mediumTotal,
   hardSolved,
   hardTotal,
+  focusedZone = null,
 }: SolvedProgressRingProps) {
   const { slotE, slotM, slotH } = zoneSlotsScaled(ARC_LEN, total, easyTotal, mediumTotal, hardTotal);
 
@@ -118,102 +215,129 @@ export function SolvedProgressRing({
   const trackM = arcDashSingle(slotM, GAP_START + zoneM);
   const trackH = arcDashSingle(slotH, GAP_START + zoneH);
 
-  const easyArc = arcDashSingle(visE, GAP_START);
-  const mediumArc = arcDashSingle(visM, GAP_START + zoneM);
-  const hardArc = arcDashSingle(visH, GAP_START + zoneH);
+  const showEasy = !focusedZone || focusedZone === "easy";
+  const showMedium = !focusedZone || focusedZone === "medium";
+  const showHard = !focusedZone || focusedZone === "hard";
+
+  const fillTrigger = `${focusedZone ?? "all"}-${visE.toFixed(2)}-${visM.toFixed(2)}-${visH.toFixed(2)}`;
+  const staggered = focusedZone == null;
+
+  const easyFill = useFillProgress(fillTrigger, staggered ? 0 : 0, showEasy && visE > 0.15);
+  const mediumFill = useFillProgress(fillTrigger, staggered ? 140 : 0, showMedium && visM > 0.15);
+  const hardFill = useFillProgress(fillTrigger, staggered ? 280 : 0, showHard && visH > 0.15);
+
+  const easyArc = arcDashSingle(visE * easyFill, GAP_START);
+  const mediumArc = arcDashSingle(visM * mediumFill, GAP_START + zoneM);
+  const hardArc = arcDashSingle(visH * hardFill, GAP_START + zoneH);
+
+  const centerSolved =
+    focusedZone === "easy"
+      ? easySolved
+      : focusedZone === "medium"
+        ? mediumSolved
+        : focusedZone === "hard"
+          ? hardSolved
+          : solved;
+  const centerTotal =
+    focusedZone === "easy"
+      ? easyTotal
+      : focusedZone === "medium"
+        ? mediumTotal
+        : focusedZone === "hard"
+          ? hardTotal
+          : total;
+  const centerLabel =
+    focusedZone === "easy"
+      ? "Easy"
+      : focusedZone === "medium"
+        ? "Medium"
+        : focusedZone === "hard"
+          ? "Hard"
+          : "Solved";
 
   return (
     <div className="flex flex-col items-center">
       <div className="relative flex h-[172px] w-[172px] shrink-0 items-center justify-center sm:h-[180px] sm:w-[180px]">
         <svg className="h-full w-full" viewBox="0 0 140 140" aria-hidden>
           <g transform={`rotate(-90 ${CX} ${CY})`}>
-            {slotE > 0.02 ? (
-              <circle
-                cx={CX}
-                cy={CY}
-                r={R}
-                fill="none"
-                stroke={COLORS.track}
-                strokeWidth={STROKE}
-                strokeLinecap="round"
-                strokeDasharray={trackE.dasharray}
-                strokeDashoffset={trackE.offset}
-              />
-            ) : null}
-            {slotM > 0.02 ? (
-              <circle
-                cx={CX}
-                cy={CY}
-                r={R}
-                fill="none"
-                stroke={COLORS.track}
-                strokeWidth={STROKE}
-                strokeLinecap="round"
-                strokeDasharray={trackM.dasharray}
-                strokeDashoffset={trackM.offset}
-              />
-            ) : null}
-            {slotH > 0.02 ? (
-              <circle
-                cx={CX}
-                cy={CY}
-                r={R}
-                fill="none"
-                stroke={COLORS.track}
-                strokeWidth={STROKE}
-                strokeLinecap="round"
-                strokeDasharray={trackH.dasharray}
-                strokeDashoffset={trackH.offset}
-              />
-            ) : null}
-            {visE > 0.15 ? (
-              <circle
-                cx={CX}
-                cy={CY}
-                r={R}
-                fill="none"
-                stroke={COLORS.easy}
-                strokeWidth={STROKE}
-                strokeLinecap="round"
-                strokeDasharray={easyArc.dasharray}
-                strokeDashoffset={easyArc.offset}
-              />
-            ) : null}
-            {visM > 0.15 ? (
-              <circle
-                cx={CX}
-                cy={CY}
-                r={R}
-                fill="none"
-                stroke={COLORS.medium}
-                strokeWidth={STROKE}
-                strokeLinecap="round"
-                strokeDasharray={mediumArc.dasharray}
-                strokeDashoffset={mediumArc.offset}
-              />
-            ) : null}
-            {visH > 0.15 ? (
-              <circle
-                cx={CX}
-                cy={CY}
-                r={R}
-                fill="none"
-                stroke={COLORS.hard}
-                strokeWidth={STROKE}
-                strokeLinecap="round"
-                strokeDasharray={hardArc.dasharray}
-                strokeDashoffset={hardArc.offset}
-              />
-            ) : null}
+            <RingSegment
+              visible={showEasy && slotE > 0.02}
+              cx={CX}
+              cy={CY}
+              r={R}
+              stroke={COLORS.track}
+              strokeWidth={STROKE}
+              dasharray={trackE.dasharray}
+              offset={trackE.offset}
+            />
+            <RingSegment
+              visible={showMedium && slotM > 0.02}
+              cx={CX}
+              cy={CY}
+              r={R}
+              stroke={COLORS.track}
+              strokeWidth={STROKE}
+              dasharray={trackM.dasharray}
+              offset={trackM.offset}
+            />
+            <RingSegment
+              visible={showHard && slotH > 0.02}
+              cx={CX}
+              cy={CY}
+              r={R}
+              stroke={COLORS.track}
+              strokeWidth={STROKE}
+              dasharray={trackH.dasharray}
+              offset={trackH.offset}
+            />
+            <RingSegment
+              visible={showEasy && visE > 0.15}
+              emphasized={focusedZone === "easy"}
+              cx={CX}
+              cy={CY}
+              r={R}
+              stroke={COLORS.easy}
+              strokeWidth={STROKE}
+              dasharray={easyArc.dasharray}
+              offset={easyArc.offset}
+            />
+            <RingSegment
+              visible={showMedium && visM > 0.15}
+              emphasized={focusedZone === "medium"}
+              cx={CX}
+              cy={CY}
+              r={R}
+              stroke={COLORS.medium}
+              strokeWidth={STROKE}
+              dasharray={mediumArc.dasharray}
+              offset={mediumArc.offset}
+            />
+            <RingSegment
+              visible={showHard && visH > 0.15}
+              emphasized={focusedZone === "hard"}
+              cx={CX}
+              cy={CY}
+              r={R}
+              stroke={COLORS.hard}
+              strokeWidth={STROKE}
+              dasharray={hardArc.dasharray}
+              offset={hardArc.offset}
+            />
           </g>
         </svg>
 
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-          <p className="text-xl font-bold tabular-nums leading-tight tracking-tight text-white sm:text-2xl">
-            {solved}
-            <span className="text-sm font-semibold text-zinc-500 sm:text-base">/{total}</span>
-          </p>
-          <p className="mt-0.5 text-[11px] font-medium text-zinc-500">Solved</p>
+          <div
+            key={`${centerLabel}-${centerSolved}-${centerTotal}`}
+            className="flex flex-col items-center"
+            style={{ animation: "ringCenterIn 0.28s ease-out" }}
+          >
+            <p className="text-xl font-bold tabular-nums leading-tight tracking-tight text-white sm:text-2xl">
+              {centerSolved}
+              <span className="text-sm font-semibold text-zinc-500 sm:text-base">/{centerTotal}</span>
+            </p>
+            <p className="mt-0.5 text-[11px] font-medium text-zinc-500">{centerLabel}</p>
+          </div>
         </div>
       </div>
       <p className="mt-1 text-[10px] text-zinc-500">{attempting} Attempting</p>
