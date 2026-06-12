@@ -240,8 +240,11 @@ export function ProfilePageContent({
                 Solved by language
               </h3>
               <ul className="mt-3 space-y-2">
-                {profile.languages.map((lang) => (
-                  <li key={lang.name} className="flex items-center justify-between gap-2 text-sm">
+                {profile.languages.map((lang, index) => (
+                  <li
+                    key={`${lang.name}-${lang.solved}-${index}`}
+                    className="flex items-center justify-between gap-2 text-sm"
+                  >
                     <ProfileTag>
                       {lang.name}
                       <span className="tabular-nums text-zinc-500">{lang.solved}</span>

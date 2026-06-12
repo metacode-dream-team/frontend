@@ -14,3 +14,7 @@ export function getProfileErrorStatus(error: unknown): number | null {
 export function isProfileNotFoundError(error: unknown): boolean {
   return getProfileErrorStatus(error) === 404;
 }
+
+export function isProfileUnauthorizedError(error: unknown): boolean {
+  return getProfileErrorStatus(error) === 401;
+}

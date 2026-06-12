@@ -49,9 +49,12 @@ function profileMeItemPath(segment: string, id: string): string {
   return `/v1/profiles/me/${segment}/${encodeURIComponent(id)}`;
 }
 
-export async function fetchProfileByUsername(username: string): Promise<Json> {
+export async function fetchProfileByUsername(
+  username: string,
+  accessToken?: string | null,
+): Promise<Json> {
   const enc = encodeURIComponent(username);
-  return platformGet<Json>(`/v1/profiles/${enc}`);
+  return platformGet<Json>(`/v1/profiles/${enc}`, accessToken);
 }
 
 export async function fetchProfileMe(accessToken: string): Promise<Json> {
@@ -236,8 +239,20 @@ export async function fetchLeaderboardUser(
   return integrationGet<Json>(`/v1/activity/leaderboard/user/${enc}`, accessToken);
 }
 
-export async function buildProfileFromPlatform(idFromRoute: string): Promise<ProfileData> {
-  const rawDoc = await fetchProfileByUsername(idFromRoute);
+export interface BuildProfileOptions {
+  /** Own profile: GET /v1/profiles/me (backend may not expose /v1/profiles/{username}) */
+  useMeEndpoint?: boolean;
+}
+
+export async function buildProfileFromPlatform(
+  idFromRoute: string,
+  accessToken?: string | null,
+  options?: BuildProfileOptions,
+): Promise<ProfileData> {
+  const rawDoc =
+    options?.useMeEndpoint && accessToken
+      ? await fetchProfileMe(accessToken)
+      : await fetchProfileByUsername(idFromRoute, accessToken);
   const doc = unwrapDataPayload(rawDoc) as Json;
   const userId =
     pickUserId(doc) ?? (/^[0-9a-f-]{36}$/i.test(idFromRoute) ? idFromRoute : null);
@@ -250,10 +265,10 @@ export async function buildProfileFromPlatform(idFromRoute: string): Promise<Pro
 
   if (userId) {
     const [achJson, calJson, integJson, streakRaw] = await Promise.all([
-      fetchUserAchievements(userId, null).catch(() => null),
-      fetchIntegrationCalendar(userId, null).catch(() => null),
-      fetchIntegrationProfile(userId, null).catch(() => null),
-      fetchUserStreak(userId, null).catch(() => null),
+      fetchUserAchievements(userId, accessToken).catch(() => null),
+      fetchIntegrationCalendar(userId, accessToken).catch(() => null),
+      fetchIntegrationProfile(userId, accessToken).catch(() => null),
+      fetchUserStreak(userId, accessToken).catch(() => null),
     ]);
     if (achJson) {
       achievements = mapAchievementsPayload(achJson);

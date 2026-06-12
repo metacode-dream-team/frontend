@@ -3,8 +3,13 @@ import {
   getProfileById,
   getProfileErrorStatus,
   isProfileNotFoundError,
+  isProfileUnauthorizedError,
 } from "@/shared/lib/api/profileApi";
-import { ProfileLoadError, ProfileRouteView } from "@/widgets/profile-page";
+import {
+  ProfileLoadError,
+  ProfileRouteClientLoader,
+  ProfileRouteView,
+} from "@/widgets/profile-page";
 
 interface ProfilePageProps {
   params: Promise<{ username: string }>;
@@ -20,6 +25,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   } catch (error) {
     if (isProfileNotFoundError(error)) {
       notFound();
+    }
+    if (isProfileUnauthorizedError(error)) {
+      return <ProfileRouteClientLoader routeUsername={id} />;
     }
     const status = getProfileErrorStatus(error);
     console.warn(`[Profile] upstream ${status ?? "error"} for @${id}`);

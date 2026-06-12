@@ -3,8 +3,13 @@ import {
   getProfileById,
   getProfileErrorStatus,
   isProfileNotFoundError,
+  isProfileUnauthorizedError,
 } from "@/shared/lib/api/profileApi";
-import { ProfileAchievementsRouteView, ProfileLoadError } from "@/widgets/profile-page";
+import {
+  ProfileAchievementsClientLoader,
+  ProfileAchievementsRouteView,
+  ProfileLoadError,
+} from "@/widgets/profile-page";
 
 interface AchievementsPageProps {
   params: Promise<{ username: string }>;
@@ -20,6 +25,9 @@ export default async function ProfileAchievementsPage({ params }: AchievementsPa
   } catch (error) {
     if (isProfileNotFoundError(error)) {
       notFound();
+    }
+    if (isProfileUnauthorizedError(error)) {
+      return <ProfileAchievementsClientLoader routeUsername={id} />;
     }
     const status = getProfileErrorStatus(error);
     console.warn(`[Profile] achievements upstream ${status ?? "error"} for @${id}`);
