@@ -1,6 +1,7 @@
 import {
   AVATAR_UPLOAD_PATH,
   LEETCODE_BIND_PATH,
+  MONKEYTYPE_BIND_PATH,
   PROFILE_FILL_PATH,
 } from "@/shared/config/constants";
 import {
@@ -70,6 +71,17 @@ export async function bindLeetcodeAccount(
   body: LeetcodeBindPayload,
 ): Promise<Json> {
   return integrationPost<Json>(LEETCODE_BIND_PATH, body, accessToken);
+}
+
+export interface MonkeytypeBindPayload {
+  username: string;
+}
+
+export async function bindMonkeytypeAccount(
+  accessToken: string,
+  body: MonkeytypeBindPayload,
+): Promise<Json> {
+  return integrationPost<Json>(MONKEYTYPE_BIND_PATH, body, accessToken);
 }
 
 export async function uploadProfileAvatar(

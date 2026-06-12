@@ -39,6 +39,7 @@ export function subscribeIntegrationSse({
         headers: {
           Accept: "text/event-stream",
           Authorization: `Bearer ${accessToken}`,
+          Connection: "keep-alive",
         },
         credentials: "omit",
         cache: "no-store",

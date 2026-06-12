@@ -4,10 +4,10 @@ import { useEffect, useId, useMemo, useState } from "react";
 
 import { useProfileMeStore } from "@/entities/profile";
 import { LeetcodeBindModal } from "@/features/bind-leetcode";
+import { MonkeytypeBindModal } from "@/features/bind-monkeytype";
 import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { startAuthServiceOAuth } from "@/shared/lib/auth";
 import type { KeycloakIdpHint } from "@/shared/lib/keycloak/keycloak";
-import { startKeycloakIdpLogin } from "@/shared/lib/keycloak/keycloak";
 import { cn } from "@/shared/lib/utils/cn";
 
 import { resolveLinkedAccounts, type LinkedAccount } from "../lib/linkedAccounts";
@@ -125,6 +125,7 @@ export function IntegrationsModal({
   const profile = useProfileMeStore((s) => s.profile);
   const [loading, setLoading] = useState<ConnectProvider | null>(null);
   const [leetcodeBindOpen, setLeetcodeBindOpen] = useState(false);
+  const [monkeytypeBindOpen, setMonkeytypeBindOpen] = useState(false);
 
   const linkedAccounts = useMemo(
     () => resolveLinkedAccounts(profile?.externalProfileLinks),
@@ -148,24 +149,25 @@ export function IntegrationsModal({
     if (!open) {
       setLoading(null);
       setLeetcodeBindOpen(false);
+      setMonkeytypeBindOpen(false);
     }
   }, [open]);
 
   if (!open) return null;
 
-  const connect = async (provider: ConnectProvider) => {
+  const connect = (provider: ConnectProvider) => {
     if (provider === "leetcode") {
       setLeetcodeBindOpen(true);
       return;
     }
 
-    setLoading(provider);
-    if (provider === "github") {
-      const ok = startAuthServiceOAuth("github");
-      if (!ok) setLoading(null);
+    if (provider === "monkeytype") {
+      setMonkeytypeBindOpen(true);
       return;
     }
-    const ok = await startKeycloakIdpLogin(provider);
+
+    setLoading(provider);
+    const ok = startAuthServiceOAuth("github");
     if (!ok) setLoading(null);
   };
 
@@ -221,7 +223,7 @@ export function IntegrationsModal({
               key={acc.provider}
               acc={acc}
               loading={loading}
-              onConnect={(p) => void connect(p)}
+              onConnect={connect}
             />
           ))}
         </ul>
@@ -231,6 +233,11 @@ export function IntegrationsModal({
     <LeetcodeBindModal
       open={leetcodeBindOpen}
       onOpenChange={setLeetcodeBindOpen}
+    />
+
+    <MonkeytypeBindModal
+      open={monkeytypeBindOpen}
+      onOpenChange={setMonkeytypeBindOpen}
     />
     </>
   );

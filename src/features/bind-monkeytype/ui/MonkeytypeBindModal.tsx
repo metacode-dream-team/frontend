@@ -4,7 +4,7 @@ import { useEffect, useId, useState } from "react";
 import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
-import { useLeetcodeBindFlow } from "../model/useLeetcodeBindFlow";
+import { useMonkeytypeBindFlow } from "../model/useMonkeytypeBindFlow";
 
 function formatRemaining(ms: number): string {
   const totalSeconds = Math.ceil(ms / 1000);
@@ -13,17 +13,17 @@ function formatRemaining(ms: number): string {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-interface LeetcodeBindModalProps {
+interface MonkeytypeBindModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function LeetcodeBindModal({ open, onOpenChange }: LeetcodeBindModalProps) {
+export function MonkeytypeBindModal({ open, onOpenChange }: MonkeytypeBindModalProps) {
   const titleId = useId();
   const [inputValue, setInputValue] = useState("");
   const [copied, setCopied] = useState(false);
   const { step, username, verificationToken, error, remainingMs, submit, reset, cancel } =
-    useLeetcodeBindFlow({
+    useMonkeytypeBindFlow({
       onSuccess: () => {
         window.setTimeout(() => onOpenChange(false), 1500);
       },
@@ -100,21 +100,21 @@ export function LeetcodeBindModal({ open, onOpenChange }: LeetcodeBindModalProps
             Integration
           </p>
           <h2 id={titleId} className="mt-1 text-xl font-bold tracking-tight text-white">
-            Link LeetCode
+            Link Monkeytype
           </h2>
           {step === "verify" ? (
             <p className="mt-2 text-sm text-zinc-400">
-              Paste the verification token into your LeetCode README for{" "}
+              Paste the verification token into your Monkeytype bio for{" "}
               <span className="font-medium text-zinc-200">@{username}</span>. We will
               detect the link automatically.
             </p>
           ) : step === "success" ? (
             <p className="mt-2 text-sm text-emerald-300/90">
-              LeetCode account linked successfully.
+              Monkeytype account linked successfully.
             </p>
           ) : (
             <p className="mt-2 text-sm text-zinc-400">
-              Enter your public LeetCode username to start linking your account.
+              Enter your public Monkeytype username to start linking your account.
             </p>
           )}
         </div>
@@ -143,16 +143,17 @@ export function LeetcodeBindModal({ open, onOpenChange }: LeetcodeBindModalProps
               <li>
                 Open{" "}
                 <a
-                  href="https://leetcode.com/settings/profile/"
+                  href="https://monkeytype.com/account"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-violet-400 underline-offset-2 hover:underline"
                 >
-                  LeetCode Profile Settings
+                  Monkeytype Account
                 </a>
               </li>
               <li>
-                Paste the token into the <span className="text-zinc-200">README</span> field
+                Click <span className="text-zinc-200">Edit profile</span> and paste the token
+                into the <span className="text-zinc-200">Bio</span> field
               </li>
               <li>Save your profile — verification completes automatically</li>
             </ol>
@@ -205,11 +206,11 @@ export function LeetcodeBindModal({ open, onOpenChange }: LeetcodeBindModalProps
             ) : null}
 
             <Input
-              label="LeetCode username"
+              label="Monkeytype username"
               variant="auth"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Sayan_Soul"
+              placeholder="sayan_soul"
               autoComplete="off"
               required
               disabled={step === "submitting"}

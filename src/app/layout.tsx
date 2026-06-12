@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./providers/AuthProvider";
+import { NotificationSseProvider } from "./providers/NotificationSseProvider";
 import { ProfileCompletionGate } from "./providers/ProfileCompletionGate";
 import { Header } from "@/widgets/header";
 import { Footer } from "@/widgets/footer";
@@ -37,13 +38,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} min-w-0 overflow-x-hidden antialiased`}
       >
         <AuthProvider>
-          <Suspense fallback={null}>
-            <ProfileCompletionGate>
-              <Header />
-              {children}
-              <Footer />
-            </ProfileCompletionGate>
-          </Suspense>
+          <NotificationSseProvider>
+            <Suspense fallback={null}>
+              <ProfileCompletionGate>
+                <Header />
+                {children}
+                <Footer />
+              </ProfileCompletionGate>
+            </Suspense>
+          </NotificationSseProvider>
         </AuthProvider>
       </body>
     </html>

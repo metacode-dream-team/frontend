@@ -1,19 +1,16 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
-import leetcodeImg from "@/assets/Leetcode--Streamline-Simple-Icons (2).png";
+import { useAuthStore } from "@/entities/auth";
+import { MonkeytypeBindModal } from "@/features/bind-monkeytype";
 import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { startAuthServiceOAuth } from "@/shared/lib/auth";
 import type { KeycloakIdpHint } from "@/shared/lib/keycloak/keycloak";
-import { startKeycloakIdpLogin } from "@/shared/lib/keycloak/keycloak";
 import { Button } from "@/shared/ui/Button";
 
-type ConnectProvider = Extract<
-  KeycloakIdpHint,
-  "google" | "github" | "monkeytype" | "leetcode"
->;
+type ConnectProvider = Extract<KeycloakIdpHint, "google" | "github" | "monkeytype">;
 
 const PROVIDERS: {
   id: ConnectProvider;
@@ -85,18 +82,7 @@ function ProviderIcon({ id }: { id: ConnectProvider }) {
   if (id === "github") {
     return <GithubIcon className="h-5 w-5 shrink-0 text-white" />;
   }
-  if (id === "monkeytype") {
-    return <KeyboardIcon className="h-5 w-5 shrink-0 text-[#c4a3f7]" />;
-  }
-  return (
-    <Image
-      src={leetcodeImg}
-      alt=""
-      width={20}
-      height={20}
-      className="h-5 w-5 shrink-0 object-contain"
-    />
-  );
+  return <KeyboardIcon className="h-5 w-5 shrink-0 text-[#c4a3f7]" />;
 }
 
 export function ConnectPlatformsModal({
@@ -107,7 +93,11 @@ export function ConnectPlatformsModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const titleId = useId();
+  const router = useRouter();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const accessToken = useAuthStore((s) => s.accessToken);
   const [loading, setLoading] = useState<ConnectProvider | null>(null);
+  const [monkeytypeBindOpen, setMonkeytypeBindOpen] = useState(false);
 
   useBodyScrollLock(open);
 
@@ -127,6 +117,7 @@ export function ConnectPlatformsModal({
   useEffect(() => {
     if (!open) {
       setLoading(null);
+      setMonkeytypeBindOpen(false);
     }
   }, [open]);
 
@@ -134,23 +125,27 @@ export function ConnectPlatformsModal({
     return null;
   }
 
-  const connect = async (provider: ConnectProvider) => {
-    setLoading(provider);
-    if (provider === "google" || provider === "github") {
-      const ok = startAuthServiceOAuth(provider);
-      if (!ok) setLoading(null);
+  const connect = (provider: ConnectProvider) => {
+    if (provider === "monkeytype") {
+      if (isAuthenticated && accessToken) {
+        setMonkeytypeBindOpen(true);
+        return;
+      }
+      onOpenChange(false);
+      router.push("/login");
       return;
     }
-    const ok = await startKeycloakIdpLogin(provider);
-    if (!ok) {
-      setLoading(null);
-    }
+
+    setLoading(provider);
+    const ok = startAuthServiceOAuth(provider);
+    if (!ok) setLoading(null);
   };
 
   const btnClass =
     "w-full justify-start gap-3 border-zinc-700/90 bg-[#121214] py-3 pl-4 text-left text-sm font-medium text-white hover:bg-zinc-800/90 hover:text-white focus:ring-[#a855f7]/40";
 
   return (
+    <>
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <button
         type="button"
@@ -209,7 +204,7 @@ export function ConnectPlatformsModal({
               disabled={loading !== null}
               isLoading={loading === p.id}
               className={btnClass}
-              onClick={() => void connect(p.id)}
+              onClick={() => connect(p.id)}
             >
               <ProviderIcon id={p.id} />
               {p.label}
@@ -237,5 +232,11 @@ export function ConnectPlatformsModal({
         </p>
       </div>
     </div>
+
+    <MonkeytypeBindModal
+      open={monkeytypeBindOpen}
+      onOpenChange={setMonkeytypeBindOpen}
+    />
+    </>
   );
 }

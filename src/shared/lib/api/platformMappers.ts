@@ -322,17 +322,33 @@ export function mapStreakPayload(raw: unknown): ActivityStreak | null {
   if (!Object.keys(root).length) return null;
 
   const lastRaw = str(
-    root.LastUpdateDate ?? root.last_update_date ?? root.lastUpdateDate,
+    root.last_updated ??
+      root.lastUpdated ??
+      root.LastUpdated ??
+      root.LastUpdateDate ??
+      root.last_update_date ??
+      root.lastUpdateDate,
     "",
   );
   const lastActiveDate = lastRaw ? lastRaw.slice(0, 10) : null;
   const today = toYmdLocal(new Date());
 
+  const isActiveFlag = root.is_active ?? root.isActive ?? root.IsActive;
+  const activeToday =
+    typeof isActiveFlag === "boolean" ? isActiveFlag : lastActiveDate === today;
+
   return {
-    current: num(root.CurrentStreak ?? root.current_streak ?? root.currentStreak),
+    current: num(
+      root.total_streak ??
+        root.totalStreak ??
+        root.TotalStreak ??
+        root.CurrentStreak ??
+        root.current_streak ??
+        root.currentStreak,
+    ),
     longest: num(root.LongestStreak ?? root.longest_streak ?? root.longestStreak),
     lastActiveDate,
-    activeToday: lastActiveDate === today,
+    activeToday,
   };
 }
 

@@ -76,6 +76,11 @@ export const LEETCODE_BIND_PATH = readApiPath(
   "/v1/integration/leetcode/bind",
 );
 
+export const MONKEYTYPE_BIND_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_MONKEYTYPE_BIND_PATH,
+  "/v1/integration/monkeytype/bind",
+);
+
 export const NOTIFICATION_SSE_PATH = readApiPath(
   process.env.NEXT_PUBLIC_NOTIFICATION_SSE_PATH,
   "/v1/notification/sse/events",
@@ -83,7 +88,16 @@ export const NOTIFICATION_SSE_PATH = readApiPath(
 
 export const LEETCODE_BIND_TIMEOUT_MS = 5 * 60 * 1000;
 
+export const MONKEYTYPE_BIND_TIMEOUT_MS = 5 * 60 * 1000;
+
+export const LEETCODE_VERIFICATION_SUCCEEDED_EVENT =
+  "SYSTEM_LEETCODE_VERIFICATION_SUCCEEDED";
+
+/** @deprecated fallback for older backend event name */
 export const LEETCODE_LINKED_EVENT = "SYSTEM_LEETCODE_LINKED";
+
+export const MONKEYTYPE_VERIFICATION_SUCCEEDED_EVENT =
+  "SYSTEM_MONKEYTYPE_VERIFICATION_SUCCEEDED";
 
 export const AUTH_REFRESH_PATH = readApiPath(
   process.env.NEXT_PUBLIC_AUTH_REFRESH_PATH,
