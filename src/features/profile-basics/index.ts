@@ -1,4 +1,5 @@
 export { ProfileAvatarUpload } from "./ui/ProfileAvatarUpload";
+export { EditableProfileAvatar } from "./ui/EditableProfileAvatar";
 export { ProfileBasicsFields } from "./ui/ProfileBasicsFields";
 export { useProfileBasicsForm } from "./model/useProfileBasicsForm";
 export { useUploadProfileAvatar } from "./model/useUploadProfileAvatar";

@@ -12,10 +12,10 @@ function FlameIcon({ lit }: { lit: boolean }) {
     <img
       src="/fire.svg"
       alt=""
-      width={14}
-      height={14}
+      width={20}
+      height={20}
       className={cn(
-        "shrink-0",
+        "h-5 w-5 shrink-0",
         lit
           ? "[filter:invert(55%)_sepia(95%)_saturate(1400%)_hue-rotate(350deg)_brightness(105%)]"
           : "opacity-45 brightness-0 invert",

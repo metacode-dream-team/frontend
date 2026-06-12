@@ -116,7 +116,7 @@ export function Header() {
                 <button
                   type="button"
                   onClick={() => setMenuOpen((v) => !v)}
-                  className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-purple-900 text-xs font-bold text-white ring-2 ring-violet-500/40 transition hover:ring-violet-400/60 focus-visible:outline-none focus-visible:ring-violet-300"
+                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-purple-900 text-[10px] font-bold text-white ring-2 ring-violet-500/40 transition hover:ring-violet-400/60 focus-visible:outline-none focus-visible:ring-violet-300"
                   title="Profile menu"
                   aria-label="Profile menu"
                   aria-expanded={menuOpen}
@@ -137,7 +137,7 @@ export function Header() {
                 {menuOpen ? (
                   <div
                     role="menu"
-                    className="absolute right-0 top-11 z-50 min-w-[150px] rounded-xl border border-zinc-800 bg-zinc-950/95 p-1.5 shadow-xl backdrop-blur"
+                    className="absolute right-0 top-9 z-50 min-w-[150px] rounded-xl border border-zinc-800 bg-zinc-950/95 p-1.5 shadow-xl backdrop-blur"
                   >
                     <Link
                       href="/profile"

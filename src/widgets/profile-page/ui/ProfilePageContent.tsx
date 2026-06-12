@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import type { ProfileData, SkillGroup } from "@/entities/profile";
 import { AddProfileCertificationModal } from "@/features/add-profile-certification";
@@ -12,11 +11,10 @@ import { EditProfileAboutModal } from "@/features/edit-profile-about";
 import { EditProfileBasicsModal } from "@/features/edit-profile-basics";
 import { EditProfileContactsModal } from "@/features/edit-profile-contacts";
 import { EditProfilePersonalModal } from "@/features/edit-profile-personal";
+import { EditableProfileAvatar } from "@/features/profile-basics";
 import { ContactInfoModal } from "@/features/profile-contacts";
 import { PersonalInfoModal } from "@/features/profile-personal";
 import { ProfileConfirmDialog, useProfileDeleteItem } from "@/features/profile-forms";
-import { isRemoteSvgImage } from "@/shared/lib/utils/isRemoteSvgImage";
-import { shouldUseNativeImgForRemoteUrl } from "@/shared/lib/utils/remoteImagePlain";
 import { ProfileAchievementsBlock } from "./profile-achievements-block";
 import {
   ProfileCertificationsSection,
@@ -107,34 +105,18 @@ export function ProfilePageContent({
   const [personalViewOpen, setPersonalViewOpen] = useState(false);
   const [personalEditOpen, setPersonalEditOpen] = useState(false);
   const deleteItem = useProfileDeleteItem();
-  const avatarPlain = shouldUseNativeImgForRemoteUrl(profile.avatarUrl);
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
       <aside className="order-2 w-full shrink-0 bg-black lg:order-1 lg:w-[280px] lg:min-w-[280px]">
         <div className="lg:sticky lg:top-20">
           <div className="min-w-0">
           <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
-            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-black shadow-inner">
-              {avatarPlain ? (
-                <img
-                  src={profile.avatarUrl}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
-                  loading="eager"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <Image
-                  src={profile.avatarUrl}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="96px"
-                  priority
-                  unoptimized={isRemoteSvgImage(profile.avatarUrl)}
-                />
-              )}
-            </div>
+            <EditableProfileAvatar
+              avatarUrl={profile.avatarUrl}
+              editable={canEdit}
+              size="md"
+              variant="rounded"
+            />
             <div className="mt-4 min-w-0 sm:ml-4 sm:mt-0">
               <h1 className="text-lg font-semibold tracking-tight text-white">{profile.fullName}</h1>
               <p className="mt-0.5 text-center text-sm text-zinc-500 sm:text-left">{profile.username}</p>
