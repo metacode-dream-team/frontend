@@ -235,6 +235,22 @@ export function Header() {
                   </li>
                 );
               })}
+              {!isAuthenticated ? (
+                <li className="mt-2 border-t border-zinc-800/80 pt-2">
+                  <Link
+                    href="/login"
+                    onClick={() => setNavOpen(false)}
+                    className={cn(
+                      "flex min-h-11 items-center rounded-lg px-3 text-base font-medium transition-colors",
+                      linkActive(pathname, "/login")
+                        ? "bg-zinc-900 text-white"
+                        : "text-zinc-300 hover:bg-zinc-900/60 hover:text-white",
+                    )}
+                  >
+                    Login
+                  </Link>
+                </li>
+              ) : null}
             </ul>
           </nav>
         ) : null}

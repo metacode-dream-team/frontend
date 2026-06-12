@@ -124,7 +124,7 @@ export function SolvedProgressRing({
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative flex h-[148px] w-[148px] shrink-0 items-center justify-center">
+      <div className="relative flex h-[172px] w-[172px] shrink-0 items-center justify-center sm:h-[180px] sm:w-[180px]">
         <svg className="h-full w-full" viewBox="0 0 140 140" aria-hidden>
           <g transform={`rotate(-90 ${CX} ${CY})`}>
             {slotE > 0.02 ? (
@@ -209,11 +209,11 @@ export function SolvedProgressRing({
         </svg>
 
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-          <p className="text-lg font-bold tabular-nums leading-tight tracking-tight text-white">
+          <p className="text-xl font-bold tabular-nums leading-tight tracking-tight text-white sm:text-2xl">
             {solved}
-            <span className="text-sm font-semibold text-zinc-500">/{total}</span>
+            <span className="text-sm font-semibold text-zinc-500 sm:text-base">/{total}</span>
           </p>
-          <p className="mt-0.5 text-[10px] font-medium text-zinc-500">Solved</p>
+          <p className="mt-0.5 text-[11px] font-medium text-zinc-500">Solved</p>
         </div>
       </div>
       <p className="mt-1 text-[10px] text-zinc-500">{attempting} Attempting</p>

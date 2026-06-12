@@ -269,27 +269,25 @@ export function ProfilePageContent({
 
       <main className="order-1 flex min-w-0 flex-1 flex-col gap-6 lg:order-2">
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(280px,400px)_minmax(480px,1fr)] xl:items-stretch">
-      <ProfileCard className="mx-auto flex h-full w-full max-w-[280px] flex-col p-3 sm:max-w-[320px] sm:p-4 xl:mx-0 xl:max-w-full xl:min-h-0">
-        <div className="flex w-full flex-1 flex-col items-center justify-center gap-3 xl:min-h-0">
-              <SolvedProgressRing
-                solved={profile.solved}
-                total={profile.totalProblems}
-                attempting={profile.attempting}
-                easySolved={profile.easySolved}
-                easyTotal={profile.easyTotal}
-                mediumSolved={profile.mediumSolved}
-                mediumTotal={profile.mediumTotal}
-                hardSolved={profile.hardSolved}
-                hardTotal={profile.hardTotal}
-              />
-              <div className="grid w-full grid-cols-2 gap-2">
+      <ProfileCard className="mx-auto flex h-full w-full max-w-[320px] flex-col p-3 sm:max-w-[360px] sm:p-4 xl:mx-0 xl:max-w-full xl:min-h-0">
+        <div className="flex w-full flex-1 items-center gap-1 sm:gap-1.5 xl:min-h-0">
+              <div className="shrink-0">
+                <SolvedProgressRing
+                  solved={profile.solved}
+                  total={profile.totalProblems}
+                  attempting={profile.attempting}
+                  easySolved={profile.easySolved}
+                  easyTotal={profile.easyTotal}
+                  mediumSolved={profile.mediumSolved}
+                  mediumTotal={profile.mediumTotal}
+                  hardSolved={profile.hardSolved}
+                  hardTotal={profile.hardTotal}
+                />
+              </div>
+              <div className="ml-auto flex w-[36%] min-w-[88px] max-w-[116px] shrink-0 flex-col gap-1.5 sm:max-w-[128px] sm:gap-2">
                 <DifficultyStat label="EASY" tone="easy" solved={profile.easySolved} total={profile.easyTotal} />
                 <DifficultyStat label="MED." tone="medium" solved={profile.mediumSolved} total={profile.mediumTotal} />
-                <div className="col-span-2 flex justify-center">
-                  <div className="w-[calc(50%-0.25rem)]">
-                    <DifficultyStat label="HARD" tone="hard" solved={profile.hardSolved} total={profile.hardTotal} />
-                  </div>
-                </div>
+                <DifficultyStat label="HARD" tone="hard" solved={profile.hardSolved} total={profile.hardTotal} />
               </div>
             </div>
           </ProfileCard>

@@ -12,7 +12,6 @@ import {
   buildPodiumDisplayOrder,
   useFetchLeaderboard,
 } from "@/features/leaderboard/fetch-leaderboard";
-import { MobileCarousel } from "@/shared/ui/MobileCarousel";
 import leetcodeImg from "@/assets/Leetcode--Streamline-Simple-Icons (2).png";
 
 const PAGE_SIZE = 7;
@@ -146,6 +145,57 @@ function PodiumCard({ player }: { player: LeaderboardUser }) {
   );
 }
 
+function MobilePodiumCard({ player }: { player: LeaderboardUser }) {
+  const rank = player.rank as 1 | 2 | 3;
+  const style = PODIUM_ACCENT[rank];
+  const isFirst = rank === 1;
+
+  return (
+    <Link
+      href={profileHref(player.username)}
+      className="flex w-full items-center gap-4 rounded-2xl p-4 transition-all hover:brightness-105"
+      style={{
+        backgroundColor: "#111",
+        border: isFirst ? "1.5px solid #7c3aed" : "1px solid #1e1e1e",
+        boxShadow: isFirst ? "0 0 16px rgba(124,58,237,0.35)" : "none",
+      }}
+    >
+      <div className="flex w-12 shrink-0 flex-col items-center gap-1">
+        <CupIcon rank={rank} />
+        <span className="text-[10px] font-bold uppercase" style={{ color: style.color }}>
+          #{player.rank}
+        </span>
+      </div>
+
+      <Avatar
+        src={player.avatarUrl}
+        alt={player.username}
+        size="md"
+        className="h-14 w-14 shrink-0 ring-2 ring-zinc-700"
+      />
+
+      <div className="min-w-0 flex-1">
+        <h3 className="truncate text-base font-bold text-white">{player.username}</h3>
+        <p className="mt-0.5 text-lg font-bold" style={{ color: "#7c3aed" }}>
+          {formatScore(player.totalScore)}
+          <span className="ml-1 text-xs font-medium text-zinc-500">score</span>
+        </p>
+        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-zinc-500">
+          <span className="flex items-center gap-1">
+            <GithubIcon /> {player.githubCommits.toLocaleString()}
+          </span>
+          <span className="flex items-center gap-1">
+            <LeetcodeIcon /> {player.leetcodeSolved}
+          </span>
+          <span className="flex items-center gap-1">
+            <KeyboardIcon /> {player.monkeytypeRecord} WPM
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function LeaderboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -168,6 +218,14 @@ export default function LeaderboardPage() {
 
   const podiumDisplayOrder = useMemo(
     () => buildPodiumDisplayOrder(filteredUsers.filter((u) => u.rank <= 3)),
+    [filteredUsers],
+  );
+
+  const mobilePodiumOrder = useMemo(
+    () =>
+      filteredUsers
+        .filter((u) => u.rank <= 3)
+        .sort((a, b) => a.rank - b.rank),
     [filteredUsers],
   );
 
@@ -223,13 +281,11 @@ export default function LeaderboardPage() {
           <>
             {podiumDisplayOrder.length > 0 && (
               <>
-                <MobileCarousel breakpoint="lg" className="mb-16">
-                  {podiumDisplayOrder.map((player) => (
-                    <div key={player.id} className="flex justify-center">
-                      <PodiumCard player={player} />
-                    </div>
+                <div className="mb-16 flex flex-col gap-3 lg:hidden">
+                  {mobilePodiumOrder.map((player) => (
+                    <MobilePodiumCard key={player.id} player={player} />
                   ))}
-                </MobileCarousel>
+                </div>
                 <div
                   className={`mb-16 hidden items-end justify-center gap-8 lg:flex ${
                     podiumDisplayOrder.length === 1 ? "justify-center" : ""
