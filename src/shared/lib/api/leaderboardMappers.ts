@@ -41,14 +41,11 @@ function mapLeaderboardEntry(
   if (!userId) return null;
 
   const username = str(user.username ?? o.username, "user").trim() || "user";
-  const rank = num(o.rank, Number.NaN);
-  if (!Number.isFinite(rank) || rank <= 0) return null;
-
   const wpmRaw = num(monkeyType.wpm ?? monkeyType.Wpm, 0);
 
   return {
     id: userId,
-    rank: Math.trunc(rank),
+    rank: 0,
     username,
     avatarUrl:
       str(user.avatar_url ?? user.avatarUrl ?? o.avatar_url).trim() ||
@@ -78,5 +75,14 @@ export function mapGlobalLeaderboardPayload(
     if (mapped) out.push(mapped);
   }
 
-  return out.sort((a, b) => a.rank - b.rank);
+  const sorted = out.sort((a, b) => {
+    if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+    if (a.username !== b.username) return a.username.localeCompare(b.username);
+    return a.id.localeCompare(b.id);
+  });
+
+  return sorted.map((user, index) => ({
+    ...user,
+    rank: index + 1,
+  }));
 }

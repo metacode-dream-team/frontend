@@ -66,9 +66,9 @@ export function useFetchLeaderboard() {
     if (!hasMore || isLoading) return;
   };
 
-  const topThree = users.filter((u) => u.rank <= 3);
+  const topThree = users.slice(0, 3);
   const podiumDisplayOrder = buildPodiumDisplayOrder(topThree);
-  const tableUsers = users.filter((u) => u.rank > 3);
+  const tableUsers = users.slice(3);
 
   return {
     users,
@@ -84,12 +84,10 @@ export function useFetchLeaderboard() {
   };
 }
 
-/** Визуальный порядок подиума: 2 — 1 — 3 */
+/** Визуальный порядок подиума: 2 — 1 — 3 (первые три места в списке, не по rank <= 3) */
 export function buildPodiumDisplayOrder(
   topThree: LeaderboardUser[],
 ): LeaderboardUser[] {
-  const byRank = new Map(topThree.map((u) => [u.rank, u]));
-  return [2, 1, 3]
-    .map((rank) => byRank.get(rank))
-    .filter((u): u is LeaderboardUser => u != null);
+  const [first, second, third] = topThree;
+  return [second, first, third].filter((u): u is LeaderboardUser => u != null);
 }

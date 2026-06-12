@@ -216,21 +216,17 @@ export default function LeaderboardPage() {
     return users.filter((u) => u.username.toLowerCase().includes(q));
   }, [users, searchQuery]);
 
+  const podiumUsers = useMemo(() => filteredUsers.slice(0, 3), [filteredUsers]);
+
   const podiumDisplayOrder = useMemo(
-    () => buildPodiumDisplayOrder(filteredUsers.filter((u) => u.rank <= 3)),
-    [filteredUsers],
+    () => buildPodiumDisplayOrder(podiumUsers),
+    [podiumUsers],
   );
 
-  const mobilePodiumOrder = useMemo(
-    () =>
-      filteredUsers
-        .filter((u) => u.rank <= 3)
-        .sort((a, b) => a.rank - b.rank),
-    [filteredUsers],
-  );
+  const mobilePodiumOrder = podiumUsers;
 
   const tableUsers = useMemo(
-    () => filteredUsers.filter((u) => u.rank > 3),
+    () => filteredUsers.slice(3),
     [filteredUsers],
   );
 

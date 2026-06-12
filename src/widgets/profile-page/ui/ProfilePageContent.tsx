@@ -32,7 +32,6 @@ import {
 } from "./profile-primitives";
 import { SolvedProgressRing } from "./solved-progress-ring";
 import { ProfileSpokenLanguagesSection } from "./profile-languages-section";
-import { resolveStreakDisplay, StreakBadge } from "@/widgets/profile-streak";
 import { SubmissionHeatmap } from "./submission-heatmap";
 
 interface ProfilePageContentProps {
@@ -109,7 +108,6 @@ export function ProfilePageContent({
   const [personalEditOpen, setPersonalEditOpen] = useState(false);
   const deleteItem = useProfileDeleteItem();
   const avatarPlain = shouldUseNativeImgForRemoteUrl(profile.avatarUrl);
-  const { count: streakCount, activeToday: streakActive } = resolveStreakDisplay(profile);
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
       <aside className="order-2 w-full shrink-0 bg-black lg:order-1 lg:w-[280px] lg:min-w-[280px]">
@@ -139,10 +137,7 @@ export function ProfilePageContent({
             </div>
             <div className="mt-4 min-w-0 sm:ml-4 sm:mt-0">
               <h1 className="text-lg font-semibold tracking-tight text-white">{profile.fullName}</h1>
-              <p className="mt-0.5 flex items-center justify-center gap-2 text-sm text-zinc-500 sm:justify-start">
-                <span>{profile.username}</span>
-                <StreakBadge count={streakCount} activeToday={streakActive} />
-              </p>
+              <p className="mt-0.5 text-center text-sm text-zinc-500 sm:text-left">{profile.username}</p>
               <div className="mt-2 flex items-center justify-center gap-1.5 sm:justify-start">
                 <p className="text-sm">
                   <span className="text-zinc-500">Rank </span>
@@ -270,8 +265,8 @@ export function ProfilePageContent({
       <main className="order-1 flex min-w-0 flex-1 flex-col gap-6 lg:order-2">
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(280px,400px)_minmax(480px,1fr)] xl:items-stretch">
       <ProfileCard className="mx-auto flex h-full w-full max-w-[320px] flex-col p-3 sm:max-w-[360px] sm:p-4 xl:mx-0 xl:max-w-full xl:min-h-0">
-        <div className="flex w-full flex-1 items-center gap-1 sm:gap-1.5 xl:min-h-0">
-              <div className="shrink-0">
+        <div className="flex w-full flex-1 items-center gap-0.5 xl:min-h-0">
+              <div className="shrink-0 xl:ml-4">
                 <SolvedProgressRing
                   solved={profile.solved}
                   total={profile.totalProblems}
@@ -284,7 +279,7 @@ export function ProfilePageContent({
                   hardTotal={profile.hardTotal}
                 />
               </div>
-              <div className="ml-auto flex w-[36%] min-w-[88px] max-w-[116px] shrink-0 flex-col gap-1.5 sm:max-w-[128px] sm:gap-2">
+              <div className="ml-auto flex w-[36%] min-w-[88px] max-w-[116px] shrink-0 flex-col gap-1.5 sm:max-w-[128px] sm:gap-2 xl:mr-4">
                 <DifficultyStat label="EASY" tone="easy" solved={profile.easySolved} total={profile.easyTotal} />
                 <DifficultyStat label="MED." tone="medium" solved={profile.mediumSolved} total={profile.mediumTotal} />
                 <DifficultyStat label="HARD" tone="hard" solved={profile.hardSolved} total={profile.hardTotal} />

@@ -24,11 +24,6 @@ const SOURCE_TABS: { id: HeatmapSourceTab; label: string }[] = [
   { id: "monkeytype", label: "Monkeytype" },
 ];
 
-const RANGE_TABS: { id: HeatmapRangeTab; label: string }[] = [
-  { id: "year", label: "Past year" },
-  { id: "current", label: "Current" },
-];
-
 interface SubmissionHeatmapProps {
   /** Стабильный ключ профиля (например username) для изоляции выбора вкладки в store */
   profileKey: string;
@@ -112,17 +107,22 @@ function buildMonthBlocks(
   const cursor = new Date(startAnchor.getFullYear(), startAnchor.getMonth(), 1);
   const blocks: MonthBlock[] = [];
 
+  const todayY = now.getFullYear();
+  const todayM = now.getMonth();
+  const todayD = now.getDate();
+
   while (cursor.getTime() <= endAnchor.getTime()) {
     const y = cursor.getFullYear();
     const m = cursor.getMonth();
     const dim = new Date(y, m + 1, 0).getDate();
+    const lastDay = y === todayY && m === todayM ? todayD : dim;
     const startPad = new Date(y, m, 1).getDay();
 
     const cells: HeatmapCell[] = [];
     for (let i = 0; i < startPad; i++) {
       cells.push(null);
     }
-    for (let day = 1; day <= dim; day++) {
+    for (let day = 1; day <= lastDay; day++) {
       const date = toYmd(y, m, day);
       cells.push({ date, count: byDate.get(date) ?? 0 });
     }
@@ -174,21 +174,17 @@ function selectHeatmapForTab(
 function HeatmapScrollArea({
   monthBlocks,
   cap,
-  rangeTab,
 }: {
   monthBlocks: MonthBlock[];
   cap: number;
-  rangeTab: HeatmapRangeTab;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const showArrows = rangeTab !== "current";
 
   useLayoutEffect(() => {
-    if (!showArrows) return;
     const el = scrollRef.current;
     if (!el) return;
     el.scrollLeft = el.scrollWidth;
-  }, [monthBlocks, showArrows]);
+  }, [monthBlocks]);
 
   const scrollBy = (delta: number) => {
     scrollRef.current?.scrollBy({ left: delta, behavior: "smooth" });
@@ -196,44 +192,32 @@ function HeatmapScrollArea({
 
   return (
     <div className="relative">
-      {showArrows ? (
-        <>
-          <button
-            type="button"
-            onClick={() => scrollBy(-280)}
-            className="absolute left-0 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700/80 bg-zinc-950/90 text-zinc-400 shadow-lg backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white sm:h-auto sm:w-auto sm:p-1.5"
-            aria-label="Scroll to older months"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollBy(280)}
-            className="absolute right-0 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700/80 bg-zinc-950/90 text-zinc-400 shadow-lg backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white sm:h-auto sm:w-auto sm:p-1.5"
-            aria-label="Scroll to recent months"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </button>
-        </>
-      ) : null}
+      <button
+        type="button"
+        onClick={() => scrollBy(-280)}
+        className="absolute left-0 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700/80 bg-zinc-950/90 text-zinc-400 shadow-lg backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white sm:h-auto sm:w-auto sm:p-1.5"
+        aria-label="Scroll to older months"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={() => scrollBy(280)}
+        className="absolute right-0 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700/80 bg-zinc-950/90 text-zinc-400 shadow-lg backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white sm:h-auto sm:w-auto sm:p-1.5"
+        aria-label="Scroll to recent months"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </button>
 
       <div
         ref={scrollRef}
-        className={`flex w-full min-w-0 pb-1 ${
-          showArrows
-            ? "heatmap-scroll justify-start overflow-x-auto scroll-smooth [-webkit-overflow-scrolling:touch]"
-            : "justify-center overflow-x-hidden"
-        }`}
+        className="heatmap-scroll flex w-full min-w-0 justify-start overflow-x-auto scroll-smooth pb-1 [-webkit-overflow-scrolling:touch]"
       >
-        <div
-          className={`flex min-w-min flex-nowrap items-end gap-x-1 px-1 sm:gap-x-1.5 md:gap-x-2 ${
-            showArrows ? "" : "justify-center"
-          }`}
-        >
+        <div className="flex min-w-min flex-nowrap items-end gap-x-1 px-1 sm:gap-x-1.5 md:gap-x-2">
           {monthBlocks.map((block) => (
             <div
               key={block.key}
@@ -281,11 +265,8 @@ export function SubmissionHeatmap({
   const sourceTab = useSubmissionHeatmapStore(
     (s) => s.tabByProfileKey[profileKey] ?? "all",
   );
-  const rangeTab = useSubmissionHeatmapStore(
-    (s) => s.rangeByProfileKey[profileKey] ?? "year",
-  );
+  const rangeTab: HeatmapRangeTab = "year";
   const setSourceTab = useSubmissionHeatmapStore((s) => s.setSourceTab);
-  const setRangeTab = useSubmissionHeatmapStore((s) => s.setRangeTab);
 
   const cap = heatmapBySource ? INTEGRATION_HEATMAP_CAP[sourceTab] : HEATMAP_MAX_COUNT;
 
@@ -307,10 +288,7 @@ export function SubmissionHeatmap({
     [activeHeatmap, rangeTab],
   );
 
-  const title =
-    rangeTab === "current"
-      ? `${totalSubmissions} submissions in ${new Date().getFullYear()}`
-      : `${totalSubmissions} submissions in the past year`;
+  const title = `${totalSubmissions} submissions in the past year`;
 
   return (
     <ProfileHeatmapCard
@@ -327,27 +305,6 @@ export function SubmissionHeatmap({
             <span>
               Max streak: <span className="font-medium text-zinc-300">{maxStreak}</span>
             </span>
-          </div>
-          <div
-            className="inline-flex shrink-0 rounded-lg border border-zinc-800/80 bg-zinc-950/80 p-0.5"
-            role="group"
-            aria-label="Time range"
-          >
-            {RANGE_TABS.map(({ id, label }) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={rangeTab === id}
-                onClick={() => setRangeTab(profileKey, id)}
-                className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9900FF]/40 ${
-                  rangeTab === id
-                    ? "bg-zinc-100 text-zinc-900"
-                    : "text-zinc-400 hover:bg-zinc-800/80 hover:text-zinc-200"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
           </div>
         </div>
       }
@@ -378,7 +335,7 @@ export function SubmissionHeatmap({
         {monthBlocks.length === 0 ? (
           <p className="py-6 text-center text-sm text-zinc-500">No activity in this period.</p>
         ) : (
-          <HeatmapScrollArea monthBlocks={monthBlocks} cap={cap} rangeTab={rangeTab} />
+          <HeatmapScrollArea monthBlocks={monthBlocks} cap={cap} />
         )}
 
         <div className="mt-3 flex flex-wrap items-center justify-end gap-1.5 text-[9px] text-zinc-500 sm:mt-4 sm:gap-2 sm:text-[10px] md:text-[11px]">
