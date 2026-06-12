@@ -10,5 +10,6 @@ export interface FeedState {
   isLoading: boolean;
   hasMore: boolean;
   nextCursor: string | null;
+  error: string | null;
 }
 

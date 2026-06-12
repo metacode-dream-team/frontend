@@ -12,8 +12,8 @@ export function Footer() {
   return (
     <footer className="bg-black">
       <div className="h-px w-full bg-zinc-800" />
-      <div className="mx-auto max-w-7xl px-6 py-12">
-        <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
+      <div className="mx-auto max-w-7xl px-6 pt-6 pb-10 sm:py-10 md:py-12">
+        <div className="flex flex-col items-center justify-between gap-6 md:flex-row md:gap-8">
           <Link
             href="/"
             className="focus-visible:ring-violet-500/60 flex shrink-0 items-center outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
@@ -22,7 +22,7 @@ export function Footer() {
             <img
               src="/logo.svg"
               alt="MetaCode"
-              className="h-7 w-auto md:h-8"
+              className="h-10 w-auto sm:h-11 md:h-9"
               width={213}
               height={78}
             />
@@ -41,7 +41,7 @@ export function Footer() {
           </nav>
         </div>
 
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-zinc-800 pt-8 md:flex-row">
+        <div className="mt-6 flex flex-col items-center justify-between gap-4 border-t border-zinc-800 pt-6 md:mt-8 md:pt-8 md:flex-row">
           <div className="text-center md:text-left">
             <p className="text-sm text-zinc-500">
               © {new Date().getFullYear()} MetaCode. Your Dev Journey, Visualized.

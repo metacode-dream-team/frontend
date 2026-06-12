@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./providers/AuthProvider";
@@ -33,14 +34,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} min-w-0 overflow-x-hidden antialiased`}
       >
         <AuthProvider>
-          <ProfileCompletionGate>
-            <Header />
-            {children}
-            <Footer />
-          </ProfileCompletionGate>
+          <Suspense fallback={null}>
+            <ProfileCompletionGate>
+              <Header />
+              {children}
+              <Footer />
+            </ProfileCompletionGate>
+          </Suspense>
         </AuthProvider>
       </body>
     </html>

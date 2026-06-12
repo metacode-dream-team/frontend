@@ -5,7 +5,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import { exchangeAuthServiceCodeForTokens } from "@/shared/lib/auth";
 
@@ -14,12 +14,18 @@ function CallbackContent() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const { setTokens } = useAuthStore();
+  const handledRef = useRef(false);
 
   useEffect(() => {
+    if (handledRef.current) {
+      return;
+    }
+
     const code = searchParams.get("code");
     const errorParam = searchParams.get("error");
 
     if (errorParam) {
+      handledRef.current = true;
       setError(errorParam);
       setTimeout(() => {
         router.push(`/login?error=${encodeURIComponent(errorParam)}`);
@@ -28,6 +34,7 @@ function CallbackContent() {
     }
 
     if (!code) {
+      handledRef.current = true;
       setError("Authorization code is missing");
       setTimeout(() => {
         router.push("/login?error=missing_code");
@@ -36,6 +43,15 @@ function CallbackContent() {
     }
 
     const handleCallback = async () => {
+      const handledKey = `oauth-code-${code}`;
+      if (typeof window !== "undefined" && sessionStorage.getItem(handledKey)) {
+        return;
+      }
+      handledRef.current = true;
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(handledKey, "1");
+      }
+
       try {
         const tokens = await exchangeAuthServiceCodeForTokens(code);
         setTokens(tokens.access_token, tokens.id_token, tokens.expires_in);

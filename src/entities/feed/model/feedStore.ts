@@ -14,6 +14,7 @@ interface FeedStore extends FeedState {
   setIsLoading: (isLoading: boolean) => void;
   setHasMore: (hasMore: boolean) => void;
   setNextCursor: (cursor: string | null) => void;
+  setError: (error: string | null) => void;
   reset: () => void;
 }
 
@@ -23,6 +24,7 @@ const initialState: FeedState = {
   isLoading: false,
   hasMore: true,
   nextCursor: null,
+  error: null,
 };
 
 export const useFeedStore = create<FeedStore>((set) => ({
@@ -42,6 +44,8 @@ export const useFeedStore = create<FeedStore>((set) => ({
   setHasMore: (hasMore) => set({ hasMore }),
 
   setNextCursor: (nextCursor) => set({ nextCursor }),
+
+  setError: (error) => set({ error }),
 
   reset: () => set(initialState),
 }));

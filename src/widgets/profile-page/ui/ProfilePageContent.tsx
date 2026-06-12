@@ -112,7 +112,7 @@ export function ProfilePageContent({
   const { count: streakCount, activeToday: streakActive } = resolveStreakDisplay(profile);
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
-      <aside className="w-full shrink-0 bg-black lg:w-[280px] lg:min-w-[280px]">
+      <aside className="order-2 w-full shrink-0 bg-black lg:order-1 lg:w-[280px] lg:min-w-[280px]">
         <div className="lg:sticky lg:top-20">
           <div className="min-w-0">
           <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
@@ -264,7 +264,7 @@ export function ProfilePageContent({
         </div>
       </aside>
 
-      <main className="flex min-w-0 flex-1 flex-col gap-6">
+      <main className="order-1 flex min-w-0 flex-1 flex-col gap-6 lg:order-2">
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(280px,400px)_minmax(480px,1fr)] xl:items-stretch">
       <ProfileCard className="mx-auto flex h-full w-full max-w-[280px] flex-col p-3 sm:max-w-[320px] sm:p-4 xl:mx-0 xl:max-w-full xl:min-h-0">
         <div className="flex w-full flex-1 flex-col items-center justify-center gap-3 xl:min-h-0">

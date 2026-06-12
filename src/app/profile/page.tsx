@@ -51,7 +51,7 @@ export default function ProfileEntryPage() {
       return;
     }
 
-    router.replace("/profile");
+    router.replace("/complete-profile");
   }, [isInitialized, accessToken, router, profile, isLoadingMe]);
 
   return (

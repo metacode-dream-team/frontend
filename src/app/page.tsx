@@ -1,12 +1,32 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/entities/auth";
-import { GamifySection } from "@/widgets/gamify-section";
-import { CommandCenterSection } from "@/widgets/command-center-section";
 import { Button } from "@/shared/ui/Button";
 import { cn } from "@/shared/lib/utils/cn";
+
+function SectionPlaceholder() {
+  return <div className="min-h-[280px] bg-black" aria-hidden />;
+}
+
+const HowItWorksSection = dynamic(
+  () => import("@/widgets/how-it-works").then((m) => ({ default: m.HowItWorksSection })),
+  { loading: () => <SectionPlaceholder /> },
+);
+const GamifySection = dynamic(
+  () => import("@/widgets/gamify-section").then((m) => ({ default: m.GamifySection })),
+  { loading: () => <SectionPlaceholder /> },
+);
+const FeaturesGridSection = dynamic(
+  () => import("@/widgets/features-grid").then((m) => ({ default: m.FeaturesGridSection })),
+  { loading: () => <SectionPlaceholder /> },
+);
+const FaqTrustSection = dynamic(
+  () => import("@/widgets/faq-trust").then((m) => ({ default: m.FaqTrustSection })),
+  { loading: () => <SectionPlaceholder /> },
+);
 
 import githubImg from "@/assets/GithubMain.png";
 import monkeytypeImg from "@/assets/monkeyMain.png";
@@ -61,7 +81,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       {/* Hero: full-width wrapper для градиента */}
-      <div className="relative w-full min-h-screen">
+      <div className="relative w-full min-h-[85vh] md:min-h-screen">
         {/* Фиолетовое свечение — на всю ширину экрана */}
         <div
           className="absolute inset-0 z-0 pointer-events-none"
@@ -70,11 +90,11 @@ export default function Home() {
               "radial-gradient(ellipse 100% 100% at 30% 40%, rgba(88, 28, 135, 0.25) 0%, rgba(59, 7, 100, 0.1) 40%, transparent 70%)",
           }}
         />
-      <main className="relative flex flex-col min-h-screen items-center justify-center gap-12 px-6 py-16 md:px-12 lg:flex-row lg:justify-between lg:items-center lg:px-24 max-w-7xl mx-auto">
+      <main className="relative mx-auto flex min-h-[85vh] max-w-7xl flex-col items-center justify-center gap-12 px-6 pt-12 pb-12 md:min-h-screen md:px-12 md:pt-6 md:pb-14 lg:flex-row lg:items-center lg:justify-between lg:px-24">
         {/* Left section - Main content */}
         <div className="relative flex flex-col gap-6 max-w-xl z-10 text-center lg:text-left items-center lg:items-start">
           {/* Headline */}
-          <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-5xl lg:text-6xl">
+          <h1 className="text-5xl font-bold leading-tight tracking-tight md:text-6xl lg:text-7xl">
             Your Dev
             <br />
             Journey,
@@ -85,17 +105,17 @@ export default function Home() {
           </h1>
 
           {/* Description */}
-          <p className="text-lg text-zinc-300 max-w-md leading-relaxed">
-            Connect your GitHub, LeetCode, and Monkeytype accounts. Unlock achievements, track XP,
-            and visualize your growth in a futuristic developer command center.
+          <p className="max-w-md text-sm leading-relaxed text-zinc-300 md:text-base">
+            Connect your GitHub, LeetCode, and Monkeytype accounts. Unlock achievements, keep your
+            streak alive, and visualize your growth in one profile.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col gap-4 sm:flex-row w-full sm:w-auto justify-center lg:justify-start">
+          <div className="flex flex-col gap-3 sm:flex-row w-full sm:w-auto justify-center lg:justify-start">
             <Link href={isAuthenticated ? "/profile" : "/login"} className="w-full sm:w-auto">
               <Button
-                className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-400 hover:to-violet-400 border-0 text-white! px-8 py-3 text-base font-semibold shadow-[0_0_15px_rgba(168,85,247,0.5)] hover:shadow-[0_0_25px_rgba(168,85,247,0.7)] transition-shadow"
-                size="lg"
+                className="w-full sm:w-auto border-0 bg-gradient-to-r from-purple-500 to-violet-500 px-5 py-2.5 text-sm font-semibold text-white! shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-shadow hover:from-purple-400 hover:to-violet-400 hover:shadow-[0_0_25px_rgba(168,85,247,0.7)] md:px-7 md:py-3 md:text-base"
+                size="md"
               >
                 {isAuthenticated ? "View Profile" : "Connect Accounts"}
               </Button>
@@ -103,40 +123,12 @@ export default function Home() {
             <Link href="/leaderboard" className="w-full sm:w-auto">
               <Button
                 variant="outline"
-                className="w-full sm:w-auto border-white/40 text-white! hover:bg-white/10 hover:border-white/60"
-                size="lg"
+                className="w-full sm:w-auto border-white/40 px-5 py-2.5 text-sm text-white! hover:border-white/60 hover:bg-white/10 md:px-6 md:py-3 md:text-base"
+                size="md"
               >
                 See Leaderboard
               </Button>
             </Link>
-          </div>
-
-          {/* Social proof */}
-          <div className="flex flex-wrap items-center gap-4 pt-4 text-sm text-zinc-400">
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      "h-2 w-2 rounded-full border border-zinc-500",
-                      i === 1 && "bg-white/80"
-                    )}
-                  />
-                ))}
-              </div>
-              <span>Join 12,000+ developers</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <svg
-                className="h-5 w-5 text-amber-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              <span>4.9/5 satisfaction</span>
-            </div>
           </div>
 
           {isAuthenticated && (
@@ -193,22 +185,22 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Mobile: stacked cards с наложением */}
-        <div className="relative z-10 flex flex-col gap-2 lg:hidden mt-8 w-full max-w-[280px] mx-auto">
+        {/* Mobile: stacked integration cards */}
+        <div className="relative z-10 mx-auto mt-8 flex w-full max-w-[320px] flex-col gap-2 lg:hidden">
           {INTEGRATION_CARDS.map((card) => (
             <div
               key={card.id}
               className={cn(
-                "rounded-xl border border-white/10 bg-transparent backdrop-blur-xl p-3.5 shadow-xl ring-1 ring-purple-500/20 relative",
+                "relative rounded-xl border border-white/10 bg-transparent p-4 shadow-xl ring-1 ring-purple-500/20 backdrop-blur-xl",
                 card.overlap,
-                card.zIndex
+                card.zIndex,
               )}
               style={{
                 boxShadow: "0 0 25px -8px rgba(88, 28, 135, 0.2)",
               }}
             >
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center">
                   {card.icon ? (
                     (() => {
                       const Icon = card.icon;
@@ -216,7 +208,7 @@ export default function Home() {
                     })()
                   ) : (
                     <Image
-                      src={card.image}
+                      src={card.image!}
                       alt={card.alt}
                       width={36}
                       height={36}
@@ -225,8 +217,8 @@ export default function Home() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-bold text-white text-base mb-0.5">{card.title}</h3>
-                  <p className="text-xs text-zinc-400 leading-relaxed">{card.description}</p>
+                  <h3 className="mb-0.5 text-base font-bold text-white">{card.title}</h3>
+                  <p className="text-xs leading-relaxed text-zinc-400">{card.description}</p>
                 </div>
               </div>
             </div>
@@ -235,8 +227,10 @@ export default function Home() {
       </main>
       </div>
 
+      <HowItWorksSection />
       <GamifySection />
-      <CommandCenterSection />
+      <FeaturesGridSection />
+      <FaqTrustSection />
     </div>
   );
 }

@@ -48,13 +48,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [persistReady, isInitialized, isAuthenticated, accessToken, fetchProfileMe, clearProfileMe]);
 
-  if (!persistReady || !isInitialized) {
+  if (!persistReady) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-white mx-auto"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-violet-400" />
       </div>
     );
   }

@@ -2,6 +2,8 @@
  * Виджет глобальной ленты событий
  */
 
+"use client";
+
 import { useEffect, useRef } from "react";
 import { useFetchFeed } from "@/features/fetch-feed";
 import { EventCard } from "@/entities/event/ui/EventCard";
@@ -16,7 +18,7 @@ interface GlobalFeedProps {
 }
 
 export function GlobalFeed({ className, useGrouping = true }: GlobalFeedProps) {
-  const { groupedEvents, events, isLoading, hasMore, loadNextPage } = useFetchFeed();
+  const { groupedEvents, events, isLoading, hasMore, error, reload, loadNextPage } = useFetchFeed();
   const triggerRef = useRef<HTMLDivElement>(null);
 
   // Бесконечный скролл
@@ -53,11 +55,25 @@ export function GlobalFeed({ className, useGrouping = true }: GlobalFeedProps) {
 
   return (
     <div className={cn(className)}>
-      {isEmpty && (
+      {error && (
+        <div className="rounded-xl border border-red-900/50 bg-red-950/20 px-4 py-6 text-center">
+          <p className="text-sm text-red-300">Failed to load feed</p>
+          <p className="mt-1 text-xs text-zinc-500">{error}</p>
+          <button
+            type="button"
+            onClick={() => void reload()}
+            className="mt-4 rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-200 transition-colors hover:bg-zinc-700"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {!error && isEmpty && (
         <p className="py-16 text-center text-sm text-zinc-500">Пока нет событий.</p>
       )}
 
-      {isLoading && displayEvents.length === 0 && (
+      {!error && isLoading && displayEvents.length === 0 && (
         <div className="divide-y divide-zinc-800/60">
           {Array.from({ length: 5 }).map((_, index) => (
             <EventCardSkeleton key={index} />
@@ -65,7 +81,7 @@ export function GlobalFeed({ className, useGrouping = true }: GlobalFeedProps) {
         </div>
       )}
 
-      {displayEvents.length > 0 && (
+      {!error && displayEvents.length > 0 && (
         <div className="divide-y divide-zinc-800/60">
           {useGrouping
             ? groupedEvents.map((groupedEvent) => (

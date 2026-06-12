@@ -43,9 +43,6 @@ export function ProfileCompletionGate({ children }: { children: React.ReactNode 
     const onCompletePage = pathname === "/complete-profile";
 
     if (profileError) {
-      if (!onCompletePage && !isAllowlisted(pathname)) {
-        router.replace("/complete-profile");
-      }
       return;
     }
 

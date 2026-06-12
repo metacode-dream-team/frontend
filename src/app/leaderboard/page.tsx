@@ -12,6 +12,7 @@ import {
   buildPodiumDisplayOrder,
   useFetchLeaderboard,
 } from "@/features/leaderboard/fetch-leaderboard";
+import { MobileCarousel } from "@/shared/ui/MobileCarousel";
 import leetcodeImg from "@/assets/Leetcode--Streamline-Simple-Icons (2).png";
 
 const PAGE_SIZE = 7;
@@ -221,19 +222,24 @@ export default function LeaderboardPage() {
         ) : (
           <>
             {podiumDisplayOrder.length > 0 && (
-              <div
-                className={`mb-16 flex flex-col items-center justify-center gap-6 ${
-                  podiumDisplayOrder.length === 1
-                    ? ""
-                    : podiumDisplayOrder.length === 2
-                      ? "sm:flex-row sm:items-end sm:justify-center"
-                      : "lg:flex-row lg:items-end lg:gap-8"
-                }`}
-              >
-                {podiumDisplayOrder.map((player) => (
-                  <PodiumCard key={player.id} player={player} />
-                ))}
-              </div>
+              <>
+                <MobileCarousel breakpoint="lg" className="mb-16">
+                  {podiumDisplayOrder.map((player) => (
+                    <div key={player.id} className="flex justify-center">
+                      <PodiumCard player={player} />
+                    </div>
+                  ))}
+                </MobileCarousel>
+                <div
+                  className={`mb-16 hidden items-end justify-center gap-8 lg:flex ${
+                    podiumDisplayOrder.length === 1 ? "justify-center" : ""
+                  }`}
+                >
+                  {podiumDisplayOrder.map((player) => (
+                    <PodiumCard key={player.id} player={player} />
+                  ))}
+                </div>
+              </>
             )}
 
             {(tableUsers.length > 0 || searchQuery.trim()) && (
@@ -267,13 +273,13 @@ export default function LeaderboardPage() {
                         <th className="pb-3 text-left text-[10px] font-medium uppercase tracking-wider text-zinc-500">
                           Developer
                         </th>
-                        <th className="pb-3 text-left text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+                        <th className="hidden pb-3 text-left text-[10px] font-medium uppercase tracking-wider text-zinc-500 md:table-cell">
                           GitHub
                         </th>
-                        <th className="pb-3 text-left text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+                        <th className="hidden pb-3 text-left text-[10px] font-medium uppercase tracking-wider text-zinc-500 lg:table-cell">
                           LeetCode
                         </th>
-                        <th className="pb-3 text-left text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+                        <th className="hidden pb-3 text-left text-[10px] font-medium uppercase tracking-wider text-zinc-500 lg:table-cell">
                           WPM
                         </th>
                         <th className="pb-3 text-left text-[10px] font-medium uppercase tracking-wider text-zinc-500">
@@ -305,17 +311,17 @@ export default function LeaderboardPage() {
                               <p className="font-medium text-white">{row.username}</p>
                             </div>
                           </td>
-                          <td className="py-4">
+                          <td className="hidden py-4 md:table-cell">
                             <span className="flex items-center gap-1.5 text-sm text-zinc-400">
                               <GithubIcon /> {row.githubCommits.toLocaleString()}
                             </span>
                           </td>
-                          <td className="py-4">
+                          <td className="hidden py-4 lg:table-cell">
                             <span className="flex items-center gap-1.5 text-sm text-zinc-400">
                               <LeetcodeIcon /> {row.leetcodeSolved}
                             </span>
                           </td>
-                          <td className="py-4">
+                          <td className="hidden py-4 lg:table-cell">
                             <span className="flex items-center gap-1.5 text-sm text-zinc-400">
                               <KeyboardIcon /> {row.monkeytypeRecord}
                             </span>

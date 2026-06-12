@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { Button } from "@/shared/ui/Button";
+import { MobileCarousel } from "@/shared/ui/MobileCarousel";
 import { cn } from "@/shared/lib/utils/cn";
 
 const TIMEFRAME_TABS = [
@@ -181,7 +182,7 @@ function computeProgress(cards: RoadmapCard[]): number {
 function HeroBolt() {
   return (
     <svg
-      className="h-32 w-32 shrink-0 text-violet-500/90 drop-shadow-[0_0_28px_rgba(168,85,247,0.55)] sm:h-40 sm:w-40"
+      className="h-24 w-24 shrink-0 text-violet-500/90 drop-shadow-[0_0_28px_rgba(168,85,247,0.55)] sm:h-32 sm:w-32 md:h-40 md:w-40"
       viewBox="0 0 24 24"
       fill="currentColor"
       aria-hidden
@@ -222,7 +223,7 @@ function CardItem({ card, onCycleStatus, onDelete, deletable }: CardItemProps) {
           type="button"
           onClick={() => onCycleStatus(card.id)}
           className={cn(
-            "rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-colors",
+            "min-h-9 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide transition-colors sm:min-h-0 sm:px-2 sm:py-0.5",
             statusStyles(card.status),
           )}
           title="Click to change status"
@@ -259,7 +260,7 @@ function CardItem({ card, onCycleStatus, onDelete, deletable }: CardItemProps) {
           <button
             type="button"
             onClick={() => onDelete(card.id)}
-            className="text-[11px] font-semibold text-zinc-600 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-400"
+            className="min-h-9 px-2 text-[11px] font-semibold text-zinc-500 transition-colors hover:text-red-400 sm:min-h-0 sm:text-zinc-600 sm:opacity-0 sm:group-hover:opacity-100"
             title="Remove card"
           >
             Remove
@@ -380,7 +381,7 @@ function SubmitIdeaModal({ open, onClose, onSubmit }: SubmitIdeaModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center"
       role="dialog"
       aria-modal="true"
       onMouseDown={(e) => {
@@ -389,7 +390,7 @@ function SubmitIdeaModal({ open, onClose, onSubmit }: SubmitIdeaModalProps) {
     >
       <form
         onSubmit={handleSubmit}
-        className="m-4 w-full max-w-lg rounded-2xl border border-zinc-800 bg-[#0b0b0e] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+        className="m-0 max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-zinc-800 bg-[#0b0b0e] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.6)] sm:m-4 sm:rounded-2xl sm:p-6"
       >
         <div className="flex items-start justify-between">
           <div>
@@ -401,7 +402,7 @@ function SubmitIdeaModal({ open, onClose, onSubmit }: SubmitIdeaModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1 text-zinc-500 transition-colors hover:bg-zinc-900 hover:text-white"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-900 hover:text-white"
             aria-label="Close"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -438,7 +439,7 @@ function SubmitIdeaModal({ open, onClose, onSubmit }: SubmitIdeaModalProps) {
             />
           </label>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
                 Lane
@@ -470,7 +471,7 @@ function SubmitIdeaModal({ open, onClose, onSubmit }: SubmitIdeaModalProps) {
             </label>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
                 Priority
@@ -556,6 +557,7 @@ export default function RoadmapsPage() {
   const [hydrated, setHydrated] = useState(false);
   const [customIds, setCustomIds] = useState<Set<string>>(new Set());
   const [ideaOpen, setIdeaOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -662,17 +664,17 @@ export default function RoadmapsPage() {
         : [timeframe];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-black text-zinc-100">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-black via-zinc-950 to-black text-zinc-100">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:py-10">
         {/* Hero */}
-        <section className="relative overflow-hidden rounded-2xl border border-zinc-800/70 bg-[#09090b] p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset,0_24px_64px_rgba(0,0,0,0.5)] sm:p-8 lg:p-10">
+        <section className="relative overflow-hidden rounded-2xl border border-zinc-800/70 bg-[#09090b] p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset,0_24px_64px_rgba(0,0,0,0.5)] sm:p-8 lg:p-10">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(139,92,246,0.12),transparent_55%)]" />
           <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
               <span className="inline-flex rounded-full border border-violet-500/35 bg-violet-950/50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-violet-300">
                 Vision 2024
               </span>
-              <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+              <h1 className="mt-3 text-2xl font-bold tracking-tight sm:mt-4 sm:text-4xl lg:text-5xl">
                 <span className="text-white">Meta</span>
                 <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
                   Roadmap
@@ -691,39 +693,63 @@ export default function RoadmapsPage() {
         </section>
 
         {/* Toolbar */}
-        <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-1">
-            {TIMEFRAME_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setTimeframe(tab.id)}
-                className={cn(
-                  "rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:px-4 sm:text-sm",
-                  timeframe === tab.id
-                    ? "bg-violet-600 text-white shadow-[0_0_16px_rgba(139,92,246,0.35)]"
-                    : "text-zinc-400 hover:bg-zinc-900 hover:text-white",
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
+        <div className="mt-5 flex flex-col gap-4 lg:mt-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="w-full lg:w-auto">
+            <div className="flex w-full items-center gap-1 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-1 lg:inline-flex lg:w-auto lg:flex-wrap lg:gap-2">
+              {TIMEFRAME_TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setTimeframe(tab.id)}
+                  className={cn(
+                    "min-h-10 flex-1 rounded-lg px-1.5 py-2 text-xs font-semibold transition-colors sm:min-h-0 sm:flex-none sm:px-4 sm:text-sm",
+                    timeframe === tab.id
+                      ? "bg-violet-600 text-white shadow-[0_0_16px_rgba(139,92,246,0.35)]"
+                      : "text-zinc-400 hover:bg-zinc-900 hover:text-white",
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <div className="relative">
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end lg:w-auto">
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((v) => !v)}
+              className={cn(
+                "flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors lg:hidden",
+                filtersOpen
+                  ? "border-violet-500/50 bg-violet-950/40 text-violet-200"
+                  : "border-zinc-800 bg-zinc-950/50 text-zinc-300 hover:border-zinc-700 hover:text-white",
+              )}
+              aria-expanded={filtersOpen}
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M4 6h16M4 12h10M4 18h6" />
+              </svg>
+              Filters
+              {hasActiveFilters ? (
+                <span className="rounded-full bg-violet-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  on
+                </span>
+              ) : null}
+            </button>
+
+            <div className="relative w-full sm:w-48 md:w-64">
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search cards..."
-                className="w-48 rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-violet-500 focus:outline-none sm:w-64"
+                className="min-h-11 w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-violet-500 focus:outline-none"
               />
               {search && (
                 <button
                   type="button"
                   onClick={() => setSearch("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+                  className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-zinc-500 hover:text-white"
                   aria-label="Clear search"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -732,36 +758,32 @@ export default function RoadmapsPage() {
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-black/40 p-1">
-              <button
-                type="button"
-                onClick={() => setPeriod("quarter")}
-                className={cn(
-                  "rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide",
-                  period === "quarter"
-                    ? "bg-zinc-800 text-white"
-                    : "text-zinc-500 hover:text-zinc-300",
-                )}
-              >
-                Quarter
-              </button>
-              <button
-                type="button"
-                onClick={() => setPeriod("year")}
-                className={cn(
-                  "rounded-md px-3 py-1.5 text-xs font-semibold",
-                  period === "year"
-                    ? "bg-zinc-800 text-white"
-                    : "text-zinc-500 hover:text-zinc-300",
-                )}
-              >
-                Year
-              </button>
+            <div className="flex w-full items-center gap-2 rounded-lg border border-zinc-800 bg-black/40 p-1 sm:w-auto">
+              {(
+                [
+                  { id: "quarter" as const, label: "Quarter" },
+                  { id: "year" as const, label: "Year" },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setPeriod(opt.id)}
+                  className={cn(
+                    "min-h-10 flex-1 rounded-md px-3 py-2 text-xs font-semibold sm:min-h-0 sm:flex-none sm:py-1.5 sm:text-sm",
+                    period === opt.id
+                      ? "bg-zinc-800 text-white"
+                      : "text-zinc-500 hover:text-zinc-300",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
             <Button
               type="button"
               variant="accent"
-              className="gap-2 rounded-lg px-4 py-2 text-sm font-semibold"
+              className="w-full gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold sm:w-auto"
               onClick={() => setIdeaOpen(true)}
             >
               <span className="text-lg leading-none">+</span>
@@ -827,28 +849,52 @@ export default function RoadmapsPage() {
                 )}
               </section>
             ) : (
-              <div
-                className={cn(
-                  "grid gap-4",
-                  lanesToShow.length === 1 ? "md:grid-cols-1" : "md:grid-cols-3 md:items-start",
-                )}
-              >
-                {lanesToShow.map((laneId) => (
-                  <LaneColumn
-                    key={laneId}
-                    lane={laneId}
-                    cards={cardsByLane[laneId]}
-                    allLaneCards={laneAllCards[laneId]}
-                    onCycleStatus={cycleStatus}
-                    onDelete={deleteCard}
-                    customIds={customIds}
-                  />
-                ))}
-              </div>
+              <>
+                {lanesToShow.length > 1 ? (
+                  <MobileCarousel breakpoint="md" className="md:hidden">
+                    {lanesToShow.map((laneId) => (
+                      <LaneColumn
+                        key={laneId}
+                        lane={laneId}
+                        cards={cardsByLane[laneId]}
+                        allLaneCards={laneAllCards[laneId]}
+                        onCycleStatus={cycleStatus}
+                        onDelete={deleteCard}
+                        customIds={customIds}
+                      />
+                    ))}
+                  </MobileCarousel>
+                ) : null}
+                <div
+                  className={cn(
+                    "grid gap-4",
+                    lanesToShow.length > 1
+                      ? "hidden md:grid md:grid-cols-3 md:items-start"
+                      : "md:grid-cols-1",
+                  )}
+                >
+                  {lanesToShow.map((laneId) => (
+                    <LaneColumn
+                      key={laneId}
+                      lane={laneId}
+                      cards={cardsByLane[laneId]}
+                      allLaneCards={laneAllCards[laneId]}
+                      onCycleStatus={cycleStatus}
+                      onDelete={deleteCard}
+                      customIds={customIds}
+                    />
+                  ))}
+                </div>
+              </>
             )}
           </div>
 
-          <aside className="flex flex-col gap-5 rounded-2xl border border-zinc-800/60 bg-[#09090b] p-5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+          <aside
+            className={cn(
+              "flex-col gap-5 rounded-2xl border border-zinc-800/60 bg-[#09090b] p-5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]",
+              filtersOpen ? "flex" : "hidden lg:flex",
+            )}
+          >
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">
               System filters
             </h2>
@@ -864,7 +910,7 @@ export default function RoadmapsPage() {
                     type="button"
                     onClick={() => toggleTeam(t)}
                     className={cn(
-                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                      "min-h-9 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors sm:min-h-0 sm:py-1",
                       activeTeams.includes(t)
                         ? "border-violet-500/50 bg-violet-950/50 text-violet-200"
                         : "border-zinc-700 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200",
@@ -880,7 +926,7 @@ export default function RoadmapsPage() {
               <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
                 Priority
               </p>
-              <ul className="mt-2 space-y-2">
+              <ul className="mt-2 space-y-1 sm:space-y-2">
                 {(
                   [
                     { id: "all" as const, label: "All", dot: "bg-zinc-300" },
@@ -890,7 +936,7 @@ export default function RoadmapsPage() {
                   ]
                 ).map((opt) => (
                   <li key={opt.id}>
-                    <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-300">
+                    <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm text-zinc-300 sm:min-h-0">
                       <input
                         type="radio"
                         name="priority"
@@ -958,7 +1004,7 @@ export default function RoadmapsPage() {
         </div>
 
         {/* Changelog */}
-        <section className="mt-16 bg-transparent p-0 sm:p-0">
+        <section className="mt-12 bg-transparent p-0 sm:mt-16">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-950/50 text-violet-400">

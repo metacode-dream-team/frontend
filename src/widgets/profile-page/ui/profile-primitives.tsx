@@ -60,7 +60,7 @@ export function SectionAddButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-800/80 hover:text-zinc-300"
+      className="flex h-11 w-11 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-800/80 hover:text-zinc-300 sm:h-8 sm:w-8"
       aria-label={label}
     >
       <span className="text-lg leading-none">+</span>
@@ -133,7 +133,7 @@ export function SectionDeleteButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-red-950/40 hover:text-red-300 focus-visible:opacity-100",
+        "flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-red-950/40 hover:text-red-300 focus-visible:opacity-100 sm:h-8 sm:w-8",
         className,
       )}
       aria-label={label}
@@ -165,7 +165,7 @@ export function ProfileEditButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-800/80 hover:text-zinc-300",
+        "flex h-11 w-11 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-800/80 hover:text-zinc-300 sm:h-8 sm:w-8",
         className,
       )}
       aria-label={ariaLabel}

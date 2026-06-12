@@ -20,19 +20,19 @@ export function useFetchFeed() {
     setIsLoading,
     setHasMore,
     setNextCursor,
+    setError,
+    error,
     reset,
   } = useFeedStore();
 
   useEffect(() => {
     void loadPage();
-    return () => reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
   const loadPage = async () => {
-    if (isLoading) return;
-
     setIsLoading(true);
+    setError(null);
 
     try {
       const response = await getFeed(null, 20, accessToken);
@@ -40,8 +40,10 @@ export function useFetchFeed() {
       setGroupedEvents(groupEvents(response.events));
       setHasMore(false);
       setNextCursor(null);
-    } catch (error) {
-      console.error("[Feed] Failed to load:", error);
+    } catch (err) {
+      console.error("[Feed] Failed to load:", err);
+      const message = err instanceof Error ? err.message : "Failed to load feed";
+      setError(message);
       setEvents([]);
       setGroupedEvents([]);
       setHasMore(false);
@@ -60,7 +62,9 @@ export function useFetchFeed() {
     groupedEvents,
     isLoading,
     hasMore,
+    error,
     loadNextPage,
+    reload: loadPage,
     reset,
   };
 }

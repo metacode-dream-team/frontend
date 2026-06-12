@@ -4,6 +4,7 @@
  * Refresh token: httpOnly cookie (бэкенд)
  */
 
+import { useEffect } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { AuthState, AuthStore } from "./types";
@@ -11,6 +12,23 @@ import { authApi } from "../api/authApi";
 import { isTokenExpired } from "@/shared/lib/utils/jwt";
 
 let refreshTimerId: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleTokenRefresh(
+  expiresIn: number,
+  refresh: () => Promise<unknown>,
+): void {
+  if (refreshTimerId) {
+    clearTimeout(refreshTimerId);
+    refreshTimerId = null;
+  }
+  const timeUntilExpiration = expiresIn * 1000 - 60_000;
+  if (timeUntilExpiration > 0) {
+    refreshTimerId = setTimeout(() => {
+      refreshTimerId = null;
+      void refresh();
+    }, timeUntilExpiration);
+  }
+}
 
 const LOGOUT_FLAG_KEY = "metacode-auth-logged-out";
 
@@ -49,10 +67,6 @@ export const useAuthStore = create<AuthStore>()(
 
       // Actions
       setTokens: (accessToken, idToken, expiresIn) => {
-        if (refreshTimerId) {
-          clearTimeout(refreshTimerId);
-          refreshTimerId = null;
-        }
         clearLogoutFlag();
         set({
           accessToken,
@@ -60,14 +74,7 @@ export const useAuthStore = create<AuthStore>()(
           expiresIn,
           isAuthenticated: true,
         });
-
-        const timeUntilExpiration = expiresIn * 1000 - 60000;
-        if (timeUntilExpiration > 0) {
-          refreshTimerId = setTimeout(() => {
-            refreshTimerId = null;
-            void get().refreshToken();
-          }, timeUntilExpiration);
-        }
+        scheduleTokenRefresh(expiresIn, () => get().refreshToken());
       },
 
       setAccessToken: (token) => {
@@ -156,7 +163,10 @@ export const useAuthStore = create<AuthStore>()(
         }
 
         if (state.accessToken && !isTokenExpired(state.accessToken)) {
-          set({ isInitialized: true });
+          if (state.expiresIn) {
+            scheduleTokenRefresh(state.expiresIn, () => get().refreshToken());
+          }
+          set({ isAuthenticated: true, isInitialized: true });
           return;
         }
 
@@ -215,12 +225,18 @@ export const useAuthStore = create<AuthStore>()(
  */
 export function useAuth() {
   const store = useAuthStore();
+  const accessToken = store.accessToken;
+  const refreshToken = store.refreshToken;
+  const logout = store.logout;
 
-  if (store.accessToken && isTokenExpired(store.accessToken)) {
-    store.refreshToken().catch(() => {
-      store.logout();
+  useEffect(() => {
+    if (!accessToken || !isTokenExpired(accessToken)) {
+      return;
+    }
+    void refreshToken().catch(() => {
+      logout();
     });
-  }
+  }, [accessToken, refreshToken, logout]);
 
   return store;
 }

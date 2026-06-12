@@ -2,144 +2,190 @@
 
 import { useState, useMemo } from "react";
 import { generateActivityData } from "@/shared/lib/api/mockActivityData";
+import {
+  countToHeatmapLevel,
+  heatmapCountClass,
+  heatmapLevelClass,
+  heatmapLevelRange,
+  INTEGRATION_HEATMAP_CAP,
+} from "@/shared/lib/utils/calendarHeatmapLevels";
 
 const CARD_STYLE =
   "rounded-2xl bg-neutral-900/50 backdrop-blur-xl p-6 shadow-xl";
 
-// Mock radar data: Frontend, Backend, DevOps, Security, Algorithms, Soft Skills (0-100)
-const RADAR_DIMENSIONS = [
-  { label: "Frontend", value: 85 },
-  { label: "Backend", value: 72 },
-  { label: "DevOps", value: 58 },
-  { label: "Security", value: 65 },
-  { label: "Algorithms", value: 90 },
-  { label: "Soft Skills", value: 78 },
-];
-
-// Простые SVG-иконки для достижений
-const AchievementIcons = {
-  bug: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-    </svg>
-  ),
-  speed: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="shrink-0">
-      <path d="M4.5,5 L19.5,5 C20.8807119,5 22,6.11928813 22,7.5 L22,15.5 C22,16.8807119 20.8807119,18 19.5,18 L4.5,18 C3.11928813,18 2,16.8807119 2,15.5 L2,7.5 C2,6.11928813 3.11928813,5 4.5,5 Z M4.5,6 C3.67157288,6 3,6.67157288 3,7.5 L3,15.5 C3,16.3284271 3.67157288,17 4.5,17 L19.5,17 C20.3284271,17 21,16.3284271 21,15.5 L21,7.5 C21,6.67157288 20.3284271,6 19.5,6 L4.5,6 Z M5.5,9 C5.22385763,9 5,8.77614237 5,8.5 C5,8.22385763 5.22385763,8 5.5,8 L6.5,8 C6.77614237,8 7,8.22385763 7,8.5 C7,8.77614237 6.77614237,9 6.5,9 L5.5,9 Z M8.5,9 C8.22385763,9 8,8.77614237 8,8.5 C8,8.22385763 8.22385763,8 8.5,8 L9.5,8 C9.77614237,8 10,8.22385763 10,8.5 C10,8.77614237 9.77614237,9 9.5,9 L8.5,9 Z M11.5,9 C11.2238576,9 11,8.77614237 11,8.5 C11,8.22385763 11.2238576,8 11.5,8 L12.5,8 C12.7761424,8 13,8.22385763 13,8.5 C13,8.77614237 12.7761424,9 12.5,9 L11.5,9 Z M14.5,9 C14.2238576,9 14,8.77614237 14,8.5 C14,8.22385763 14.2238576,8 14.5,8 L15.5,8 C15.7761424,8 16,8.22385763 16,8.5 C16,8.77614237 15.7761424,9 15.5,9 L14.5,9 Z M17.5,9 C17.2238576,9 17,8.77614237 17,8.5 C17,8.22385763 17.2238576,8 17.5,8 L18.5,8 C18.7761424,8 19,8.22385763 19,8.5 C19,8.77614237 18.7761424,9 18.5,9 L17.5,9 Z M5.5,12 C5.22385763,12 5,11.7761424 5,11.5 C5,11.2238576 5.22385763,11 5.5,11 L6.5,11 C6.77614237,11 7,11.2238576 7,11.5 C7,11.7761424 6.77614237,12 6.5,12 L5.5,12 Z M8.5,12 C8.22385763,12 8,11.7761424 8,11.5 C8,11.2238576 8.22385763,11 8.5,11 L9.5,11 C9.77614237,11 10,11.2238576 10,11.5 C10,11.7761424 9.77614237,12 9.5,12 L8.5,12 Z M11.5,12 C11.2238576,12 11,11.7761424 11,11.5 C11,11.2238576 11.2238576,11 11.5,11 L12.5,11 C12.7761424,11 13,11.2238576 13,11.5 C13,11.7761424 12.7761424,12 12.5,12 L11.5,12 Z M14.5,12 C14.2238576,12 14,11.7761424 14,11.5 C14,11.2238576 14.2238576,11 14.5,11 L15.5,11 C15.7761424,11 16,11.2238576 16,11.5 C16,11.7761424 15.7761424,12 15.5,12 L14.5,12 Z M17.5,12 C17.2238576,12 17,11.7761424 17,11.5 C17,11.2238576 17.2238576,11 17.5,11 L18.5,11 C18.7761424,11 19,11.2238576 19,11.5 C19,11.7761424 18.7761424,12 18.5,12 L17.5,12 Z M5.5,15 C5.22385763,15 5,14.7761424 5,14.5 C5,14.2238576 5.22385763,14 5.5,14 L6.5,14 C6.77614237,14 7,14.2238576 7,14.5 C7,14.7761424 6.77614237,15 6.5,15 L5.5,15 Z M8.5,15 C8.22385763,15 8,14.7761424 8,14.5 C8,14.2238576 8.22385763,14 8.5,14 L15.5,14 C15.7761424,14 16,14.2238576 16,14.5 C16,14.7761424 15.7761424,15 15.5,15 L8.5,15 Z M17.5,15 C17.2238576,15 17,14.7761424 17,14.5 C17,14.2238576 17.2238576,14 17.5,14 L18.5,14 C18.7761424,14 19,14.2238576 19,14.5 C19,14.7761424 18.7761424,15 18.5,15 L17.5,15 Z" />
-    </svg>
-  ),
-  target: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="12" r="6" />
-      <circle cx="12" cy="12" r="2" />
-    </svg>
-  ),
-};
+const PLATFORM_BREAKDOWN = [
+  {
+    platform: "GitHub",
+    value: "42 commits",
+    detail: "Last 30 days across connected repos",
+    progress: 72,
+    barClass: "from-emerald-600 to-emerald-400",
+  },
+  {
+    platform: "LeetCode",
+    value: "18 solved",
+    detail: "3 easy · 9 medium · 6 hard",
+    progress: 58,
+    barClass: "from-violet-600 to-purple-500",
+  },
+  {
+    platform: "Monkeytype",
+    value: "118 WPM",
+    detail: "96% accuracy · 15s mode",
+    progress: 81,
+    barClass: "from-orange-600 to-orange-400",
+  },
+] as const;
 
 const ACHIEVEMENTS = [
   {
-    id: "1",
-    title: "Bug Smasher",
-    description: "Closed 50 issues on GitHub",
-    icon: "bug",
-    iconColor: "text-amber-400",
+    id: "streak",
+    title: "50-day solving streak",
+    description: "At least one accepted solution every day for 50 days.",
+    tone: "bg-emerald-500/20 text-emerald-400",
   },
   {
-    id: "2",
-    title: "Speed Demon",
-    description: "Reached 120 WPM on Monkeytype",
-    icon: "speed",
-    iconColor: "text-blue-400",
+    id: "first",
+    title: "First acceptance",
+    description: "Your first accepted submission on LeetCode.",
+    tone: "bg-violet-500/20 text-violet-400",
   },
   {
-    id: "3",
-    title: "Algorithm Ace",
-    description: "Solved 10 Hard problems in 24h",
-    icon: "target",
-    iconColor: "text-purple-400",
+    id: "wpm",
+    title: "100 WPM club",
+    description: "Reached 100+ words per minute on Monkeytype.",
+    tone: "bg-orange-500/20 text-orange-400",
   },
-];
+] as const;
 
-function RadarChart({ data }: { data: { label: string; value: number }[] }) {
-  const size = 340;
-  const center = size / 2;
-  const maxRadius = center - 50;
-  const points = data.length;
-  const gridStroke = "rgba(115,115,115,0.4)";
-
-  const getPoint = (index: number, value: number) => {
-    const angle = (index * 360) / points - 90;
-    const rad = (angle * Math.PI) / 180;
-    const r = (value / 100) * maxRadius;
-    return {
-      x: center + r * Math.cos(rad),
-      y: center + r * Math.sin(rad),
-    };
-  };
-
-  const polygonPoints = data
-    .map((d, i) => getPoint(i, d.value))
-    .map((p) => `${p.x},${p.y}`)
-    .join(" ");
-
-  // 5 concentric rings (20%, 40%, 60%, 80%, 100%)
-  const gridLevels = [1, 2, 3, 4, 5];
-
+function StreakPreviewCard() {
   return (
-    <div className="relative" style={{ width: size, height: size + 50 }}>
-      <svg width={size} height={size} className="mx-auto">
-        {/* 5 concentric hexagonal rings */}
-        {gridLevels.map((level) => (
-          <polygon
-            key={level}
-            points={data
-              .map((_, i) => getPoint(i, (level / 5) * 100))
-              .map((p) => `${p.x},${p.y}`)
-              .join(" ")}
-            fill="none"
-            stroke={gridStroke}
-            strokeWidth="1"
-          />
-        ))}
-        {/* Axis lines */}
-        {data.map((_, i) => {
-          const p = getPoint(i, 100);
-          return (
-            <line
-              key={i}
-              x1={center}
-              y1={center}
-              x2={p.x}
-              y2={p.y}
-              stroke={gridStroke}
-              strokeWidth="1"
-            />
-          );
-        })}
-        {/* Solid purple fill — без неона, чётко видно данные */}
-        <polygon points={polygonPoints} fill="rgb(88,28,135)" fillOpacity="0.65" />
-        {/* Labels */}
-        {data.map((d, i) => {
-          const p = getPoint(i, 108);
-          return (
-            <text
-              key={i}
-              x={p.x}
-              y={p.y}
-              textAnchor="middle"
-              className="fill-zinc-400 text-xs"
-            >
-              {d.label}
-            </text>
-          );
-        })}
-      </svg>
+    <div className={CARD_STYLE}>
+      <p className="text-sm font-medium text-zinc-400">Daily streak</p>
+      <div className="mt-3 flex items-center gap-3">
+        <img
+          src="/fire.svg"
+          alt=""
+          width={28}
+          height={28}
+          className="shrink-0 [filter:invert(55%)_sepia(95%)_saturate(1400%)_hue-rotate(350deg)_brightness(105%)]"
+          aria-hidden
+        />
+        <p className="text-4xl font-bold tabular-nums text-white">12</p>
+      </div>
+      <p className="mt-2 text-sm text-zinc-500">
+        Active today — commit, solve, or practice to keep it going.
+      </p>
     </div>
   );
 }
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function PlatformBreakdown() {
+  return (
+    <div className="mt-8 space-y-5">
+      {PLATFORM_BREAKDOWN.map((item) => (
+        <div
+          key={item.platform}
+          className="rounded-xl border border-zinc-800/80 bg-zinc-950/40 px-4 py-4 sm:px-5"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p className="text-sm font-semibold text-white">{item.platform}</p>
+              <p className="mt-0.5 text-xs text-zinc-500">{item.detail}</p>
+            </div>
+            <p className="text-lg font-bold tabular-nums text-zinc-100">{item.value}</p>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-800">
+            <div
+              className={`h-full rounded-full bg-gradient-to-r ${item.barClass}`}
+              style={{ width: `${item.progress}%` }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const HEATMAP_MONTHS = 9;
+const DEMO_HEATMAP_DATA = generateActivityData(HEATMAP_MONTHS * 31);
+
+type HeatmapCell = { date: string; count: number } | null;
+
+type MonthBlock = {
+  key: string;
+  label: string;
+  cells: HeatmapCell[];
+};
+
+function toYmd(y: number, m0: number, day: number): string {
+  return `${y}-${String(m0 + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function buildContributionMonthBlocks(
+  byDate: Map<string, number>,
+  months = HEATMAP_MONTHS,
+): MonthBlock[] {
+  const now = new Date();
+  const endAnchor = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startAnchor = new Date(
+    endAnchor.getFullYear(),
+    endAnchor.getMonth() - (months - 1),
+    1,
+  );
+
+  const blocks: MonthBlock[] = [];
+  const cursor = new Date(startAnchor.getFullYear(), startAnchor.getMonth(), 1);
+
+  while (cursor.getTime() <= endAnchor.getTime()) {
+    const y = cursor.getFullYear();
+    const m = cursor.getMonth();
+    const dim = new Date(y, m + 1, 0).getDate();
+    const startPad = new Date(y, m, 1).getDay();
+    const cells: HeatmapCell[] = [];
+
+    for (let i = 0; i < startPad; i++) {
+      cells.push(null);
+    }
+    for (let day = 1; day <= dim; day++) {
+      const date = toYmd(y, m, day);
+      cells.push({ date, count: byDate.get(date) ?? 0 });
+    }
+    while (cells.length % 7 !== 0) {
+      cells.push(null);
+    }
+
+    blocks.push({
+      key: `${y}-${String(m + 1).padStart(2, "0")}`,
+      label: cursor.toLocaleString("en-US", { month: "short" }),
+      cells,
+    });
+
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  return blocks;
+}
+
+function disambiguateMonthLabels(blocks: MonthBlock[]): MonthBlock[] {
+  const yearsByLabel = new Map<string, Set<number>>();
+  for (const block of blocks) {
+    const year = Number(block.key.slice(0, 4));
+    let set = yearsByLabel.get(block.label);
+    if (!set) {
+      set = new Set<number>();
+      yearsByLabel.set(block.label, set);
+    }
+    set.add(year);
+  }
+
+  return blocks.map((block) => {
+    const year = Number(block.key.slice(0, 4));
+    const set = yearsByLabel.get(block.label);
+    if (!set || set.size <= 1) return block;
+    return { ...block, label: `${block.label} '${String(year).slice(-2)}` };
+  });
+}
 
 function ContributionHeatmapCard({
   heatmapData,
@@ -149,20 +195,22 @@ function ContributionHeatmapCard({
   const [source, setSource] = useState<"github" | "leetcode">("github");
   return (
     <div className={`${CARD_STYLE} mt-6`}>
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-lg font-bold text-white">Contribution Heatmap</h3>
           <p className="mt-1 text-sm text-zinc-400">
-            Aggregate activity across all connected platforms over the last year.
+            Activity across connected platforms over the last {HEATMAP_MONTHS} months.
           </p>
         </div>
-        <div className="flex shrink-0 gap-1.5 self-center">
+        <div className="flex shrink-0 gap-1.5 self-start sm:self-center">
           {(["github", "leetcode"] as const).map((s) => (
             <button
               key={s}
               onClick={() => setSource(s)}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                source === s ? "bg-purple-600 text-white" : "bg-white/5 text-zinc-400 hover:text-white"
+              className={`min-h-11 rounded-md px-3 py-2 text-xs font-medium transition-colors sm:min-h-0 sm:px-2.5 sm:py-1 ${
+                source === s
+                  ? "bg-zinc-100 text-zinc-900"
+                  : "bg-zinc-800/80 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
               }`}
             >
               {s === "github" ? "GitHub" : "LeetCode"}
@@ -184,157 +232,124 @@ function ContributionHeatmap({
   data: { date: string; source: string; count: number }[];
   source: "github" | "leetcode";
 }) {
-  const { grid, maxCount, monthLabels } = useMemo(() => {
-    const byDate: Record<string, number> = {};
-    data
-      .filter((d) => d.source === source)
-      .forEach((d) => {
-        byDate[d.date] = (byDate[d.date] || 0) + d.count;
-      });
-    const max = Math.max(...Object.values(byDate), 1);
+  const cap = INTEGRATION_HEATMAP_CAP[source];
 
-    const start = new Date();
-    start.setDate(start.getDate() - 364);
-    const grid: number[][] = Array.from({ length: 7 }, () => Array(53).fill(0));
-    const monthLabels: { col: number; label: string }[] = [];
-    let lastMonth = -1;
-
-    for (let i = 0; i <= 364; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      const key = d.toISOString().slice(0, 10);
-      const count = byDate[key] || 0;
-      const col = Math.min(52, Math.floor(i / 7));
-      const row = d.getDay();
-      grid[row][col] = count;
-
-      const m = d.getMonth();
-      if (m !== lastMonth) {
-        monthLabels.push({ col, label: MONTHS[m] });
-        lastMonth = m;
-      }
+  const monthBlocks = useMemo(() => {
+    const byDate = new Map<string, number>();
+    for (const item of data) {
+      if (item.source !== source) continue;
+      byDate.set(item.date, (byDate.get(item.date) ?? 0) + item.count);
     }
-    return { grid, maxCount: max, monthLabels };
+    return disambiguateMonthLabels(buildContributionMonthBlocks(byDate));
   }, [data, source]);
 
-  const colors = [
-    "bg-zinc-800",
-    "bg-purple-900/60",
-    "bg-purple-600/70",
-    "bg-purple-500",
-    "bg-purple-400",
-  ];
-
   return (
-    <div className="w-full space-y-3">
-      <div className="grid w-full gap-[3px] pb-2" style={{ gridTemplateColumns: "repeat(53, minmax(0, 1fr))" }}>
-        {Array.from({ length: 53 }).map((_, col) => (
-          <div key={col} className="flex flex-col gap-[3px]">
-            {Array.from({ length: 7 }).map((_, row) => {
-              const count = grid[row]?.[col] ?? 0;
-              const level = Math.min(4, maxCount > 0 ? Math.ceil((count / maxCount) * 4) : 0);
-              return (
-                <div
-                  key={`${col}-${row}`}
-                  className={`aspect-square w-full max-w-full rounded-sm ${colors[level]} transition-colors`}
-                />
-              );
-            })}
-          </div>
-        ))}
+    <div className="w-full space-y-4">
+      <div className="overflow-x-auto pb-1 snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch]">
+        <div className="flex w-full min-w-max flex-nowrap items-end justify-between px-4 sm:px-6">
+          {monthBlocks.map((block) => (
+            <div
+              key={block.key}
+              className="flex shrink-0 snap-center flex-col items-center justify-end gap-2"
+            >
+              <div className="grid w-max grid-flow-col grid-rows-7 gap-1 sm:gap-1.5">
+                {block.cells.map((cell, index) => {
+                  if (!cell) {
+                    return (
+                      <div
+                        key={`${block.key}-pad-${index}`}
+                        className="pointer-events-none size-3 shrink-0 select-none rounded-sm opacity-0 sm:size-3.5 md:size-4"
+                        aria-hidden
+                      />
+                    );
+                  }
+                  const level = countToHeatmapLevel(cell.count, cap);
+                  return (
+                    <div
+                      key={cell.date}
+                      title={`${cell.date}: ${cell.count} · level ${level} (${heatmapLevelRange(level, cap)})`}
+                      className={`size-3 shrink-0 rounded-sm sm:size-3.5 md:size-4 ${heatmapCountClass(cell.count, "zinc", cap)} transition-opacity hover:opacity-90`}
+                    />
+                  );
+                })}
+              </div>
+              <span className="whitespace-nowrap text-center text-[10px] font-medium leading-none text-zinc-500 sm:text-xs">
+                {block.label}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
-      <div
-        className="grid w-full text-[10px] text-zinc-500"
-        style={{ gridTemplateColumns: "repeat(53, minmax(0, 1fr))" }}
-      >
-        {Array.from({ length: 53 }).map((_, col) => {
-          const label = monthLabels.find((ml) => ml.col === col);
-          return (
-            <span key={col} className="truncate">
-              {label?.label ?? ""}
-            </span>
-          );
-        })}
+      <div className="flex flex-wrap items-center justify-end gap-1.5 text-[10px] text-zinc-500 sm:text-[11px]">
+        <span>Less</span>
+        <div className="flex gap-1">
+          {([0, 1, 2, 3, 4] as const).map((lv) => (
+            <span
+              key={lv}
+              className={`size-3 rounded-sm sm:size-3.5 ${heatmapLevelClass(lv, "zinc")}`}
+              title={heatmapLevelRange(lv, cap)}
+            />
+          ))}
+        </div>
+        <span>More</span>
+        <span className="text-zinc-600">(max {cap})</span>
       </div>
     </div>
   );
 }
 
 export function GamifySection() {
-  const heatmapData = useMemo(() => generateActivityData(365), []);
-
   return (
-    <section className="bg-black py-20 px-6 text-white">
+    <section className="bg-black px-6 py-24 text-white">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold text-white md:text-4xl">Gamify Your Growth</h2>
           <p className="mt-3 text-zinc-400">
-            Track every commit, solve, and keystroke with our automated data engine.
+            GitHub commits, LeetCode solves, and Monkeytype sessions — synced into one profile.
           </p>
         </div>
 
         {/* Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Developer Skill Radar - large left card */}
+          {/* Platform activity - large left card */}
           <div className={`${CARD_STYLE} lg:col-span-2`}>
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h3 className="text-lg font-bold text-white">Developer Skill Radar</h3>
+                <h3 className="text-lg font-bold text-white">Platform Activity</h3>
                 <p className="mt-1 text-sm text-zinc-400">
-                  A comprehensive breakdown of your technical proficiency across 6 dimensions.
+                  Live stats pulled from your connected GitHub, LeetCode, and Monkeytype accounts.
                 </p>
               </div>
-              <span className="rounded-full bg-purple-600/30 px-3 py-1 text-xs font-medium text-purple-400">
-                Active Analysis
+              <span className="rounded-full bg-emerald-600/20 px-3 py-1 text-xs font-medium text-emerald-400">
+                Synced
               </span>
             </div>
-            <div className="mt-8 flex justify-center">
-              <RadarChart data={RADAR_DIMENSIONS} />
-            </div>
+            <PlatformBreakdown />
           </div>
 
-          {/* Right column: XP + Achievements */}
+          {/* Right column: streak + achievements */}
           <div className="flex flex-col gap-6">
-            {/* XP Progress Card */}
-            <div className={CARD_STYLE}>
-              <div className="flex items-center gap-2">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="text-purple-400 shrink-0"
-                >
-                  <path d="M12,23a8,8,0,0,1-8-8A9.55,9.55,0,0,1,6.12,9.07,12.25,12.25,0,0,0,8.67,1.94a1,1,0,0,1,1.42-.85,10.24,10.24,0,0,1,6.14,8.38,5.57,5.57,0,0,0,.59-1,1,1,0,0,1,.8-.65,1,1,0,0,1,.95.41C18.72,8.41,20,10.33,20,15A7.91,7.91,0,0,1,12,23ZM10.51,3.6a14.22,14.22,0,0,1-2.73,6.6A7.52,7.52,0,0,0,6,15a6,6,0,0,0,6,6,5.87,5.87,0,0,0,6-6,16.14,16.14,0,0,0-.44-4A7.93,7.93,0,0,1,15.7,12.7a1,1,0,0,1-1.53-1A7.76,7.76,0,0,0,10.51,3.6Z" />
-                </svg>
-                <span className="font-medium text-purple-400">7 Day Streak</span>
-              </div>
-              <p className="mt-2 text-3xl font-bold text-white">1,450 XP</p>
-              <p className="mt-1 text-sm text-zinc-400">Keep pushing to reach Level 12</p>
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-800">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-purple-600 to-violet-500"
-                  style={{ width: "68%" }}
-                />
-              </div>
-            </div>
+            <StreakPreviewCard />
 
-            {/* Recent Achievements */}
             <div className={`${CARD_STYLE} flex-1`}>
-              <h3 className="text-lg font-bold text-white">Recent Achievements</h3>
+              <h3 className="text-lg font-bold text-white">Achievements</h3>
+              <p className="mt-1 text-sm text-zinc-500">Unlocked from your platform activity.</p>
               <div className="mt-4 space-y-3">
                 {ACHIEVEMENTS.map((a) => (
                   <div
                     key={a.id}
-                    className="flex items-start gap-3 rounded-xl bg-neutral-900/50 p-3"
+                    className="flex items-start gap-3 rounded-xl bg-zinc-950/50 p-3"
                   >
-                    <span className={`shrink-0 ${a.iconColor}`}>
-                      {AchievementIcons[a.icon as keyof typeof AchievementIcons]}
+                    <span
+                      className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${a.tone}`}
+                      aria-hidden
+                    >
+                      ✓
                     </span>
                     <div>
                       <p className="font-semibold text-white">{a.title}</p>
-                      <p className="text-xs text-zinc-400">{a.description}</p>
+                      <p className="text-xs text-zinc-500">{a.description}</p>
                     </div>
                   </div>
                 ))}
@@ -344,7 +359,7 @@ export function GamifySection() {
         </div>
 
         {/* Contribution Heatmap - full width */}
-        <ContributionHeatmapCard heatmapData={heatmapData} />
+        <ContributionHeatmapCard heatmapData={DEMO_HEATMAP_DATA} />
       </div>
     </section>
   );

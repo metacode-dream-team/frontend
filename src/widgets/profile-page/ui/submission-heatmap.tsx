@@ -201,7 +201,7 @@ function HeatmapScrollArea({
           <button
             type="button"
             onClick={() => scrollBy(-280)}
-            className="absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-zinc-700/80 bg-zinc-950/90 p-1.5 text-zinc-400 shadow-lg backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white sm:flex"
+            className="absolute left-0 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700/80 bg-zinc-950/90 text-zinc-400 shadow-lg backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white sm:h-auto sm:w-auto sm:p-1.5"
             aria-label="Scroll to older months"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -211,7 +211,7 @@ function HeatmapScrollArea({
           <button
             type="button"
             onClick={() => scrollBy(280)}
-            className="absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-zinc-700/80 bg-zinc-950/90 p-1.5 text-zinc-400 shadow-lg backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white sm:flex"
+            className="absolute right-0 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700/80 bg-zinc-950/90 text-zinc-400 shadow-lg backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white sm:h-auto sm:w-auto sm:p-1.5"
             aria-label="Scroll to recent months"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -255,7 +255,7 @@ function HeatmapScrollArea({
                     <div
                       key={cell.date}
                       title={`${cell.date}: ${cell.count} · level ${level} (${heatmapLevelRange(level, cap)})`}
-                      className={`size-[3px] shrink-0 rounded-[1px] sm:size-1.5 md:size-2 lg:size-2.5 xl:size-3 ${heatmapCountClass(cell.count, "zinc", cap)} transition-opacity hover:opacity-90`}
+                      className={`size-2 shrink-0 rounded-[2px] sm:size-1.5 md:size-2 lg:size-2.5 xl:size-3 ${heatmapCountClass(cell.count, "zinc", cap)} transition-opacity hover:opacity-90`}
                     />
                   );
                 })}
