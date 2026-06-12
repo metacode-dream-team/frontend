@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 
 import { useProfileMeStore } from "@/entities/profile";
+import { LeetcodeBindModal } from "@/features/bind-leetcode";
 import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { startAuthServiceOAuth } from "@/shared/lib/auth";
 import type { KeycloakIdpHint } from "@/shared/lib/keycloak/keycloak";
@@ -123,6 +124,7 @@ export function IntegrationsModal({
   const titleId = useId();
   const profile = useProfileMeStore((s) => s.profile);
   const [loading, setLoading] = useState<ConnectProvider | null>(null);
+  const [leetcodeBindOpen, setLeetcodeBindOpen] = useState(false);
 
   const linkedAccounts = useMemo(
     () => resolveLinkedAccounts(profile?.externalProfileLinks),
@@ -143,12 +145,20 @@ export function IntegrationsModal({
   }, [open, onOpenChange]);
 
   useEffect(() => {
-    if (!open) setLoading(null);
+    if (!open) {
+      setLoading(null);
+      setLeetcodeBindOpen(false);
+    }
   }, [open]);
 
   if (!open) return null;
 
   const connect = async (provider: ConnectProvider) => {
+    if (provider === "leetcode") {
+      setLeetcodeBindOpen(true);
+      return;
+    }
+
     setLoading(provider);
     if (provider === "github") {
       const ok = startAuthServiceOAuth("github");
@@ -160,6 +170,7 @@ export function IntegrationsModal({
   };
 
   return (
+    <>
     <div className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-4">
       <button
         type="button"
@@ -216,5 +227,11 @@ export function IntegrationsModal({
         </ul>
       </div>
     </div>
+
+    <LeetcodeBindModal
+      open={leetcodeBindOpen}
+      onOpenChange={setLeetcodeBindOpen}
+    />
+    </>
   );
 }

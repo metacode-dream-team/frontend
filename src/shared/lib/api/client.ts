@@ -1,5 +1,5 @@
 import { API_BASE_URL, AUTH_REFRESH_PATH } from "@/shared/config/constants";
-import { resolveAuthUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
+import { buildApiUrl } from "@/shared/lib/api/apiUrl";
 import type { ApiError, AuthTokens, RefreshTokenResponse } from "@/shared/types/api";
 
 class ApiClient {
@@ -15,7 +15,7 @@ class ApiClient {
       return this.refreshPromise;
     }
 
-    const refreshUrl = resolveAuthUrlForFetch(AUTH_REFRESH_PATH);
+    const refreshUrl = buildApiUrl(AUTH_REFRESH_PATH);
     this.refreshPromise = fetch(refreshUrl, {
       method: "POST",
       headers: {

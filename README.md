@@ -81,14 +81,21 @@ cp .env.example .env.local
 Заполните переменные:
 
 ```env
-# API gateway
+# Backend API gateway (все запросы: NEXT_PUBLIC_API_URL + /v1/...)
 NEXT_PUBLIC_API_URL=http://localhost:8080
+
+# Опционально — только path-префикс, не полный URL:
+# NEXT_PUBLIC_PROFILE_FILL_PATH=/v1/profiles/me/fill
 
 # Keycloak Configuration
 NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
 NEXT_PUBLIC_KEYCLOAK_REALM=metacode
 NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=frontend-app
 ```
+
+В браузере запросы идут на same-origin `/api/backend/v1/...` (Route Handler проксирует на `NEXT_PUBLIC_API_URL`) — **CORS на gateway для profile API не нужен**.
+
+Для login/refresh (cookie, `credentials: include`) при прямых запросах на gateway может понадобиться CORS; через `/api/backend` cookie пробрасываются автоматически.
 
 ### 3. Запуск dev сервера
 

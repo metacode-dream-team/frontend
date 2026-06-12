@@ -27,7 +27,11 @@ export const useProfileMeStore = create<ProfileMeState>((set) => ({
       const profile = normalizeProfileMe(raw);
       set({ profile, isLoading: false, error: null });
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to load profile";
+      let message = e instanceof Error ? e.message : "Failed to load profile";
+      if (e instanceof TypeError && message.includes("Failed to fetch")) {
+        message =
+          "Cannot reach the API. Check that the backend is running and NEXT_PUBLIC_API_URL is correct.";
+      }
       console.warn("[ProfileMe]", message);
       set({ profile: null, isLoading: false, error: message });
     }

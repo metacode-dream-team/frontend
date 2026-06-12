@@ -22,7 +22,6 @@ const PROVIDERS: {
   { id: "google", label: "Google" },
   { id: "github", label: "GitHub" },
   { id: "monkeytype", label: "Monkeytype" },
-  { id: "leetcode", label: "LeetCode" },
 ];
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -178,8 +177,8 @@ export function ConnectPlatformsModal({
               Connect your accounts
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-zinc-500">
-              Sign in with Google or link GitHub, Monkeytype, and LeetCode for
-              your profile and leaderboard.
+              Sign in with Google or link GitHub and Monkeytype for your profile
+              and leaderboard.
             </p>
           </div>
           <button

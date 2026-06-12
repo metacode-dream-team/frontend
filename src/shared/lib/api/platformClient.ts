@@ -1,27 +1,20 @@
-import {
-  INTEGRATION_API_URL,
-  PLATFORM_API_URL,
-} from "@/shared/config/constants";
-import {
-  resolveAuthUrlForFetch,
-  resolveIntegrationUrlForFetch,
-  resolvePlatformUrlForFetch,
-} from "./browserProxyUrl";
+import { API_BASE_URL } from "@/shared/config/constants";
+import { buildApiUrl } from "./apiUrl";
 
 export function getPlatformBaseUrl(): string {
-  return PLATFORM_API_URL.replace(/\/$/, "");
+  return API_BASE_URL.replace(/\/$/, "");
 }
 
 export function isPlatformApiConfigured(): boolean {
-  return Boolean(PLATFORM_API_URL?.trim());
+  return Boolean(API_BASE_URL?.trim());
 }
 
 export function getIntegrationBaseUrl(): string {
-  return INTEGRATION_API_URL.replace(/\/$/, "");
+  return API_BASE_URL.replace(/\/$/, "");
 }
 
 export function isIntegrationApiConfigured(): boolean {
-  return Boolean(INTEGRATION_API_URL?.trim());
+  return Boolean(API_BASE_URL?.trim());
 }
 
 function normalizePath(pathAndQuery: string): string {
@@ -51,7 +44,7 @@ async function authBackendRequest<T>(
   accessToken: string,
   init: RequestInit,
 ): Promise<T> {
-  const url = resolveAuthUrlForFetch(normalizePath(pathAndQuery));
+  const url = buildApiUrl(pathAndQuery);
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
   headers.set("Authorization", `Bearer ${accessToken}`);
@@ -59,7 +52,7 @@ async function authBackendRequest<T>(
   const res = await fetch(url, {
     ...init,
     headers,
-    credentials: "include",
+    credentials: "omit",
     cache: "no-store",
   });
 
@@ -71,7 +64,7 @@ export async function platformGet<T>(
   accessToken?: string | null,
 ): Promise<T> {
   const path = normalizePath(pathAndQuery);
-  const url = resolvePlatformUrlForFetch(path);
+  const url = buildApiUrl(path);
   const headers: HeadersInit = {
     Accept: "application/json",
   };
@@ -99,7 +92,7 @@ export async function integrationGet<T>(
   accessToken?: string | null,
 ): Promise<T> {
   const path = normalizePath(pathAndQuery);
-  const url = resolveIntegrationUrlForFetch(path);
+  const url = buildApiUrl(path);
   const headers: HeadersInit = {
     Accept: "application/json",
   };
@@ -162,7 +155,7 @@ export async function integrationPost<T>(
   accessToken?: string | null,
 ): Promise<T> {
   const path = normalizePath(pathAndQuery);
-  const url = resolveIntegrationUrlForFetch(path);
+  const url = buildApiUrl(path);
   const headers: HeadersInit = {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -188,7 +181,7 @@ export async function integrationPatch<T>(
   accessToken?: string | null,
 ): Promise<T> {
   const path = normalizePath(pathAndQuery);
-  const url = resolveIntegrationUrlForFetch(path);
+  const url = buildApiUrl(path);
   const headers: HeadersInit = {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -213,7 +206,7 @@ export async function integrationDelete<T>(
   accessToken?: string | null,
 ): Promise<T> {
   const path = normalizePath(pathAndQuery);
-  const url = resolveIntegrationUrlForFetch(path);
+  const url = buildApiUrl(path);
   const headers: HeadersInit = {
     Accept: "application/json",
   };
