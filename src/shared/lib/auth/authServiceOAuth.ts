@@ -1,17 +1,17 @@
 import {
+  API_BASE_URL,
   AUTH_OAUTH_LINK_PATH,
   AUTH_OAUTH_TOKEN_PATH,
-  AUTH_SERVICE_URL,
   FRONTEND_DEV_ORIGIN,
   REDIRECT_URI,
 } from "@/shared/config/constants";
-import { resolveAuthUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
+import { buildApiUrl } from "@/shared/lib/api/apiUrl";
 import type { AuthTokens } from "@/shared/types/api";
 
 export type AuthServiceOAuthProvider = "google" | "github";
 
 function baseUrl(): string {
-  return AUTH_SERVICE_URL.replace(/\/$/, "");
+  return API_BASE_URL.replace(/\/$/, "");
 }
 
 export function getOAuthLinkUrl(provider: AuthServiceOAuthProvider): string {
@@ -53,7 +53,7 @@ export async function exchangeAuthServiceCodeForTokens(
     typeof window !== "undefined" ? REDIRECT_URI : "";
 
   const response = await fetch(
-    resolveAuthUrlForFetch(AUTH_OAUTH_TOKEN_PATH),
+    buildApiUrl(AUTH_OAUTH_TOKEN_PATH),
     {
       method: "POST",
       headers: {

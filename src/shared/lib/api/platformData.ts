@@ -1,4 +1,8 @@
-import { AVATAR_UPLOAD_PATH, PROFILE_FILL_PATH } from "@/shared/config/constants";
+import {
+  AVATAR_UPLOAD_PATH,
+  LEETCODE_BIND_PATH,
+  PROFILE_FILL_PATH,
+} from "@/shared/config/constants";
 import {
   authBackendDelete,
   authBackendMultipartPost,
@@ -52,6 +56,17 @@ export async function fetchProfileByUsername(username: string): Promise<Json> {
 
 export async function fetchProfileMe(accessToken: string): Promise<Json> {
   return integrationGet<Json>("/v1/profiles/me", accessToken);
+}
+
+export interface LeetcodeBindPayload {
+  username: string;
+}
+
+export async function bindLeetcodeAccount(
+  accessToken: string,
+  body: LeetcodeBindPayload,
+): Promise<Json> {
+  return integrationPost<Json>(LEETCODE_BIND_PATH, body, accessToken);
 }
 
 export async function uploadProfileAvatar(

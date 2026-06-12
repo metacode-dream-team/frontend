@@ -1,5 +1,5 @@
 import type { ProfileAchievement, ProfileData, ProfileHeatmapDay } from "@/shared/types/profile";
-import { resolvePlatformUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
+import { buildApiUrl } from "@/shared/lib/api/apiUrl";
 import { isPlatformApiConfigured } from "./platformClient";
 import { buildProfileFromPlatform } from "./platformData";
 
@@ -243,8 +243,8 @@ export async function getProfileById(id: string): Promise<ProfileData> {
       } else {
         console.warn(
           "[Profile] platform fetch failed, using mock. SSR base:",
-          resolvePlatformUrlForFetch("/v1/profiles/…"),
-          "— in Docker set PLATFORM_API_SERVER_URL if host differs from NEXT_PUBLIC.",
+          buildApiUrl("/v1/profiles/…"),
+          "— check NEXT_PUBLIC_API_URL points at the backend gateway.",
           e,
         );
       }

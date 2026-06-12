@@ -3,7 +3,7 @@ import {
   AUTH_LOGOUT_PATH,
   AUTH_REGISTER_PATH,
 } from "@/shared/config/constants";
-import { resolveAuthUrlForFetch } from "@/shared/lib/api/browserProxyUrl";
+import { buildApiUrl } from "@/shared/lib/api/apiUrl";
 import { apiClient } from "@/shared/lib/api/client";
 import type {
   AuthTokens,
@@ -69,7 +69,7 @@ function normalizeAuthTokens(raw: Record<string, unknown>): AuthTokens {
 
 export const authApi = {
   register: async (data: RegisterRequest): Promise<ApiSuccess> => {
-    const response = await fetch(resolveAuthUrlForFetch(AUTH_REGISTER_PATH), {
+    const response = await fetch(buildApiUrl(AUTH_REGISTER_PATH), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -86,7 +86,7 @@ export const authApi = {
   },
 
   login: async (data: LoginRequest): Promise<AuthTokens> => {
-    const response = await fetch(resolveAuthUrlForFetch(AUTH_LOGIN_PATH), {
+    const response = await fetch(buildApiUrl(AUTH_LOGIN_PATH), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -107,7 +107,7 @@ export const authApi = {
   },
 
   verifyEmail: async (token: string): Promise<ApiSuccess> => {
-    return apiClient.post<ApiSuccess>(`/v1/verify-email?token=${token}`, {});
+    return apiClient.post<ApiSuccess>(`/v1/auth/verify-email?token=${token}`, {});
   },
 
   forgotPassword: async (data: ForgotPasswordRequest): Promise<ApiSuccess> => {
@@ -124,7 +124,7 @@ export const authApi = {
 
   logout: async (): Promise<void> => {
     try {
-      await fetch(resolveAuthUrlForFetch(AUTH_LOGOUT_PATH), {
+      await fetch(buildApiUrl(AUTH_LOGOUT_PATH), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

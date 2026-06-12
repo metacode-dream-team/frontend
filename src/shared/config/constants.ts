@@ -3,77 +3,97 @@ export const FRONTEND_DEV_PORT =
 
 export const FRONTEND_DEV_ORIGIN = `http://localhost:${FRONTEND_DEV_PORT}`;
 
+const ABSOLUTE_URL_RE = /^https?:\/\//i;
+
+function stripTrailingSlash(url: string): string {
+  return url.replace(/\/+$/, "");
+}
+
+/** Backend API gateway (all services behind one host). */
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  process.env.NEXT_PUBLIC_API_URL?.trim() || "http://localhost:8080";
 
-function readOptionalServiceUrl(
-  raw: string | undefined,
-  defaultUrl: string,
-): string {
-  const t = raw?.trim();
-  if (
-    raw !== undefined &&
-    (t === "" || t === "0" || (t !== undefined && t.toLowerCase() === "false"))
-  ) {
-    return "";
+/**
+ * Path suffix for buildApiUrl: NEXT_PUBLIC_API_URL + path.
+ * Env may be "/v1/..." or a full URL — gateway prefix is stripped when it matches API_BASE_URL.
+ */
+function readApiPath(raw: string | undefined, fallback: string): string {
+  const value = (raw?.trim() || fallback).trim();
+  if (!value) return fallback;
+
+  if (ABSOLUTE_URL_RE.test(value)) {
+    const base = stripTrailingSlash(API_BASE_URL);
+    if (value.startsWith(base)) {
+      const suffix = value.slice(base.length);
+      if (!suffix || suffix === "/") return fallback;
+      return suffix.startsWith("/") ? suffix : `/${suffix}`;
+    }
+    return value;
   }
-  return t || defaultUrl;
+
+  let path = value.startsWith("/") ? value : `/${value}`;
+  const proxyPrefix = "/api/backend";
+  if (path.startsWith(`${proxyPrefix}/`)) {
+    path = path.slice(proxyPrefix.length);
+  }
+  if (path === "/" || path === "") return fallback;
+
+  return path;
 }
 
-export const PLATFORM_API_URL = readOptionalServiceUrl(
-  process.env.NEXT_PUBLIC_PLATFORM_API_URL,
-  "http://localhost:8080",
+export const AUTH_OAUTH_LINK_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_AUTH_OAUTH_LINK_PATH,
+  "/v1/auth/oauth/link",
 );
 
-function stripTrailingSlash(s: string): string {
-  return s.replace(/\/$/, "");
-}
-
-export const PLATFORM_API_SERVER_BASE = PLATFORM_API_URL
-  ? stripTrailingSlash(
-      process.env.PLATFORM_API_SERVER_URL?.trim() || PLATFORM_API_URL,
-    )
-  : "";
-
-export const INTEGRATION_API_URL =
-  process.env.NEXT_PUBLIC_INTEGRATION_API_URL ||
-  process.env.NEXT_PUBLIC_AUTH_URL ||
-  "http://localhost:8080";
-
-export const INTEGRATION_API_SERVER_BASE = stripTrailingSlash(
-  process.env.INTEGRATION_API_SERVER_URL?.trim() || INTEGRATION_API_URL,
+export const AUTH_OAUTH_TOKEN_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_AUTH_OAUTH_TOKEN_PATH,
+  "/v1/auth/oauth/token",
 );
 
-export const AUTH_SERVICE_URL =
-  process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:8080";
-
-export const AUTH_API_SERVER_BASE = stripTrailingSlash(
-  process.env.AUTH_API_SERVER_URL?.trim() || AUTH_SERVICE_URL,
+export const AUTH_LOGIN_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_AUTH_LOGIN_PATH,
+  "/v1/auth/login",
 );
 
-export const AUTH_OAUTH_LINK_PATH =
-  process.env.NEXT_PUBLIC_AUTH_OAUTH_LINK_PATH || "/v1/auth/oauth/link";
+export const AUTH_REGISTER_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_AUTH_REGISTER_PATH,
+  "/v1/auth/register",
+);
 
-export const AUTH_OAUTH_TOKEN_PATH =
-  process.env.NEXT_PUBLIC_AUTH_OAUTH_TOKEN_PATH || "/v1/auth/oauth/token";
+export const PROFILE_FILL_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_PROFILE_FILL_PATH,
+  "/v1/profiles/me/fill",
+);
 
-export const AUTH_LOGIN_PATH =
-  process.env.NEXT_PUBLIC_AUTH_LOGIN_PATH || "/v1/auth/login";
+export const AVATAR_UPLOAD_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_AVATAR_UPLOAD_PATH,
+  "/v1/fileservice/upload/avatar",
+);
 
-export const AUTH_REGISTER_PATH =
-  process.env.NEXT_PUBLIC_AUTH_REGISTER_PATH || "/v1/auth/register";
+export const LEETCODE_BIND_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_LEETCODE_BIND_PATH,
+  "/v1/integration/leetcode/bind",
+);
 
-export const PROFILE_FILL_PATH =
-  process.env.NEXT_PUBLIC_PROFILE_FILL_PATH || "/v1/profiles/me/fill";
+export const NOTIFICATION_SSE_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_NOTIFICATION_SSE_PATH,
+  "/v1/notification/sse/events",
+);
 
-export const AVATAR_UPLOAD_PATH =
-  process.env.NEXT_PUBLIC_AVATAR_UPLOAD_PATH || "/v1/fileservice/upload/avatar";
+export const LEETCODE_BIND_TIMEOUT_MS = 5 * 60 * 1000;
 
-export const AUTH_REFRESH_PATH =
-  process.env.NEXT_PUBLIC_AUTH_REFRESH_PATH || "/v1/auth/token/refresh";
+export const LEETCODE_LINKED_EVENT = "SYSTEM_LEETCODE_LINKED";
 
-export const AUTH_LOGOUT_PATH =
-  process.env.NEXT_PUBLIC_AUTH_LOGOUT_PATH || "/v1/auth/logout";
+export const AUTH_REFRESH_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_AUTH_REFRESH_PATH,
+  "/v1/auth/token/refresh",
+);
+
+export const AUTH_LOGOUT_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_AUTH_LOGOUT_PATH,
+  "/v1/auth/logout",
+);
 
 export const KEYCLOAK_URL =
   process.env.NEXT_PUBLIC_KEYCLOAK_URL || "http://localhost:8080";
