@@ -2,6 +2,13 @@
 
 import { useEffect, useId, type ReactNode } from "react";
 import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
+import {
+  profileModalOverlayClass,
+  profileModalBackdropClassName,
+  profileModalScrollClassName,
+  profileModalScrollInnerClassName,
+  profileModalPanelClassName,
+} from "../lib/profileModalClasses";
 
 interface ProfileViewModalProps {
   open: boolean;
@@ -44,20 +51,21 @@ export function ProfileViewModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/75 backdrop-blur-[2px]"
-        aria-label="Close"
-        onClick={() => onOpenChange(false)}
-      />
+    <div className={profileModalOverlayClass()}>
+      <div className={profileModalBackdropClassName} aria-hidden />
 
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className={`relative z-[101] max-h-[min(90vh,720px)] w-full overflow-y-auto rounded-2xl border border-zinc-800/90 bg-[#161618] p-6 shadow-[0_24px_64px_rgba(0,0,0,0.65)] ${maxWidthClassName}`}
+        className={profileModalScrollClassName}
+        onClick={() => onOpenChange(false)}
       >
+        <div className={profileModalScrollInnerClassName}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            className={`${profileModalPanelClassName} ${maxWidthClassName}`}
+            onClick={(e) => e.stopPropagation()}
+          >
         <div className="mb-5 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#c4a3f7]">
@@ -93,6 +101,8 @@ export function ProfileViewModal({
         </div>
 
         {children}
+          </div>
+        </div>
       </div>
     </div>
   );

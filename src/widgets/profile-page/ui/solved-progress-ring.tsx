@@ -257,7 +257,7 @@ export function SolvedProgressRing({
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative flex h-[172px] w-[172px] shrink-0 items-center justify-center sm:h-[180px] sm:w-[180px]">
+      <div className="relative flex h-[158px] w-[158px] shrink-0 items-center justify-center max-lg:mx-auto lg:h-[172px] lg:w-[172px] xl:h-[180px] xl:w-[180px]">
         <svg className="h-full w-full" viewBox="0 0 140 140" aria-hidden>
           <g transform={`rotate(-90 ${CX} ${CY})`}>
             <RingSegment
@@ -332,11 +332,11 @@ export function SolvedProgressRing({
             className="flex flex-col items-center"
             style={{ animation: "ringCenterIn 0.28s ease-out" }}
           >
-            <p className="text-xl font-bold tabular-nums leading-tight tracking-tight text-white sm:text-2xl">
+            <p className="text-lg font-bold tabular-nums leading-tight tracking-tight text-white max-lg:text-xl lg:text-xl xl:text-2xl">
               {centerSolved}
-              <span className="text-sm font-semibold text-zinc-500 sm:text-base">/{centerTotal}</span>
+              <span className="text-sm font-semibold text-zinc-500 max-lg:text-sm lg:text-base">/{centerTotal}</span>
             </p>
-            <p className="mt-0.5 text-[11px] font-medium text-zinc-500">{centerLabel}</p>
+            <p className="mt-0.5 text-[11px] font-medium text-zinc-500 max-lg:text-xs">{centerLabel}</p>
           </div>
         </div>
       </div>

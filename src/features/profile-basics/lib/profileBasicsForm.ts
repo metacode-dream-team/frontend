@@ -74,6 +74,9 @@ export function formatProfileFillError(err: unknown): string {
   if (message.includes("409")) {
     return "This username is already taken. Choose another one.";
   }
+  if (message.includes("profile already filled")) {
+    return "Username can only be set during initial profile setup.";
+  }
   if (message.includes("400")) {
     return "Some fields are invalid. Check your input and try again.";
   }

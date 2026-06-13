@@ -18,7 +18,7 @@ export function ProfileRouteView({
   const canEdit = isProfileRouteCurrentUser(routeUsername, me);
 
   return (
-    <div className="min-h-screen bg-black px-4 py-8 text-zinc-100">
+    <div className="min-h-screen bg-black px-3 py-5 text-zinc-100 max-lg:pb-6 lg:px-4 lg:py-8">
       <div className="mx-auto max-w-7xl">
         <ProfilePageContent profile={profile} canEdit={canEdit} />
       </div>

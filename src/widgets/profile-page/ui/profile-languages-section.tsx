@@ -24,8 +24,8 @@ export function ProfileSpokenLanguagesSection({
   }
 
   return (
-    <section className="mt-8 pt-2">
-      <div className="mb-3 flex items-center justify-between gap-3">
+    <section className="mt-8 pt-2 max-lg:mt-4 max-lg:pt-0">
+      <div className="mb-3 flex items-center justify-between gap-3 max-lg:mb-1">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
           Languages
         </h3>
@@ -37,7 +37,7 @@ export function ProfileSpokenLanguagesSection({
       {items.length === 0 ? (
         <p className="text-sm text-zinc-500">No languages yet. Add your first one.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-2 max-lg:space-y-1">
           {items.map((lang) => {
             const label = formatLanguageCodeDisplay(lang.code);
             return (

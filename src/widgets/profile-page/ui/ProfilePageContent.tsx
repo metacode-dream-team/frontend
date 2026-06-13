@@ -106,21 +106,22 @@ export function ProfilePageContent({
   const [personalEditOpen, setPersonalEditOpen] = useState(false);
   const deleteItem = useProfileDeleteItem();
   return (
-    <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
-      <aside className="order-2 w-full shrink-0 bg-black lg:order-1 lg:w-[280px] lg:min-w-[280px]">
+    <div className="flex flex-col gap-4 max-lg:gap-5 lg:flex-row lg:gap-8">
+      <aside className="w-full shrink-0 max-lg:border-b max-lg:border-zinc-800/80 max-lg:pb-6 lg:w-[280px] lg:min-w-[280px]">
         <div className="lg:sticky lg:top-20">
           <div className="min-w-0">
-          <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
+          <div className="flex flex-col items-center text-center max-lg:flex-row max-lg:items-start max-lg:gap-3 max-lg:text-left sm:flex-row sm:items-start sm:text-left">
             <EditableProfileAvatar
               avatarUrl={profile.avatarUrl}
               editable={canEdit}
               size="md"
               variant="rounded"
+              className="max-lg:[&_button]:h-20 max-lg:[&_button]:w-20"
             />
-            <div className="mt-4 min-w-0 sm:ml-4 sm:mt-0">
-              <h1 className="text-lg font-semibold tracking-tight text-white">{profile.fullName}</h1>
-              <p className="mt-0.5 text-center text-sm text-zinc-500 sm:text-left">{profile.username}</p>
-              <div className="mt-2 flex items-center justify-center gap-1.5 sm:justify-start">
+            <div className="mt-4 min-w-0 max-lg:mt-0 max-lg:flex-1 sm:ml-4 sm:mt-0">
+              <h1 className="text-lg font-semibold tracking-tight text-white max-lg:text-base max-lg:leading-snug">{profile.fullName}</h1>
+              <p className="mt-0.5 text-center text-sm text-zinc-500 max-lg:text-left sm:text-left">{profile.username}</p>
+              <div className="mt-2 flex items-center justify-center gap-1.5 max-lg:justify-start sm:justify-start">
                 <p className="text-sm">
                   <span className="text-zinc-500">Rank </span>
                   <span className="font-semibold tabular-nums text-[#b84dff]">
@@ -137,7 +138,7 @@ export function ProfilePageContent({
             </div>
           </div>
 
-          <p className="mt-4 text-center text-sm font-medium text-[#b84dff] sm:text-left">{profile.role}</p>
+          <p className="mt-4 text-center text-sm font-medium text-[#b84dff] max-lg:text-left sm:text-left">{profile.role}</p>
           {(profile.about || canEdit) && (
             <div className="relative mt-2 pr-9">
               {canEdit ? (
@@ -149,21 +150,21 @@ export function ProfilePageContent({
                 </div>
               ) : null}
               {profile.about ? (
-                <p className="text-center text-sm leading-relaxed text-zinc-400 sm:text-left">
+                <p className="text-center text-sm leading-relaxed text-zinc-400 max-lg:text-left sm:text-left">
                   {profile.about}
                 </p>
               ) : (
                 <button
                   type="button"
                   onClick={() => setEditAboutOpen(true)}
-                  className="w-full text-center text-sm italic text-zinc-600 transition-colors hover:text-zinc-400 sm:text-left"
+                  className="w-full text-center text-sm italic text-zinc-600 transition-colors hover:text-zinc-400 max-lg:text-left sm:text-left"
                 >
                   Add a short bio…
                 </button>
               )}
             </div>
           )}
-          <p className="mt-1 flex items-center justify-center gap-1.5 text-xs text-zinc-500 sm:justify-start">
+          <p className="mt-1 flex items-center justify-center gap-1.5 text-xs text-zinc-500 max-lg:justify-start sm:justify-start">
             <MapPinIcon />
             {profile.location}
           </p>
@@ -171,7 +172,7 @@ export function ProfilePageContent({
           <button
             type="button"
             onClick={() => setPersonalViewOpen(true)}
-            className="mt-1 w-full text-center text-xs font-medium text-zinc-500 transition-colors hover:text-[#b84dff] sm:text-left"
+            className="mt-1 w-full text-center text-xs font-medium text-zinc-500 transition-colors hover:text-[#b84dff] max-lg:text-left sm:text-left"
           >
             Personal info
           </button>
@@ -179,12 +180,12 @@ export function ProfilePageContent({
           <button
             type="button"
             onClick={() => setContactViewOpen(true)}
-            className="mt-1 w-full text-center text-xs font-medium text-zinc-500 transition-colors hover:text-[#b84dff] sm:text-left"
+            className="mt-1 w-full text-center text-xs font-medium text-zinc-500 transition-colors hover:text-[#b84dff] max-lg:text-left sm:text-left"
           >
             Contact info
           </button>
 
-          <p className="mt-4 text-center text-sm text-zinc-400 sm:text-left">
+          <p className="mt-4 text-center text-sm text-zinc-400 max-lg:text-left sm:text-left">
             <span className="font-medium text-zinc-200">{profile.following}</span> Following
             <span className="mx-2 text-zinc-700">|</span>
             <span className="font-medium text-zinc-200">{profile.followers}</span> Followers
@@ -223,9 +224,9 @@ export function ProfilePageContent({
         </div>
       </aside>
 
-      <main className="order-1 flex min-w-0 flex-1 flex-col gap-6 lg:order-2">
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(280px,400px)_minmax(480px,1fr)] xl:items-stretch">
-      <ProfileCard className="mx-auto flex h-full w-full max-w-[320px] flex-col p-3 sm:max-w-[360px] sm:p-4 xl:mx-0 xl:max-w-full xl:min-h-0">
+      <main className="flex min-w-0 flex-1 flex-col gap-4 max-lg:gap-5 lg:gap-6">
+      <div className="grid grid-cols-1 gap-4 max-lg:gap-4 xl:grid-cols-[minmax(280px,400px)_minmax(480px,1fr)] xl:items-stretch xl:gap-6">
+      <ProfileCard className="mx-auto flex h-full w-full max-w-none flex-col p-3 max-lg:w-full sm:max-w-[360px] sm:p-4 xl:mx-0 xl:max-w-full xl:min-h-0">
         <div className="flex w-full flex-1 items-center gap-0.5 xl:min-h-0">
               <SolvedProgressCard
                 solved={profile.solved}
@@ -300,15 +301,6 @@ export function ProfilePageContent({
           }
         />
 
-        <div className="flex justify-center pb-2">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-xl bg-zinc-900/50 px-5 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-800/80 hover:text-white"
-          >
-            Show all
-            <span aria-hidden>→</span>
-          </button>
-        </div>
       </main>
 
       <ContactInfoModal

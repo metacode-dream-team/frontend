@@ -66,16 +66,21 @@ export function useProfileBasicsForm(options?: {
 
     try {
       const newUsername = values.username.trim();
+      const previousUsername = profile?.username?.trim() ?? "";
+      const usernameChanged =
+        Boolean(newUsername) &&
+        Boolean(previousUsername) &&
+        newUsername.toLowerCase() !== previousUsername.toLowerCase();
 
       if (mode === "intro") {
+        if (usernameChanged && profile?.isComplete) {
+          setError("Username cannot be changed after your profile is set up.");
+          return false;
+        }
+
         await updateProfileIntro(accessToken, formValuesToIntroPayload(values));
 
-        const previousUsername = profile?.username?.trim() ?? "";
-        if (
-          newUsername &&
-          previousUsername &&
-          newUsername.toLowerCase() !== previousUsername.toLowerCase()
-        ) {
+        if (usernameChanged && !profile?.isComplete) {
           await fillProfileMe(accessToken, {
             username: newUsername,
             first_name: values.firstName.trim(),
@@ -114,5 +119,6 @@ export function useProfileBasicsForm(options?: {
     submit,
     isLoading,
     error,
+    usernameLocked: mode === "intro" && Boolean(profile?.isComplete),
   };
 }

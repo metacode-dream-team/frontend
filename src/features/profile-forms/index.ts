@@ -7,3 +7,10 @@ export type {
 export { ProfileConfirmDialog } from "./ui/ProfileConfirmDialog";
 export { ProfileFormModal } from "./ui/ProfileFormModal";
 export { ProfileViewModal } from "./ui/ProfileViewModal";
+export {
+  profileModalOverlayClass,
+  profileModalBackdropClassName,
+  profileModalScrollClassName,
+  profileModalScrollInnerClassName,
+  profileModalPanelClassName,
+} from "./lib/profileModalClasses";

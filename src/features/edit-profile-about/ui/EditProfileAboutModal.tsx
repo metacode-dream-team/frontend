@@ -5,6 +5,13 @@ import { useProfileMeStore } from "@/entities/profile";
 import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { Button } from "@/shared/ui/Button";
 import { cn } from "@/shared/lib/utils/cn";
+import {
+  profileModalOverlayClass,
+  profileModalBackdropClassName,
+  profileModalScrollClassName,
+  profileModalScrollInnerClassName,
+  profileModalPanelClassName,
+} from "@/features/profile-forms";
 import { useEditProfileAbout } from "../model/useEditProfileAbout";
 
 interface EditProfileAboutModalProps {
@@ -52,21 +59,25 @@ export function EditProfileAboutModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/75 backdrop-blur-[2px]"
-        aria-label="Close"
-        disabled={isLoading}
-        onClick={() => onOpenChange(false)}
-      />
+    <div className={profileModalOverlayClass()}>
+      <div className={profileModalBackdropClassName} aria-hidden />
 
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className="relative z-[101] w-full max-w-[520px] rounded-2xl border border-zinc-800/90 bg-[#161618] p-6 shadow-[0_24px_64px_rgba(0,0,0,0.65)]"
+        className={profileModalScrollClassName}
+        onClick={() => {
+          if (!isLoading) {
+            onOpenChange(false);
+          }
+        }}
       >
+        <div className={profileModalScrollInnerClassName}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            className={`${profileModalPanelClassName} max-w-[520px]`}
+            onClick={(e) => e.stopPropagation()}
+          >
         <div className="mb-5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#c4a3f7]">
             Profile
@@ -134,6 +145,8 @@ export function EditProfileAboutModal({
             </Button>
           </div>
         </form>
+          </div>
+        </div>
       </div>
     </div>
   );

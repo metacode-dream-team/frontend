@@ -8,6 +8,7 @@ interface ProfileBasicsFieldsProps {
   setField: (field: keyof CompleteProfileFormValues, value: string) => void;
   disabled?: boolean;
   showLinks?: boolean;
+  usernameLocked?: boolean;
 }
 
 export function ProfileBasicsFields({
@@ -15,6 +16,7 @@ export function ProfileBasicsFields({
   setField,
   disabled = false,
   showLinks = false,
+  usernameLocked = false,
 }: ProfileBasicsFieldsProps) {
   return (
     <div className="space-y-4">
@@ -26,8 +28,13 @@ export function ProfileBasicsFields({
         placeholder="sayan_computer_wizard"
         autoComplete="username"
         required
-        disabled={disabled}
+        disabled={disabled || usernameLocked}
       />
+      {usernameLocked ? (
+        <p className="-mt-2 text-xs text-zinc-500">
+          Username is set during initial profile setup and cannot be changed here.
+        </p>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Input

@@ -195,7 +195,7 @@ function HeatmapScrollArea({
       <button
         type="button"
         onClick={() => scrollBy(-280)}
-        className="absolute left-0 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700/80 bg-zinc-950/90 text-zinc-400 shadow-lg backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white sm:h-auto sm:w-auto sm:p-1.5"
+        className="absolute left-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700/80 bg-zinc-950/90 text-zinc-400 shadow-lg backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white lg:flex lg:h-auto lg:w-auto lg:p-1.5"
         aria-label="Scroll to older months"
       >
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -205,7 +205,7 @@ function HeatmapScrollArea({
       <button
         type="button"
         onClick={() => scrollBy(280)}
-        className="absolute right-0 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700/80 bg-zinc-950/90 text-zinc-400 shadow-lg backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white sm:h-auto sm:w-auto sm:p-1.5"
+        className="absolute right-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-zinc-700/80 bg-zinc-950/90 text-zinc-400 shadow-lg backdrop-blur-sm transition-colors hover:border-zinc-600 hover:text-white lg:flex lg:h-auto lg:w-auto lg:p-1.5"
         aria-label="Scroll to recent months"
       >
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -215,21 +215,21 @@ function HeatmapScrollArea({
 
       <div
         ref={scrollRef}
-        className="heatmap-scroll flex w-full min-w-0 justify-start overflow-x-auto scroll-smooth pb-1 [-webkit-overflow-scrolling:touch]"
+        className="heatmap-scroll flex w-full min-w-0 justify-start overflow-x-auto scroll-smooth px-0 pb-1 [-webkit-overflow-scrolling:touch] lg:px-1"
       >
-        <div className="flex min-w-min flex-nowrap items-end gap-x-1 px-1 sm:gap-x-1.5 md:gap-x-2">
+        <div className="flex min-w-min flex-nowrap items-end gap-x-1 px-0.5 sm:gap-x-1.5 md:gap-x-2">
           {monthBlocks.map((block) => (
             <div
               key={block.key}
               className="flex shrink-0 flex-col items-center justify-end gap-1"
             >
-              <div className="grid w-max grid-flow-col grid-rows-7 gap-px sm:gap-0.5 md:gap-[2px] lg:gap-[3px]">
+              <div className="grid w-max grid-flow-col grid-rows-7 gap-[2px] max-lg:gap-[2px] lg:gap-[3px]">
                 {block.cells.map((cell, index) => {
                   if (!cell) {
                     return (
                       <div
                         key={`${block.key}-pad-${index}`}
-                        className="pointer-events-none size-[3px] shrink-0 select-none rounded-[1px] opacity-0 sm:size-1.5 md:size-2 lg:size-2.5 xl:size-3"
+                        className="pointer-events-none size-2.5 shrink-0 select-none rounded-[2px] opacity-0 max-lg:size-2.5 lg:size-2.5 xl:size-3"
                         aria-hidden
                       />
                     );
@@ -239,7 +239,7 @@ function HeatmapScrollArea({
                     <div
                       key={cell.date}
                       title={`${cell.date}: ${cell.count} · level ${level} (${heatmapLevelRange(level, cap)})`}
-                      className={`size-2 shrink-0 rounded-[2px] sm:size-1.5 md:size-2 lg:size-2.5 xl:size-3 ${heatmapCountClass(cell.count, "zinc", cap)} transition-opacity hover:opacity-90`}
+                      className={`size-2.5 shrink-0 rounded-[2px] max-lg:size-2.5 lg:size-2.5 xl:size-3 ${heatmapCountClass(cell.count, "zinc", cap)} transition-opacity hover:opacity-90`}
                     />
                   );
                 })}
@@ -294,8 +294,8 @@ export function SubmissionHeatmap({
     <ProfileHeatmapCard
       title={title}
       metaRight={
-        <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end">
-          <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-xs text-zinc-500">
+        <div className="flex flex-col items-stretch gap-2 max-lg:w-full sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+          <div className="flex flex-col gap-1 text-xs text-zinc-500 max-lg:items-start sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-x-4 sm:gap-y-1">
             <span>
               Total active days: <span className="font-medium text-zinc-300">{activeDays}</span>
             </span>
@@ -331,7 +331,7 @@ export function SubmissionHeatmap({
           ))}
         </div>
       ) : null}
-      <div className="w-full rounded-xl bg-black/40 px-1.5 py-2 sm:px-2 sm:py-3">
+      <div className="w-full rounded-xl bg-black/40 px-1 py-2 max-lg:px-1 sm:px-2 sm:py-3">
         {monthBlocks.length === 0 ? (
           <p className="py-6 text-center text-sm text-zinc-500">No activity in this period.</p>
         ) : (
@@ -346,7 +346,7 @@ export function SubmissionHeatmap({
               {([0, 1, 2, 3, 4] as const).map((lv) => (
                 <span
                   key={lv}
-                  className={`size-[3px] rounded-[1px] sm:size-1.5 md:size-2 lg:size-2.5 xl:size-3 ${heatmapLevelClass(lv, "zinc")}`}
+                  className={`size-2.5 rounded-[2px] max-lg:size-2.5 lg:size-2.5 xl:size-3 ${heatmapLevelClass(lv, "zinc")}`}
                   title={heatmapLevelRange(lv, cap)}
                 />
               ))}
@@ -370,9 +370,9 @@ function ProfileHeatmapCard({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl bg-zinc-900/55 p-5 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.65)] backdrop-blur-[2px]">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h3 className="text-lg font-semibold tracking-tight text-white">{title}</h3>
+    <section className="rounded-2xl bg-zinc-900/55 p-4 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.65)] backdrop-blur-[2px] max-lg:p-3 lg:p-5">
+      <div className="mb-3 flex flex-col gap-2 max-lg:gap-2.5 sm:mb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+        <h3 className="text-base font-semibold tracking-tight text-white max-lg:leading-snug lg:text-lg">{title}</h3>
         {metaRight}
       </div>
       {children}

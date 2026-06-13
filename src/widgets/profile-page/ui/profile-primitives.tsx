@@ -9,7 +9,7 @@ export function ProfileCard({
   return (
     <section
       className={cn(
-        "rounded-2xl bg-zinc-900/55 p-5 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.65)] backdrop-blur-[2px]",
+        "rounded-2xl bg-zinc-900/55 p-4 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.65)] backdrop-blur-[2px] max-lg:p-3 lg:p-5",
         className,
       )}
       {...rest}

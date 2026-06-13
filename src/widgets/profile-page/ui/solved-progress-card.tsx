@@ -25,13 +25,13 @@ export function SolvedProgressCard(props: SolvedProgressCardProps) {
 
   return (
     <div
-      className="flex w-full flex-1 items-center gap-0.5 xl:min-h-0"
+      className="flex w-full flex-1 flex-col items-center gap-3 max-lg:gap-4 lg:flex-row lg:items-center lg:gap-0.5 xl:min-h-0"
       onMouseLeave={() => setFocusedZone(null)}
     >
-      <div className="shrink-0 xl:ml-4">
+      <div className="shrink-0 max-lg:mx-auto xl:ml-4">
         <SolvedProgressRing {...props} focusedZone={focusedZone} />
       </div>
-      <div className="ml-auto flex w-[36%] min-w-[88px] max-w-[116px] shrink-0 flex-col gap-1.5 sm:max-w-[128px] sm:gap-2 xl:mr-4">
+      <div className="grid w-full max-w-[320px] grid-cols-3 gap-1.5 max-lg:max-w-none max-lg:px-1 lg:ml-auto lg:flex lg:w-[36%] lg:min-w-[88px] lg:max-w-[116px] lg:flex-col lg:gap-1.5 sm:max-w-[128px] sm:gap-2 xl:mr-4">
         <DifficultyStat
           label="EASY"
           tone="easy"
@@ -91,8 +91,9 @@ function DifficultyStat({
       role="presentation"
       onMouseEnter={onHover}
       onFocus={onHover}
+      onTouchStart={onHover}
       className={cn(
-        "cursor-default rounded-lg bg-zinc-800/80 px-2 py-2 text-center transition-all duration-300 ease-out",
+        "cursor-default rounded-lg bg-zinc-800/80 px-2 py-2.5 text-center transition-all duration-300 ease-out max-lg:min-h-11 max-lg:py-3 lg:py-2",
         "hover:scale-[1.02] hover:bg-zinc-800",
         active && "scale-[1.04] bg-zinc-700/90 ring-1",
         active && activeRingClass,
