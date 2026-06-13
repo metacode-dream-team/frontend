@@ -1,13 +1,16 @@
 import {
   AVATAR_UPLOAD_PATH,
+  GITHUB_UNLINK_PATH,
   LEETCODE_BIND_PATH,
+  LEETCODE_UNBIND_PATH,
   MONKEYTYPE_BIND_PATH,
-  PROFILE_FILL_PATH,
+  MONKEYTYPE_UNBIND_PATH,
+  PROFILE_INTRO_PATH,
 } from "@/shared/config/constants";
 import {
   authBackendDelete,
   authBackendMultipartPost,
-  authBackendPatch,
+  integrationDelete,
   integrationGet,
   integrationPatch,
   integrationPost,
@@ -35,7 +38,6 @@ import type {
   ProfileEducationPayload,
   ProfileExperiencePayload,
   ProfileData,
-  ProfileFillPayload,
   ProfileHeatmapDay,
   ProfileIntroPayload,
   ProfileLanguagePayload,
@@ -84,6 +86,18 @@ export async function bindMonkeytypeAccount(
   return integrationPost<Json>(MONKEYTYPE_BIND_PATH, body, accessToken);
 }
 
+export async function unbindLeetcodeIntegration(accessToken: string): Promise<Json> {
+  return integrationDelete<Json>(LEETCODE_UNBIND_PATH, accessToken);
+}
+
+export async function unbindGithubIntegration(accessToken: string): Promise<Json> {
+  return integrationDelete<Json>(GITHUB_UNLINK_PATH, accessToken);
+}
+
+export async function unbindMonkeytypeIntegration(accessToken: string): Promise<Json> {
+  return integrationDelete<Json>(MONKEYTYPE_UNBIND_PATH, accessToken);
+}
+
 export async function uploadProfileAvatar(
   accessToken: string,
   file: File,
@@ -100,18 +114,11 @@ export async function uploadProfileAvatar(
   }
 }
 
-export async function fillProfileMe(
-  accessToken: string,
-  body: ProfileFillPayload,
-): Promise<Json> {
-  return authBackendPatch<Json>(PROFILE_FILL_PATH, body, accessToken);
-}
-
 export async function updateProfileIntro(
   accessToken: string,
   body: ProfileIntroPayload,
 ): Promise<Json> {
-  return integrationPatch<Json>("/v1/profiles/me/intro", body, accessToken);
+  return integrationPatch<Json>(PROFILE_INTRO_PATH, body, accessToken);
 }
 
 export async function updateProfileAbout(

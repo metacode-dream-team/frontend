@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import type { ProfileAchievement, ProfileData } from "@/entities/profile";
-import { isProfileRouteCurrentUser, mergeProfileWithMe, useProfileMeStore } from "@/entities/profile";
+import { mergeProfileWithMe, useProfileMeStore } from "@/entities/profile";
 import {
   applyActivityStreakToProfile,
   augmentProfileWithIntegration,
@@ -28,7 +28,7 @@ type ClientBundle = {
 
 /**
  * После SSR подмешивает с клиента (Bearer) только то, что не дублирует третий лишний слой:
- * - `GET /v1/activity/user/achievement?user_id=<UserID>` — если смотришь **свой** профиль
+ * - `GET /v1/activity/user/achievement?user_id=<UserID>` — все достижения (полученные и нет)
  * - `GET /v1/activity/streak?user_id=<UserID>` — платформенная серия (огонёк)
  * - `GET /v1/integration/profile?user_id=<UserID>` — теплокарта GitHub / LeetCode / Monkeytype
  *
@@ -54,14 +54,11 @@ export function useProfileWithClientAchievements(
       return;
     }
 
-    const ownProfile = isProfileRouteCurrentUser(routeUsername, me);
     let cancelled = false;
     void (async () => {
       try {
         const [achRaw, intRaw, leaderboardRaw, streakRaw] = await Promise.all([
-          ownProfile
-            ? fetchUserAchievements(userId, accessToken).catch(() => null)
-            : Promise.resolve(null),
+          fetchUserAchievements(userId, accessToken).catch(() => null),
           fetchIntegrationProfile(userId, accessToken).catch(() => null),
           fetchLeaderboardUser(userId, accessToken).catch(() => null),
           fetchUserStreak(userId, accessToken).catch(() => null),
@@ -71,7 +68,7 @@ export function useProfileWithClientAchievements(
         const achParsed = achRaw ? mapAchievementsPayload(achRaw) : [];
         const rank = leaderboardRaw ? mapLeaderboardUserRank(leaderboardRaw) : null;
         setBundle({
-          achievements: achParsed.length > 0 ? achParsed : undefined,
+          achievements: achRaw != null ? achParsed : undefined,
           integrationJson: intRaw,
           rank: rank ?? undefined,
           streakJson: streakRaw,
@@ -94,7 +91,7 @@ export function useProfileWithClientAchievements(
     }
 
     let next: ProfileData = merged;
-    if (bundle.achievements?.length) {
+    if (bundle.achievements !== undefined) {
       next = { ...next, achievements: bundle.achievements };
     }
     if (bundle.integrationJson != null) {

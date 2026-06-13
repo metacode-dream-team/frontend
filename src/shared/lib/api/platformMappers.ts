@@ -365,6 +365,62 @@ export function applyActivityStreakToProfile(
   };
 }
 
+function isPlaceholderAchievementDate(value: string): boolean {
+  if (!value.trim()) return true;
+  const time = Date.parse(value);
+  if (Number.isNaN(time)) return true;
+  return new Date(time).getUTCFullYear() <= 1;
+}
+
+function formatAchievementUnlockedAt(value: string): string | undefined {
+  if (isPlaceholderAchievementDate(value)) return undefined;
+  const date = new Date(value);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function readIsAcquiredFlag(o: Json): boolean | null {
+  if (
+    o.IsAcquired === undefined &&
+    o.isAcquired === undefined &&
+    o.is_acquired === undefined &&
+    o.acquired === undefined
+  ) {
+    return null;
+  }
+  return bool(o.IsAcquired ?? o.isAcquired ?? o.is_acquired ?? o.acquired);
+}
+
+function resolveAchievementUnlockState(o: Json): {
+  unlocked: boolean;
+  unlockedAt?: string;
+} {
+  const achievedAtRaw = str(
+    o.AchievedAt ?? o.achieved_at ?? o.unlocked_at ?? o.unlockedAt ?? o.earned_at ?? "",
+    "",
+  );
+
+  const acquired = readIsAcquiredFlag(o);
+  if (acquired != null) {
+    return {
+      unlocked: acquired,
+      unlockedAt: acquired ? formatAchievementUnlockedAt(achievedAtRaw) : undefined,
+    };
+  }
+
+  const unlocked =
+    bool(o.unlocked ?? o.is_unlocked ?? o.earned) ||
+    (!isPlaceholderAchievementDate(achievedAtRaw) && achievedAtRaw.length > 0);
+
+  return {
+    unlocked,
+    unlockedAt: unlocked ? formatAchievementUnlockedAt(achievedAtRaw) : undefined,
+  };
+}
+
 export function mapAchievementsPayload(raw: unknown): ProfileAchievement[] {
   const list = extractAchievementList(raw);
   if (!list.length) return [];
@@ -372,12 +428,7 @@ export function mapAchievementsPayload(raw: unknown): ProfileAchievement[] {
   const tones: ProfileAchievement["tone"][] = ["emerald", "amber", "violet"];
   return list.map((item, i) => {
     const o = item as Json;
-    const achievedAt = str(
-      o.AchievedAt ?? o.achieved_at ?? o.unlocked_at ?? o.unlockedAt ?? o.earned_at ?? "",
-      "",
-    );
-    const unlocked =
-      bool(o.unlocked ?? o.is_unlocked ?? o.earned) || achievedAt.length > 0;
+    const { unlocked, unlockedAt } = resolveAchievementUnlockState(o);
     return {
       id: str(
         o.AchievementID ?? o.achievement_id ?? o.id ?? o.slug,
@@ -397,30 +448,18 @@ export function mapAchievementsPayload(raw: unknown): ProfileAchievement[] {
         ) || undefined,
       tone: tones[i % 3]!,
       unlocked,
-      unlockedAt: unlocked
-        ? achievedAt ||
-          str(o.unlocked_at ?? o.unlockedAt ?? o.earned_at ?? "", "") ||
-          undefined
-        : undefined,
+      unlockedAt,
     };
   });
 }
 
 function extractAchievementList(raw: unknown): unknown[] {
   if (Array.isArray(raw)) return raw;
-  if (!raw || typeof raw !== "object") return [];
-  const r = raw as Json;
-  if (Array.isArray(r.data)) return r.data as unknown[];
-  if (Array.isArray(r.achievements)) return r.achievements as unknown[];
-
-  const inner = unwrapDataPayload(raw);
-  if (Array.isArray(inner)) return inner as unknown[];
-  if (inner && typeof inner === "object") {
-    const j = inner as Json;
-    if (Array.isArray(j.achievements)) return j.achievements as unknown[];
-    if (Array.isArray(j.data)) return j.data as unknown[];
+  if (raw && typeof raw === "object") {
+    const r = raw as Json;
+    if (Array.isArray(r.achievements)) return r.achievements as unknown[];
   }
-  return [];
+  return extractArrayPayload(raw);
 }
 
 export function mapCalendarToProfileHeatmap(raw: unknown): ProfileHeatmapDay[] {

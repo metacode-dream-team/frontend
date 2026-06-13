@@ -5,10 +5,7 @@ import type { ProfileAchievement } from "@/entities/profile";
 import { AchievementLogo } from "./achievement-logo";
 
 function previewAchievements(all: ProfileAchievement[], need: number): ProfileAchievement[] {
-  const unlocked = all.filter((a) => a.unlocked);
-  return unlocked.length >= need
-    ? unlocked.slice(0, need)
-    : [...unlocked, ...all.filter((a) => !a.unlocked)].slice(0, need);
+  return all.filter((a) => a.unlocked).slice(0, need);
 }
 
 interface ProfileAchievementsBlockProps {

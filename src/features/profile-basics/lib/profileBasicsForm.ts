@@ -49,6 +49,7 @@ export function profileMeToFormValues(
 
 export function formValuesToIntroPayload(
   values: CompleteProfileFormValues,
+  options?: { includeUsername?: boolean },
 ): ProfileIntroPayload {
   const payload: ProfileIntroPayload = {
     first_name: values.firstName.trim(),
@@ -57,6 +58,11 @@ export function formValuesToIntroPayload(
     country: values.country.trim(),
     city: values.city.trim(),
   };
+
+  if (options?.includeUsername) {
+    const username = values.username.trim();
+    if (username) payload.username = username;
+  }
 
   const positionLink = values.positionLink.trim();
   const schoolLink = values.schoolLink.trim();

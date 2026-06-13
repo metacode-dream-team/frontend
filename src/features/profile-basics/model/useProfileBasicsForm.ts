@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import { type CurrentUserProfile, useProfileMeStore } from "@/entities/profile";
-import { fillProfileMe, updateProfileIntro } from "@/shared/lib/api/platformData";
+import { updateProfileIntro } from "@/shared/lib/api/platformData";
 import {
   validateCompleteProfileForm,
   validateProfileIntroForm,
@@ -72,34 +72,18 @@ export function useProfileBasicsForm(options?: {
         Boolean(previousUsername) &&
         newUsername.toLowerCase() !== previousUsername.toLowerCase();
 
-      if (mode === "intro") {
-        if (usernameChanged && profile?.isComplete) {
-          setError("Username cannot be changed after your profile is set up.");
-          return false;
-        }
-
-        await updateProfileIntro(accessToken, formValuesToIntroPayload(values));
-
-        if (usernameChanged && !profile?.isComplete) {
-          await fillProfileMe(accessToken, {
-            username: newUsername,
-            first_name: values.firstName.trim(),
-            last_name: values.lastName.trim(),
-            headline: values.headline.trim(),
-            country: values.country.trim(),
-            city: values.city.trim(),
-          });
-        }
-      } else {
-        await fillProfileMe(accessToken, {
-          username: newUsername,
-          first_name: values.firstName.trim(),
-          last_name: values.lastName.trim(),
-          headline: values.headline.trim(),
-          country: values.country.trim(),
-          city: values.city.trim(),
-        });
+      if (mode === "intro" && usernameChanged && profile?.isComplete) {
+        setError("Username cannot be changed after your profile is set up.");
+        return false;
       }
+
+      const includeUsername =
+        mode === "fill" || (mode === "intro" && !profile?.isComplete);
+
+      await updateProfileIntro(
+        accessToken,
+        formValuesToIntroPayload(values, { includeUsername }),
+      );
 
       await fetchMe(accessToken);
       options?.onSuccess?.(newUsername);

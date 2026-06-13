@@ -4,13 +4,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
+import { LeetcodeBindModal } from "@/features/bind-leetcode";
 import { MonkeytypeBindModal } from "@/features/bind-monkeytype";
 import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { startAuthServiceOAuth } from "@/shared/lib/auth";
 import type { KeycloakIdpHint } from "@/shared/lib/keycloak/keycloak";
 import { Button } from "@/shared/ui/Button";
 
-type ConnectProvider = Extract<KeycloakIdpHint, "google" | "github" | "monkeytype">;
+import { LeetcodeBrandIcon } from "./LeetcodeBrandIcon";
+
+type ConnectProvider = Extract<KeycloakIdpHint, "google" | "github" | "monkeytype" | "leetcode">;
 
 const PROVIDERS: {
   id: ConnectProvider;
@@ -18,6 +21,7 @@ const PROVIDERS: {
 }[] = [
   { id: "google", label: "Google" },
   { id: "github", label: "GitHub" },
+  { id: "leetcode", label: "LeetCode" },
   { id: "monkeytype", label: "Monkeytype" },
 ];
 
@@ -57,6 +61,10 @@ function GithubIcon({ className }: { className?: string }) {
   );
 }
 
+function LeetcodeIcon({ className }: { className?: string }) {
+  return <LeetcodeBrandIcon className={className} size={20} />;
+}
+
 function KeyboardIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -82,6 +90,9 @@ function ProviderIcon({ id }: { id: ConnectProvider }) {
   if (id === "github") {
     return <GithubIcon className="h-5 w-5 shrink-0 text-white" />;
   }
+  if (id === "leetcode") {
+    return <LeetcodeIcon className="h-5 w-5 shrink-0" />;
+  }
   return <KeyboardIcon className="h-5 w-5 shrink-0 text-[#c4a3f7]" />;
 }
 
@@ -97,6 +108,7 @@ export function ConnectPlatformsModal({
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const accessToken = useAuthStore((s) => s.accessToken);
   const [loading, setLoading] = useState<ConnectProvider | null>(null);
+  const [leetcodeBindOpen, setLeetcodeBindOpen] = useState(false);
   const [monkeytypeBindOpen, setMonkeytypeBindOpen] = useState(false);
 
   useBodyScrollLock(open);
@@ -117,6 +129,7 @@ export function ConnectPlatformsModal({
   useEffect(() => {
     if (!open) {
       setLoading(null);
+      setLeetcodeBindOpen(false);
       setMonkeytypeBindOpen(false);
     }
   }, [open]);
@@ -126,6 +139,16 @@ export function ConnectPlatformsModal({
   }
 
   const connect = (provider: ConnectProvider) => {
+    if (provider === "leetcode") {
+      if (isAuthenticated && accessToken) {
+        setLeetcodeBindOpen(true);
+        return;
+      }
+      onOpenChange(false);
+      router.push("/login");
+      return;
+    }
+
     if (provider === "monkeytype") {
       if (isAuthenticated && accessToken) {
         setMonkeytypeBindOpen(true);
@@ -172,7 +195,7 @@ export function ConnectPlatformsModal({
               Connect your accounts
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-zinc-500">
-              Sign in with Google or link GitHub and Monkeytype for your profile
+              Sign in with Google or link GitHub, LeetCode, and Monkeytype for your profile
               and leaderboard.
             </p>
           </div>
@@ -232,6 +255,11 @@ export function ConnectPlatformsModal({
         </p>
       </div>
     </div>
+
+    <LeetcodeBindModal
+      open={leetcodeBindOpen}
+      onOpenChange={setLeetcodeBindOpen}
+    />
 
     <MonkeytypeBindModal
       open={monkeytypeBindOpen}

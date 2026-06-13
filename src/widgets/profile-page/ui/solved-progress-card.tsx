@@ -11,7 +11,6 @@ type DifficultyTone = "easy" | "medium" | "hard";
 interface SolvedProgressCardProps {
   solved: number;
   total: number;
-  attempting: number;
   easySolved: number;
   easyTotal: number;
   mediumSolved: number;

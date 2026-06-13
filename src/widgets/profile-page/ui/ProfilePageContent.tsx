@@ -231,7 +231,6 @@ export function ProfilePageContent({
               <SolvedProgressCard
                 solved={profile.solved}
                 total={profile.totalProblems}
-                attempting={profile.attempting}
                 easySolved={profile.easySolved}
                 easyTotal={profile.easyTotal}
                 mediumSolved={profile.mediumSolved}

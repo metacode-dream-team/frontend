@@ -7,7 +7,6 @@ type DifficultyZone = "easy" | "medium" | "hard";
 interface SolvedProgressRingProps {
   solved: number;
   total: number;
-  attempting: number;
   easySolved: number;
   easyTotal: number;
   mediumSolved: number;
@@ -185,7 +184,6 @@ function RingSegment({
 export function SolvedProgressRing({
   solved,
   total,
-  attempting,
   easySolved,
   easyTotal,
   mediumSolved,
@@ -340,7 +338,6 @@ export function SolvedProgressRing({
           </div>
         </div>
       </div>
-      <p className="mt-1 text-[10px] text-zinc-500">{attempting} Attempting</p>
     </div>
   );
 }

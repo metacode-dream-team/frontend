@@ -11,6 +11,8 @@ import type { KeycloakIdpHint } from "@/shared/lib/keycloak/keycloak";
 import { cn } from "@/shared/lib/utils/cn";
 
 import { resolveLinkedAccounts, type LinkedAccount } from "../lib/linkedAccounts";
+import { useUnbindIntegration } from "../model/useUnbindIntegration";
+import { LeetcodeBrandIcon } from "./LeetcodeBrandIcon";
 
 type ConnectProvider = Extract<KeycloakIdpHint, "github" | "monkeytype" | "leetcode">;
 
@@ -23,18 +25,7 @@ function GithubIcon({ className }: { className?: string }) {
 }
 
 function LeetcodeIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      aria-hidden
-    >
-      <path d="m16 18 6-6-6-6M8 6l-6 6 6 6" />
-    </svg>
-  );
+  return <LeetcodeBrandIcon className={className} size={16} />;
 }
 
 function MonkeytypeIcon({ className }: { className?: string }) {
@@ -63,13 +54,19 @@ function PlatformIcon({ provider }: { provider: LinkedAccount["provider"] }) {
 function IntegrationRow({
   acc,
   loading,
+  unbinding,
   onConnect,
+  onDisconnect,
 }: {
   acc: LinkedAccount;
   loading: ConnectProvider | null;
+  unbinding: ConnectProvider | null;
   onConnect: (provider: ConnectProvider) => void;
+  onDisconnect: (provider: ConnectProvider) => void;
 }) {
-  const isLoading = loading === acc.provider;
+  const isConnecting = loading === acc.provider;
+  const isDisconnecting = unbinding === acc.provider;
+  const isBusy = loading !== null || unbinding !== null;
   const statusText =
     acc.connected && acc.username
       ? `@${acc.username}`
@@ -96,18 +93,22 @@ function IntegrationRow({
       </div>
 
       {acc.connected ? (
-        <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-zinc-500">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500/90" aria-hidden />
-          Live
-        </span>
+        <button
+          type="button"
+          disabled={isBusy}
+          onClick={() => onDisconnect(acc.provider)}
+          className="shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-medium text-zinc-400 ring-1 ring-zinc-800 transition-colors hover:bg-zinc-900 hover:text-rose-300 hover:ring-rose-900/60 disabled:cursor-not-allowed disabled:opacity-40 sm:px-4 sm:py-2 sm:text-sm"
+        >
+          {isDisconnecting ? "…" : "Disconnect"}
+        </button>
       ) : (
         <button
           type="button"
-          disabled={loading !== null}
+          disabled={isBusy}
           onClick={() => onConnect(acc.provider)}
           className="shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-medium text-zinc-300 ring-1 ring-zinc-800 transition-colors hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 sm:px-4 sm:py-2 sm:text-sm"
         >
-          {isLoading ? "…" : "Connect"}
+          {isConnecting ? "…" : "Connect"}
         </button>
       )}
     </li>
@@ -126,6 +127,7 @@ export function IntegrationsModal({
   const [loading, setLoading] = useState<ConnectProvider | null>(null);
   const [leetcodeBindOpen, setLeetcodeBindOpen] = useState(false);
   const [monkeytypeBindOpen, setMonkeytypeBindOpen] = useState(false);
+  const { unbind, unbinding, error: unbindError, clearError } = useUnbindIntegration();
 
   const linkedAccounts = useMemo(
     () => resolveLinkedAccounts(profile?.externalProfileLinks),
@@ -150,8 +152,9 @@ export function IntegrationsModal({
       setLoading(null);
       setLeetcodeBindOpen(false);
       setMonkeytypeBindOpen(false);
+      clearError();
     }
-  }, [open]);
+  }, [open, clearError]);
 
   if (!open) return null;
 
@@ -169,6 +172,10 @@ export function IntegrationsModal({
     setLoading(provider);
     const ok = startAuthServiceOAuth("github");
     if (!ok) setLoading(null);
+  };
+
+  const disconnect = (provider: ConnectProvider) => {
+    void unbind(provider);
   };
 
   return (
@@ -217,13 +224,21 @@ export function IntegrationsModal({
           </button>
         </div>
 
+        {unbindError ? (
+          <p className="px-5 pb-2 text-sm text-rose-400 sm:px-6" role="alert">
+            {unbindError}
+          </p>
+        ) : null}
+
         <ul className="divide-y divide-zinc-800/50 px-5 pb-5 sm:px-6 sm:pb-6">
           {linkedAccounts.map((acc) => (
             <IntegrationRow
               key={acc.provider}
               acc={acc}
               loading={loading}
+              unbinding={unbinding}
               onConnect={connect}
+              onDisconnect={disconnect}
             />
           ))}
         </ul>

@@ -146,16 +146,8 @@ export interface ProfileData {
   techSkills: ProfileTechSkill[];
 }
 
-export interface ProfileFillPayload {
-  username: string;
-  first_name: string;
-  last_name: string;
-  headline: string;
-  country: string;
-  city: string;
-}
-
 export interface ProfileIntroPayload {
+  username?: string;
   first_name: string;
   last_name: string;
   headline: string;

@@ -61,9 +61,9 @@ export const AUTH_REGISTER_PATH = readApiPath(
   "/v1/auth/register",
 );
 
-export const PROFILE_FILL_PATH = readApiPath(
-  process.env.NEXT_PUBLIC_PROFILE_FILL_PATH,
-  "/v1/profiles/me/fill",
+export const PROFILE_INTRO_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_PROFILE_INTRO_PATH,
+  "/v1/profiles/me/intro",
 );
 
 export const AVATAR_UPLOAD_PATH = readApiPath(
@@ -76,9 +76,24 @@ export const LEETCODE_BIND_PATH = readApiPath(
   "/v1/integration/leetcode/bind",
 );
 
+export const LEETCODE_UNBIND_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_LEETCODE_UNBIND_PATH,
+  "/v1/integration/leetcode/unbind",
+);
+
+export const GITHUB_UNLINK_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_GITHUB_UNLINK_PATH,
+  "/v1/integration/github/unlink",
+);
+
 export const MONKEYTYPE_BIND_PATH = readApiPath(
   process.env.NEXT_PUBLIC_MONKEYTYPE_BIND_PATH,
   "/v1/integration/monkeytype/bind",
+);
+
+export const MONKEYTYPE_UNBIND_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_MONKEYTYPE_UNBIND_PATH,
+  "/v1/integration/monkeytype/unbind",
 );
 
 export const NOTIFICATION_SSE_PATH = readApiPath(
