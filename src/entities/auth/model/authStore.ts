@@ -62,18 +62,32 @@ export const useAuthStore = create<AuthStore>()(
       accessToken: null,
       idToken: null,
       expiresIn: null,
+      refreshTokenInMemory: null,
       isAuthenticated: false,
       isInitialized: false,
 
       // Actions
-      setTokens: (accessToken, idToken, expiresIn) => {
+      setTokens: (accessToken, idToken, expiresIn, refreshToken) => {
+        const token = accessToken?.trim();
+        if (!token) {
+          console.error("[Auth] setTokens called without access token");
+          return;
+        }
         clearLogoutFlag();
-        set({
-          accessToken,
+        const next: Pick<
+          AuthState,
+          "accessToken" | "idToken" | "expiresIn" | "refreshTokenInMemory" | "isAuthenticated"
+        > = {
+          accessToken: token,
           idToken,
           expiresIn,
+          refreshTokenInMemory: get().refreshTokenInMemory,
           isAuthenticated: true,
-        });
+        };
+        if (refreshToken !== undefined) {
+          next.refreshTokenInMemory = refreshToken?.trim() || null;
+        }
+        set(next);
         scheduleTokenRefresh(expiresIn, () => get().refreshToken());
       },
 
@@ -83,6 +97,8 @@ export const useAuthStore = create<AuthStore>()(
           isAuthenticated: !!token,
         });
       },
+
+      getRefreshTokenInMemory: () => get().refreshTokenInMemory,
 
       logout: () => {
         if (refreshTimerId) {
@@ -104,6 +120,7 @@ export const useAuthStore = create<AuthStore>()(
           accessToken: null,
           idToken: null,
           expiresIn: null,
+          refreshTokenInMemory: null,
           isAuthenticated: false,
           isInitialized: true,
         });
@@ -112,7 +129,12 @@ export const useAuthStore = create<AuthStore>()(
       refreshToken: async () => {
         try {
           const tokens = await authApi.refreshTokens();
-          get().setTokens(tokens.access_token, tokens.id_token, tokens.expires_in);
+          get().setTokens(
+            tokens.access_token,
+            tokens.id_token,
+            tokens.expires_in,
+            tokens.refresh_token,
+          );
           return tokens;
         } catch (error) {
           const err = error as Error & {
@@ -156,6 +178,7 @@ export const useAuthStore = create<AuthStore>()(
             accessToken: null,
             idToken: null,
             expiresIn: null,
+            refreshTokenInMemory: null,
             isAuthenticated: false,
             isInitialized: true,
           });
@@ -183,6 +206,14 @@ export const useAuthStore = create<AuthStore>()(
             err?.message?.includes("Backend unavailable");
 
           if (isUnauthorized) {
+            if (
+              process.env.NODE_ENV === "development" &&
+              get().refreshTokenInMemory
+            ) {
+              console.warn(
+                "[Auth] Refresh returned 401 but refresh_token is in memory — backend may reject body refresh; check gateway cookie/body support",
+              );
+            }
             get().logout();
             return;
           }

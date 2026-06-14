@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { API_BASE_URL } from "@/shared/config/constants";
+import {
+  API_BASE_URL,
+  AUTH_LOGOUT_PATH,
+  AUTH_REFRESH_COOKIE_NAMES,
+} from "@/shared/config/constants";
+import {
+  appendClearAuthRefreshCookies,
+  appendRewrittenSetCookies,
+} from "@/shared/lib/api/rewriteProxySetCookies";
+
+const AUTH_LOGOUT_PROXY_PATH = AUTH_LOGOUT_PATH.replace(/^\/+/, "");
 
 const HOP_BY_HOP = new Set([
   "connection",
@@ -55,9 +65,24 @@ async function proxyRequest(
   const responseHeaders = new Headers();
 
   upstream.headers.forEach((value, key) => {
-    if (STRIP_RESPONSE_HEADERS.has(key.toLowerCase())) return;
+    const lower = key.toLowerCase();
+    if (STRIP_RESPONSE_HEADERS.has(lower) || lower === "set-cookie") return;
     responseHeaders.set(key, value);
   });
+
+  appendRewrittenSetCookies(upstream.headers, responseHeaders, request.url);
+
+  const proxyPath = pathSegments.join("/");
+  if (
+    request.method === "POST" &&
+    proxyPath === AUTH_LOGOUT_PROXY_PATH
+  ) {
+    appendClearAuthRefreshCookies(
+      responseHeaders,
+      request.url,
+      AUTH_REFRESH_COOKIE_NAMES,
+    );
+  }
 
   return new NextResponse(upstream.body, {
     status: upstream.status,

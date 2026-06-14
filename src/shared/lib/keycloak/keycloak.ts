@@ -1,3 +1,8 @@
+/**
+ * @deprecated Legacy direct Keycloak PKCE client. Runtime OAuth uses backend
+ * `/v1/auth/oauth/link` and `/v1/auth/oauth/token` via authServiceOAuth.ts.
+ * Kept for KeycloakIdpHint type and potential future use.
+ */
 import {
   FRONTEND_DEV_ORIGIN,
   FRONTEND_DEV_PORT,

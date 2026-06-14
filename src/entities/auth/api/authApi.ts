@@ -5,6 +5,7 @@ import {
 } from "@/shared/config/constants";
 import { buildApiUrl } from "@/shared/lib/api/apiUrl";
 import { apiClient } from "@/shared/lib/api/client";
+import { normalizeAuthTokens } from "@/shared/lib/auth/normalizeAuthTokens";
 import type {
   AuthTokens,
   RefreshTokenResponse,
@@ -25,46 +26,6 @@ async function parseAuthError(response: Response): Promise<string> {
   } catch {
     return response.status === 401 ? "Invalid email or password" : "Login failed";
   }
-}
-
-function unwrapTokenPayload(raw: unknown): Record<string, unknown> {
-  if (!raw || typeof raw !== "object") {
-    return {};
-  }
-  const r = raw as Record<string, unknown>;
-  const nested =
-    r.data && typeof r.data === "object"
-      ? (r.data as Record<string, unknown>)
-      : r.tokens && typeof r.tokens === "object"
-        ? (r.tokens as Record<string, unknown>)
-        : r.result && typeof r.result === "object"
-          ? (r.result as Record<string, unknown>)
-          : null;
-  if (!nested) {
-    return r;
-  }
-  return { ...r, ...nested };
-}
-
-function normalizeAuthTokens(raw: Record<string, unknown>): AuthTokens {
-  const flat = unwrapTokenPayload(raw);
-  const access =
-    (flat.access_token as string | undefined) ??
-    (flat.accessToken as string | undefined);
-  if (!access) {
-    throw new Error("Invalid login response: missing access token");
-  }
-  return {
-    access_token: access,
-    id_token:
-      (flat.id_token as string | undefined) ??
-      (flat.idToken as string | undefined) ??
-      "",
-    expires_in: Number(flat.expires_in ?? flat.expiresIn ?? 3600),
-    token_type:
-      (flat.token_type as string) ?? (flat.tokenType as string) ?? "Bearer",
-    refresh_token: flat.refresh_token as string | undefined,
-  };
 }
 
 export const authApi = {

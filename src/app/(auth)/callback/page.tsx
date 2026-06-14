@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import { exchangeAuthServiceCodeForTokens } from "@/shared/lib/auth";
+import { diagnoseRefreshToken } from "@/shared/lib/utils/cookie";
 
 function CallbackContent() {
   const router = useRouter();
@@ -54,7 +55,15 @@ function CallbackContent() {
 
       try {
         const tokens = await exchangeAuthServiceCodeForTokens(code);
-        setTokens(tokens.access_token, tokens.id_token, tokens.expires_in);
+        setTokens(
+          tokens.access_token,
+          tokens.id_token,
+          tokens.expires_in,
+          tokens.refresh_token,
+        );
+        if (process.env.NODE_ENV === "development") {
+          void diagnoseRefreshToken();
+        }
         router.push("/");
       } catch (err) {
         const message =

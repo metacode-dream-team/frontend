@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import { type CurrentUserProfile, useProfileMeStore } from "@/entities/profile";
-import { updateProfileIntro } from "@/shared/lib/api/platformData";
+import { updateProfileFill, updateProfileIntro } from "@/shared/lib/api/platformData";
 import {
   validateCompleteProfileForm,
   validateProfileIntroForm,
@@ -12,6 +12,7 @@ import {
 import {
   emptyProfileBasicsForm,
   formatProfileFillError,
+  formValuesToFillPayload,
   formValuesToIntroPayload,
   profileMeToFormValues,
 } from "../lib/profileBasicsForm";
@@ -78,12 +79,16 @@ export function useProfileBasicsForm(options?: {
       }
 
       const includeUsername =
-        mode === "fill" || (mode === "intro" && !profile?.isComplete);
+        mode === "intro" && !profile?.isComplete;
 
-      await updateProfileIntro(
-        accessToken,
-        formValuesToIntroPayload(values, { includeUsername }),
-      );
+      if (mode === "fill") {
+        await updateProfileFill(accessToken, formValuesToFillPayload(values));
+      } else {
+        await updateProfileIntro(
+          accessToken,
+          formValuesToIntroPayload(values, { includeUsername }),
+        );
+      }
 
       await fetchMe(accessToken);
       options?.onSuccess?.(newUsername);

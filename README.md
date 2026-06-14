@@ -55,7 +55,7 @@ src/
 - ✅ Верификация email
 - ✅ Восстановление пароля
 - ✅ Сброс пароля
-- ✅ Социальная авторизация (Google/GitHub через Keycloak)
+- ✅ Социальная авторизация (Google/GitHub через backend OAuth `/v1/auth/oauth/*`)
 - ✅ Автоматическое обновление токенов
 
 ### API Документация
@@ -87,7 +87,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8080
 # Опционально — только path-префикс, не полный URL:
 # NEXT_PUBLIC_PROFILE_FILL_PATH=/v1/profiles/me/fill
 
-# Keycloak Configuration
+# Keycloak (legacy, не используется runtime OAuth)
 NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
 NEXT_PUBLIC_KEYCLOAK_REALM=metacode
 NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=frontend-app
@@ -113,7 +113,7 @@ npm run dev
 - `/verify-email` - Верификация email (с токеном в query)
 - `/forgot-password` - Запрос на восстановление пароля
 - `/reset-password` - Сброс пароля (с токеном в query)
-- `/callback` - OAuth callback от Keycloak
+- `/callback` - OAuth callback (обмен code → tokens через `/v1/auth/oauth/token`)
 
 ## Команды
 
@@ -148,7 +148,8 @@ npm run format
 - `shared/ui/` - Переиспользуемые UI компоненты
 - `shared/lib/api/` - API клиент
 - `shared/lib/utils/` - Утилиты
-- `shared/lib/keycloak/` - Keycloak OAuth2 клиент
+- `shared/lib/auth/` - Backend OAuth (Google/GitHub) и нормализация токенов
+- `shared/lib/keycloak/` - Legacy Keycloak PKCE (не используется в runtime)
 - `shared/config/` - Конфигурация
 - `shared/types/` - Общие типы
 

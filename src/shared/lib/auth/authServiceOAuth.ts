@@ -6,6 +6,7 @@ import {
   REDIRECT_URI,
 } from "@/shared/config/constants";
 import { buildApiUrl } from "@/shared/lib/api/apiUrl";
+import { normalizeAuthTokens } from "@/shared/lib/auth/normalizeAuthTokens";
 import type { AuthTokens } from "@/shared/types/api";
 
 export type AuthServiceOAuthProvider = "google" | "github";
@@ -78,5 +79,21 @@ export async function exchangeAuthServiceCodeForTokens(
     throw new Error(msg);
   }
 
-  return response.json() as Promise<AuthTokens>;
+  const raw = (await response.json()) as unknown;
+  try {
+    const tokens = normalizeAuthTokens(raw);
+    if (process.env.NODE_ENV === "development") {
+      console.log("[OAuth] Token exchange response:", {
+        refresh_token_in_body: Boolean(tokens.refresh_token),
+        set_cookie_readable:
+          "Set-Cookie is not exposed to fetch in the browser; check DevTools > Application > Cookies on this origin",
+      });
+    }
+    return tokens;
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("[OAuth] Token response parse failed:", raw, err);
+    }
+    throw err;
+  }
 }

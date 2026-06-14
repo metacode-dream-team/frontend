@@ -19,14 +19,12 @@ export interface AuthTokens {
   token_type: string;
 }
 
-/**
- * Тип для ответа refresh endpoint (без refresh_token в body)
- */
 export interface RefreshTokenResponse {
   access_token: string;
   id_token: string;
   expires_in: number;
   token_type: string;
+  refresh_token?: string;
 }
 
 export interface LoginRequest {

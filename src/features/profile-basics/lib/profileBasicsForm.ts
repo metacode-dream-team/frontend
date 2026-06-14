@@ -1,5 +1,5 @@
 import type { CurrentUserProfile } from "@/entities/profile";
-import type { ProfileIntroPayload } from "@/shared/types/profile";
+import type { ProfileFillPayload, ProfileIntroPayload } from "@/shared/types/profile";
 import { normalizeUrl } from "@/shared/lib/utils/normalizeUrl";
 import type { CompleteProfileFormValues } from "@/shared/lib/utils/validation";
 
@@ -44,6 +44,19 @@ export function profileMeToFormValues(
     schoolLink: me.schoolLink ?? "",
     country,
     city,
+  };
+}
+
+export function formValuesToFillPayload(
+  values: CompleteProfileFormValues,
+): ProfileFillPayload {
+  return {
+    username: values.username.trim(),
+    first_name: values.firstName.trim(),
+    last_name: values.lastName.trim(),
+    headline: values.headline.trim(),
+    country: values.country.trim(),
+    city: values.city.trim(),
   };
 }
 

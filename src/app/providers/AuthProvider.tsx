@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import { useProfileMeStore } from "@/entities/profile";
-import { API_BASE_URL } from "@/shared/config/constants";
 import { diagnoseRefreshToken } from "@/shared/lib/utils/cookie";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -33,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
       (window as Window & { debugRefreshToken?: () => void }).debugRefreshToken = () =>
-        diagnoseRefreshToken(API_BASE_URL);
+        void diagnoseRefreshToken();
     }
   }, [persistReady, initializeAuth]);
 
