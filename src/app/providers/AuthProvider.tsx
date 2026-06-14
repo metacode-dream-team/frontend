@@ -1,12 +1,15 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import { useProfileMeStore } from "@/entities/profile";
-import { API_BASE_URL } from "@/shared/config/constants";
 import { diagnoseRefreshToken } from "@/shared/lib/utils/cookie";
 
+const AUTH_INIT_SKIP_PATHS = ["/callback", "/login", "/register"] as const;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
   const isInitialized = useAuthStore((state) => state.isInitialized);
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -29,13 +32,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!persistReady) {
       return;
     }
+    if (AUTH_INIT_SKIP_PATHS.includes(pathname as (typeof AUTH_INIT_SKIP_PATHS)[number])) {
+      return;
+    }
     void initializeAuth();
 
     if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
       (window as Window & { debugRefreshToken?: () => void }).debugRefreshToken = () =>
-        diagnoseRefreshToken(API_BASE_URL);
+        void diagnoseRefreshToken();
     }
-  }, [persistReady, initializeAuth]);
+  }, [persistReady, pathname, initializeAuth]);
 
   useEffect(() => {
     if (!persistReady || !isInitialized) {

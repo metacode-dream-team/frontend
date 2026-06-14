@@ -71,7 +71,9 @@ export function DiscussionsPanel() {
           query={query}
           onQueryChange={setQuery}
           category={category}
-          onCategoryChange={setCategory}
+          onCategoryChange={(value) => {
+            if (value !== "all") setCategory(value);
+          }}
           sort={sort}
           onSortChange={setSort}
         />

@@ -1,5 +1,7 @@
 import { API_BASE_URL, AUTH_REFRESH_PATH } from "@/shared/config/constants";
+import { useAuthStore } from "@/entities/auth/model/authStore";
 import { buildApiUrl } from "@/shared/lib/api/apiUrl";
+import { normalizeRefreshTokenResponse } from "@/shared/lib/auth/normalizeAuthTokens";
 import type { ApiError, AuthTokens, RefreshTokenResponse } from "@/shared/types/api";
 
 class ApiClient {
@@ -16,13 +18,20 @@ class ApiClient {
     }
 
     const refreshUrl = buildApiUrl(AUTH_REFRESH_PATH);
+    const refreshToken = useAuthStore.getState().getRefreshTokenInMemory();
+    const refreshBody = refreshToken ? { refresh_token: refreshToken } : {};
+
+    if (process.env.NODE_ENV === "development" && refreshToken) {
+      console.log("[API] Refresh: sending refresh_token in request body (cookie fallback)");
+    }
+
     this.refreshPromise = fetch(refreshUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify({}),
+      body: JSON.stringify(refreshBody),
     })
       .then(async (response) => {
         if (!response.ok) {
@@ -49,18 +58,29 @@ class ApiClient {
           refreshError.isUnauthorized =
             response.status === 401 || response.status === 404;
 
+          if (refreshError.isUnauthorized) {
+            useAuthStore.getState().clearRefreshTokenInMemory();
+          }
+
           throw refreshError;
         }
 
-        let tokens: RefreshTokenResponse;
+        let raw: unknown;
         try {
-          tokens = (await response.json()) as RefreshTokenResponse;
+          raw = await response.json();
         } catch (parseError) {
           console.error("[API] Refresh: invalid JSON response", parseError);
           throw new Error("Invalid response format from refresh endpoint");
         }
 
-        return tokens;
+        try {
+          return normalizeRefreshTokenResponse(raw);
+        } catch (err) {
+          if (process.env.NODE_ENV === "development") {
+            console.error("[API] Refresh token response parse failed:", raw, err);
+          }
+          throw err;
+        }
       })
       .catch((error) => {
         if (error?.isUnauthorized !== undefined) {

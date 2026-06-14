@@ -6,6 +6,7 @@ import {
   MONKEYTYPE_BIND_PATH,
   MONKEYTYPE_UNBIND_PATH,
   PROFILE_INTRO_PATH,
+  PROFILE_FILL_PATH,
 } from "@/shared/config/constants";
 import {
   authBackendDelete,
@@ -39,6 +40,7 @@ import type {
   ProfileExperiencePayload,
   ProfileData,
   ProfileHeatmapDay,
+  ProfileFillPayload,
   ProfileIntroPayload,
   ProfileLanguagePayload,
   ProfilePersonalPayload,
@@ -113,6 +115,13 @@ export async function uploadProfileAvatar(
   if (raw != null) {
     parseAvatarUploadResponse(raw);
   }
+}
+
+export async function updateProfileFill(
+  accessToken: string,
+  body: ProfileFillPayload,
+): Promise<Json> {
+  return integrationPatch<Json>(PROFILE_FILL_PATH, body, accessToken);
 }
 
 export async function updateProfileIntro(

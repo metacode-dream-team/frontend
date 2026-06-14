@@ -157,6 +157,15 @@ export interface ProfileIntroPayload {
   city: string;
 }
 
+export interface ProfileFillPayload {
+  username: string;
+  first_name: string;
+  last_name: string;
+  headline: string;
+  country: string;
+  city: string;
+}
+
 export interface ProfileAboutPayload {
   about: string;
 }

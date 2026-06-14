@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/entities/auth";
 import { loginUser } from "../api/login";
@@ -18,11 +18,35 @@ function safeInternalPath(raw: string | null): string | null {
   return raw;
 }
 
+function formatOAuthLoginError(raw: string): string {
+  if (raw === "missing_code") {
+    return "OAuth authorization code is missing. Please try signing in again.";
+  }
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 export function useLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const oauthError = searchParams.get("error");
+    if (!oauthError) return;
+
+    setError(formatOAuthLoginError(oauthError));
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("error");
+    const query = next.toString();
+    router.replace(query ? `/login?${query}` : "/login", { scroll: false });
+  }, [searchParams, router]);
+
   const login = async (identifier: string, password: string) => {
     setError(null);
 
@@ -44,6 +68,7 @@ export function useLogin() {
         tokens.access_token,
         tokens.id_token,
         tokens.expires_in,
+        tokens.refresh_token,
       );
 
       const next = safeInternalPath(searchParams.get("redirect"));

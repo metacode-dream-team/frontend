@@ -8,12 +8,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import { exchangeAuthServiceCodeForTokens } from "@/shared/lib/auth";
+import { diagnoseRefreshToken } from "@/shared/lib/utils/cookie";
 
 function CallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
-  const { setTokens } = useAuthStore();
+  const { setTokens, prepareForOAuthExchange, completeOAuthLogin } = useAuthStore();
   const handledRef = useRef(false);
 
   useEffect(() => {
@@ -45,16 +46,39 @@ function CallbackContent() {
     const handleCallback = async () => {
       const handledKey = `oauth-code-${code}`;
       if (typeof window !== "undefined" && sessionStorage.getItem(handledKey)) {
+        const accessToken = useAuthStore.getState().accessToken;
+        if (accessToken) {
+          router.replace("/");
+        }
         return;
       }
       handledRef.current = true;
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem(handledKey, "1");
-      }
 
       try {
+        await prepareForOAuthExchange();
+
         const tokens = await exchangeAuthServiceCodeForTokens(code);
-        setTokens(tokens.access_token, tokens.id_token, tokens.expires_in);
+        setTokens(
+          tokens.access_token,
+          tokens.id_token,
+          tokens.expires_in,
+          tokens.refresh_token,
+        );
+
+        const accessToken = useAuthStore.getState().accessToken;
+        if (!accessToken) {
+          throw new Error("Access token was not saved after OAuth");
+        }
+
+        completeOAuthLogin();
+
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(handledKey, "1");
+        }
+
+        if (process.env.NODE_ENV === "development") {
+          void diagnoseRefreshToken();
+        }
         router.push("/");
       } catch (err) {
         const message =
@@ -67,7 +91,7 @@ function CallbackContent() {
     };
 
     handleCallback();
-  }, [searchParams, router, setTokens]);
+  }, [searchParams, router, setTokens, prepareForOAuthExchange, completeOAuthLogin]);
 
   if (error) {
     return (

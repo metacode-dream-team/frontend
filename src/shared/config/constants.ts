@@ -66,6 +66,11 @@ export const PROFILE_INTRO_PATH = readApiPath(
   "/v1/profiles/me/intro",
 );
 
+export const PROFILE_FILL_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_PROFILE_FILL_PATH,
+  "/v1/profiles/me/fill",
+);
+
 export const AVATAR_UPLOAD_PATH = readApiPath(
   process.env.NEXT_PUBLIC_AVATAR_UPLOAD_PATH,
   "/v1/fileservice/upload/avatar",
@@ -123,6 +128,14 @@ export const AUTH_LOGOUT_PATH = readApiPath(
   process.env.NEXT_PUBLIC_AUTH_LOGOUT_PATH,
   "/v1/auth/logout",
 );
+
+/** HttpOnly refresh cookie name(s) set by auth gateway (cleared on logout via BFF). */
+export const AUTH_REFRESH_COOKIE_NAMES: string[] = (
+  process.env.NEXT_PUBLIC_AUTH_REFRESH_COOKIE_NAMES?.trim() || "refresh_token"
+)
+  .split(",")
+  .map((name) => name.trim())
+  .filter(Boolean);
 
 export const KEYCLOAK_URL =
   process.env.NEXT_PUBLIC_KEYCLOAK_URL || "http://localhost:8080";
