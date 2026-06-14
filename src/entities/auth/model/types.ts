@@ -23,6 +23,9 @@ export interface AuthActions {
   ) => void;
   setAccessToken: (token: string | null) => void;
   getRefreshTokenInMemory: () => string | null;
+  clearRefreshTokenInMemory: () => void;
+  prepareForOAuthExchange: () => Promise<void>;
+  completeOAuthLogin: () => void;
   logout: () => void;
   refreshToken: () => Promise<RefreshTokenResponse>;
   initializeAuth: () => Promise<void>;

@@ -58,6 +58,10 @@ class ApiClient {
           refreshError.isUnauthorized =
             response.status === 401 || response.status === 404;
 
+          if (refreshError.isUnauthorized) {
+            useAuthStore.getState().clearRefreshTokenInMemory();
+          }
+
           throw refreshError;
         }
 

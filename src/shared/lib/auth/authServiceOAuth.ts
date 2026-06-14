@@ -5,6 +5,7 @@ import {
   FRONTEND_DEV_ORIGIN,
   REDIRECT_URI,
 } from "@/shared/config/constants";
+import { useAuthStore } from "@/entities/auth/model/authStore";
 import { buildApiUrl } from "@/shared/lib/api/apiUrl";
 import { normalizeAuthTokens } from "@/shared/lib/auth/normalizeAuthTokens";
 import type { AuthTokens } from "@/shared/types/api";
@@ -39,6 +40,7 @@ export function startAuthServiceOAuth(
   }
 
   try {
+    void useAuthStore.getState().prepareForOAuthExchange();
     window.location.href = getOAuthLinkUrl(provider);
     return true;
   } catch (e) {

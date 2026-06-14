@@ -100,6 +100,28 @@ export const useAuthStore = create<AuthStore>()(
 
       getRefreshTokenInMemory: () => get().refreshTokenInMemory,
 
+      clearRefreshTokenInMemory: () => {
+        set({ refreshTokenInMemory: null });
+      },
+
+      prepareForOAuthExchange: async () => {
+        if (refreshTimerId) {
+          clearTimeout(refreshTimerId);
+          refreshTimerId = null;
+        }
+        clearLogoutFlag();
+        set({ refreshTokenInMemory: null, isInitialized: false });
+        try {
+          await authApi.logout();
+        } catch {
+          // best-effort: clear stale refresh cookie before OAuth
+        }
+      },
+
+      completeOAuthLogin: () => {
+        set({ isInitialized: true });
+      },
+
       logout: () => {
         if (refreshTimerId) {
           clearTimeout(refreshTimerId);
@@ -152,6 +174,7 @@ export const useAuthStore = create<AuthStore>()(
             err?.message?.includes("Backend unavailable");
 
           if (isUnauthorized) {
+            get().clearRefreshTokenInMemory();
             throw error;
           }
 
