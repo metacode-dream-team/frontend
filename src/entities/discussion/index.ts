@@ -22,6 +22,7 @@ export {
 export {
   commentCount,
   filterAndSortPosts,
+  getTopPosts,
   reactionScore,
   toggleReaction,
   totalReactions,

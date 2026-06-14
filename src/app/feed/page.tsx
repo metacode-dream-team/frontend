@@ -64,7 +64,7 @@ export default function FeedPage() {
           </section>
           <section
             aria-label="Discussions"
-            className="min-w-0 lg:sticky lg:top-20 lg:self-start"
+            className="min-w-0 lg:sticky lg:top-20 lg:z-10 lg:self-start"
           >
             <DiscussionsPanel />
           </section>

@@ -30,6 +30,40 @@ export function commentCount(
   return commentsByPostId[postId]?.length ?? 0;
 }
 
+function compareByTopEngagement(
+  a: DiscussionPost,
+  b: DiscussionPost,
+  commentsByPostId: Record<string, DiscussionComment[]>,
+): number {
+  const scoreDiff = reactionScore(b.reactions) - reactionScore(a.reactions);
+  if (scoreDiff !== 0) return scoreDiff;
+
+  const commentDiff = commentCount(b.id, commentsByPostId) - commentCount(a.id, commentsByPostId);
+  if (commentDiff !== 0) return commentDiff;
+
+  return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+}
+
+export function getTopPosts(
+  posts: DiscussionPost[],
+  commentsByPostId: Record<string, DiscussionComment[]>,
+  options: {
+    category: DiscussionCategory | "all";
+    limit?: number;
+  },
+): DiscussionPost[] {
+  const result = posts.filter((post) => {
+    if (options.category !== "all" && post.category !== options.category) return false;
+    return (
+      reactionScore(post.reactions) > 0 || commentCount(post.id, commentsByPostId) > 0
+    );
+  });
+
+  return [...result]
+    .sort((a, b) => compareByTopEngagement(a, b, commentsByPostId))
+    .slice(0, options.limit ?? 6);
+}
+
 export function filterAndSortPosts(
   posts: DiscussionPost[],
   commentsByPostId: Record<string, DiscussionComment[]>,
@@ -61,9 +95,7 @@ export function filterAndSortPosts(
       if (cb !== ca) return cb - ca;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
-    const scoreDiff = reactionScore(b.reactions) - reactionScore(a.reactions);
-    if (scoreDiff !== 0) return scoreDiff;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    return compareByTopEngagement(a, b, commentsByPostId);
   });
 
   return result;
