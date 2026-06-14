@@ -1,11 +1,16 @@
 import {
   type ProfileAchievement,
+  type ProfileBirthDate,
   type ProfileCertification,
+  type ProfileContacts,
+  type ProfileContactPhone,
   type ProfileData,
   type ProfileEducation,
   type ProfileExperience,
   type ProfileHeatmapBySource,
   type ProfileHeatmapDay,
+  type ProfilePersonal,
+  type ProfileVisibility,
 } from "@/shared/types/profile";
 import type { ActivityStreak } from "@/shared/types/streak";
 import type { ActivityDay, ActivitySource, GithubStats, LeetcodeStats, MonkeytypeStats } from "@/shared/types/stats";
@@ -113,18 +118,239 @@ export function mapLeaderboardUserRank(raw: unknown): number | null {
   return Math.trunc(rank);
 }
 
+export function mapLeaderboardUserAvatar(raw: unknown): string | null {
+  const j = unwrapDataPayload(raw);
+  const user = (j.user as Json | undefined) ?? {};
+  const url = str(
+    user.avatar_url ?? user.avatarUrl ?? user.AvatarURL ?? j.avatar_url ?? j.avatarUrl,
+    "",
+  ).trim();
+  return url || null;
+}
+
+export function isDicebearProfileAvatar(url: string, username: string): boolean {
+  const u = url.trim().toLowerCase();
+  if (!u) return true;
+  if (u.includes("dicebear.com")) return true;
+  const seed = encodeURIComponent(username.trim());
+  return seed.length > 0 && u.includes(`seed=${seed.toLowerCase()}`);
+}
+
+export function applyLeaderboardExtras(
+  profile: ProfileData,
+  leaderboardRaw: unknown,
+): ProfileData {
+  let next = profile;
+
+  const rank = mapLeaderboardUserRank(leaderboardRaw);
+  if (rank != null && rank > 0) {
+    next = { ...next, rank };
+  }
+
+  const leaderboardAvatar = mapLeaderboardUserAvatar(leaderboardRaw);
+  if (leaderboardAvatar && isDicebearProfileAvatar(next.avatarUrl, next.username)) {
+    next = { ...next, avatarUrl: leaderboardAvatar };
+  }
+
+  return next;
+}
+
 export function pickUserId(raw: unknown): string | null {
   const j = unwrapDataPayload(raw);
   const id =
     str(j.UserID, "") ||
     str(j.user_id, "") ||
     str(j.userId, "") ||
+    str(j.profile_id, "") ||
+    str(j.profileId, "") ||
+    str(j.ProfileID, "") ||
     str(j.ID, "") ||
     str(j.id, "");
   if (/^[0-9a-f-]{36}$/i.test(id)) {
     return id;
   }
   return null;
+}
+
+function hasVisibilityFields(raw: Json): boolean {
+  return (
+    "is_owner" in raw ||
+    "is_accessible" in raw ||
+    "isOwner" in raw ||
+    "IsOwner" in raw ||
+    "can_see_integrations" in raw ||
+    "canSeeIntegrations" in raw
+  );
+}
+
+function readVisibilityFlag(raw: Json, keys: string[], defaultValue: boolean): boolean {
+  for (const key of keys) {
+    if (key in raw) {
+      return bool(raw[key]);
+    }
+  }
+  return defaultValue;
+}
+
+export function mapProfileVisibility(raw: Json): ProfileVisibility | undefined {
+  if (!hasVisibilityFields(raw)) {
+    return undefined;
+  }
+
+  return {
+    isOwner: readVisibilityFlag(raw, ["is_owner", "isOwner", "IsOwner"], false),
+    isAccessible: readVisibilityFlag(
+      raw,
+      ["is_accessible", "isAccessible", "IsAccessible"],
+      true,
+    ),
+    isPrivate: readVisibilityFlag(raw, ["is_private", "isPrivate", "IsPrivate"], false),
+    followStatus: str(
+      raw.follow_status ?? raw.followStatus ?? raw.FollowStatus,
+      "none",
+    ),
+    profileVisibility: str(
+      raw.profile_visibility ?? raw.profileVisibility ?? raw.ProfileVisibility,
+      "public",
+    ),
+    canSeeBirthDate: readVisibilityFlag(
+      raw,
+      ["can_see_birth_date", "canSeeBirthDate", "CanSeeBirthDate"],
+      true,
+    ),
+    canSeeContacts: readVisibilityFlag(
+      raw,
+      ["can_see_contacts", "canSeeContacts", "CanSeeContacts"],
+      true,
+    ),
+    canSeeLocation: readVisibilityFlag(
+      raw,
+      ["can_see_location", "canSeeLocation", "CanSeeLocation"],
+      true,
+    ),
+    canSeeIntegrations: readVisibilityFlag(
+      raw,
+      ["can_see_integrations", "canSeeIntegrations", "CanSeeIntegrations"],
+      true,
+    ),
+  };
+}
+
+function mapSpokenLanguagesFromDocument(raw: Json): ProfileData["spokenLanguages"] {
+  const explicit = mapSpokenLanguages(
+    raw.SpokenLanguages ?? raw.spoken_languages ?? raw.spokenLanguages,
+  );
+  if (explicit.length > 0) {
+    return explicit;
+  }
+
+  const candidate = raw.languages ?? raw.Languages;
+  const list = extractArrayPayload(candidate);
+  if (!list.length) {
+    return [];
+  }
+
+  const first = list[0];
+  if (
+    first &&
+    typeof first === "object" &&
+    ("Code" in (first as object) || "code" in (first as object))
+  ) {
+    return mapSpokenLanguages(candidate);
+  }
+
+  return [];
+}
+
+function parseBirthDateParts(raw: unknown): ProfileBirthDate | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const o = raw as Json;
+  const year = Number(o.Year ?? o.year);
+  const month = Number(o.Month ?? o.month);
+  const day = Number(o.Day ?? o.day);
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(day) ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return undefined;
+  }
+  return { year: Math.trunc(year), month: Math.trunc(month), day: Math.trunc(day) };
+}
+
+function mapProfilePhone(raw: unknown): ProfileContactPhone | undefined {
+  if (!raw) return undefined;
+  if (typeof raw === "object") {
+    const o = raw as Json;
+    const value = str(o.Value ?? o.value, "").trim();
+    if (!value) return undefined;
+    return {
+      type: str(o.Type ?? o.type, "").trim() || "mobile",
+      value,
+    };
+  }
+  const value = str(raw, "").trim();
+  if (!value) return undefined;
+  return { type: "mobile", value };
+}
+
+function mapProfileContactsFromDocument(raw: Json): ProfileContacts | undefined {
+  const contactsRaw = raw.Contacts ?? raw.contacts;
+  if (!contactsRaw || typeof contactsRaw !== "object") return undefined;
+
+  const o = contactsRaw as Json;
+  const email = str(o.Email ?? o.email, "").trim();
+  const phone = mapProfilePhone(o.Phone ?? o.phone);
+  const websitesRaw = o.Websites ?? o.websites;
+  const websites = Array.isArray(websitesRaw)
+    ? websitesRaw
+        .map((item) => {
+          const w = item as Json;
+          const url = str(w.URL ?? w.url, "").trim();
+          if (!url) return null;
+          return {
+            type: str(w.Type ?? w.type, "").trim() || "website",
+            url,
+          };
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null)
+    : [];
+
+  if (!email && !phone?.value && websites.length === 0) {
+    return undefined;
+  }
+
+  return {
+    email: email || undefined,
+    phone,
+    websites,
+  };
+}
+
+function mapProfilePersonalFromDocument(
+  raw: Json,
+  visibility?: ProfileVisibility,
+): ProfilePersonal | undefined {
+  const canSeeBirthDate = visibility?.canSeeBirthDate ?? true;
+  const address = str(raw.Address ?? raw.address, "").trim();
+  const gender = str(raw.Gender ?? raw.gender, "").trim();
+  const birthDate = canSeeBirthDate
+    ? parseBirthDateParts(raw.BirthDate ?? raw.birth_date ?? raw.birthDate)
+    : undefined;
+
+  if (!address && !gender && !birthDate) {
+    return undefined;
+  }
+
+  return {
+    address: address || undefined,
+    gender: gender || undefined,
+    birthDate,
+  };
 }
 
 export function mapProfileDocument(
@@ -166,11 +392,19 @@ export function mapProfileDocument(
       raw.Skills ??
       raw.skills,
   );
+  const visibility = mapProfileVisibility(raw);
 
   // `id` в приоритете = UserID (тот же query `user_id`, что в /integration/profile и /activity/user/achievement)
   return {
     id: str(
-      raw.UserID ?? raw.user_id ?? raw.userId ?? raw.ID ?? raw.id,
+      raw.UserID ??
+        raw.user_id ??
+        raw.userId ??
+        raw.profile_id ??
+        raw.profileId ??
+        raw.ProfileID ??
+        raw.ID ??
+        raw.id,
       fallbackId,
     ),
     username,
@@ -182,7 +416,7 @@ export function mapProfileDocument(
     about: str(raw.About ?? raw.about, "") || undefined,
     rank: num(raw.Rank ?? raw.rank ?? raw.global_rank),
     role: str(raw.Role ?? raw.role ?? raw.Headline ?? raw.headline ?? raw.Title ?? raw.title, "Developer"),
-    location: str(raw.Location ?? raw.location ?? raw.City ?? raw.city, ""),
+    location: formatLocation(raw.Location ?? raw.location) || str(raw.City ?? raw.city, ""),
     following: num(raw.FollowingCount ?? raw.following ?? raw.following_count ?? raw.followingCount),
     followers: num(raw.FollowersCount ?? raw.followers ?? raw.followers_count ?? raw.followersCount),
     solved: num(raw.Solved ?? raw.solved ?? raw.total_solved),
@@ -197,10 +431,10 @@ export function mapProfileDocument(
     achievements: extras.achievements,
     currentStreak: num(raw.CurrentStreak ?? raw.current_streak ?? raw.currentStreak),
     maxStreak: num(raw.MaxStreak ?? raw.max_streak ?? raw.maxStreak),
-    spokenLanguages: mapSpokenLanguages(
-      raw.SpokenLanguages ?? raw.spoken_languages ?? raw.spokenLanguages,
+    spokenLanguages: mapSpokenLanguagesFromDocument(raw),
+    languages: mapLanguages(
+      raw.LanguageStats ?? raw.language_stats ?? raw.leetcode_languages,
     ),
-    languages: mapLanguages(raw.Languages ?? raw.languages ?? raw.language_stats),
     skills: mapSkillGroups(raw.SkillGroups ?? raw.skill_groups),
     heatmap: extras.heatmap,
     experience: exp,
@@ -209,6 +443,9 @@ export function mapProfileDocument(
       raw.Certifications ?? raw.certifications,
     ),
     techSkills: tech,
+    contacts: mapProfileContactsFromDocument(raw),
+    personal: mapProfilePersonalFromDocument(raw, visibility),
+    visibility,
   };
 }
 
@@ -756,10 +993,12 @@ export function mapIntegrationProfileToStats(raw: unknown): {
 export function augmentProfileWithIntegration(
   base: ProfileData,
   integrationRaw: unknown,
+  options?: { includeActivityHeatmap?: boolean },
 ): ProfileData {
   const root = unwrapDataPayload(integrationRaw);
   if (!Object.keys(root).length) return base;
 
+  const includeActivityHeatmap = options?.includeActivityHeatmap ?? true;
   const next = { ...base };
 
   const lc = root.leetcode as Json | undefined;
@@ -800,7 +1039,7 @@ export function augmentProfileWithIntegration(
   }
 
   const mergedActivity = mapIntegrationProfileToActivityDays(integrationRaw);
-  if (mergedActivity.length > 0) {
+  if (includeActivityHeatmap && mergedActivity.length > 0) {
     const bundle = buildIntegrationHeatmapBundle(mergedActivity);
     next.heatmap = bundle.combinedMax;
     next.heatmapBySource = bundle;

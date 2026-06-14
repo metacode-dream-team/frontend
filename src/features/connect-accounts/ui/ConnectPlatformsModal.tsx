@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
+import { useGithubConnect } from "@/features/bind-github";
 import { LeetcodeBindModal } from "@/features/bind-leetcode";
 import { MonkeytypeBindModal } from "@/features/bind-monkeytype";
 import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
@@ -110,6 +111,8 @@ export function ConnectPlatformsModal({
   const [loading, setLoading] = useState<ConnectProvider | null>(null);
   const [leetcodeBindOpen, setLeetcodeBindOpen] = useState(false);
   const [monkeytypeBindOpen, setMonkeytypeBindOpen] = useState(false);
+  const { connect: connectGithub, error: githubConnectError, clearError: clearGithubError } =
+    useGithubConnect();
 
   useBodyScrollLock(open);
 
@@ -131,14 +134,17 @@ export function ConnectPlatformsModal({
       setLoading(null);
       setLeetcodeBindOpen(false);
       setMonkeytypeBindOpen(false);
+      clearGithubError();
     }
-  }, [open]);
+  }, [open, clearGithubError]);
 
   if (!open) {
     return null;
   }
 
   const connect = (provider: ConnectProvider) => {
+    clearGithubError();
+
     if (provider === "leetcode") {
       if (isAuthenticated && accessToken) {
         setLeetcodeBindOpen(true);
@@ -156,6 +162,19 @@ export function ConnectPlatformsModal({
       }
       onOpenChange(false);
       router.push("/login");
+      return;
+    }
+
+    if (provider === "github") {
+      if (!isAuthenticated || !accessToken) {
+        onOpenChange(false);
+        router.push("/login");
+        return;
+      }
+      setLoading(provider);
+      void connectGithub().then((ok) => {
+        if (!ok) setLoading(null);
+      });
       return;
     }
 
@@ -217,6 +236,12 @@ export function ConnectPlatformsModal({
             </svg>
           </button>
         </div>
+
+        {githubConnectError ? (
+          <p className="mt-4 text-sm text-rose-400" role="alert">
+            {githubConnectError}
+          </p>
+        ) : null}
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           {PROVIDERS.map((p) => (

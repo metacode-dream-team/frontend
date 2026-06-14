@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
-import { useProfileMeStore } from "@/entities/profile";
+import { profileHref, useProfileMeStore } from "@/entities/profile";
 import {
   DISCUSSION_CATEGORIES,
   commentCount,
@@ -20,12 +20,6 @@ import { formatTimeAgo } from "@/shared/lib/utils/formatTime";
 import { cn } from "@/shared/lib/utils/cn";
 
 const COMMENTS_PER_PAGE = 15;
-
-// TODO: просмотр чужого профиля — вернуть ссылки на /profile/{username}.
-// function profileHref(username: string): string {
-//   const slug = username.trim();
-//   return slug ? `/profile/${encodeURIComponent(slug)}` : "/profile";
-// }
 
 function avatarFallback(seed: string): string {
   return `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(seed)}`;
@@ -127,14 +121,17 @@ export default function DiscussionPostPage() {
         <article className="mt-4 overflow-hidden rounded-2xl border border-zinc-800/80 bg-[#0c0c0e]">
           <div className="border-b border-zinc-800/70 px-4 py-4 sm:px-6 sm:py-5">
             <div className="flex gap-3">
-              <div className="shrink-0">
+              <Link href={profileHref(post.author.username)} className="shrink-0">
                 <Avatar src={post.author.avatarUrl} alt={post.author.username} size="sm" />
-              </div>
+              </Link>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <span className="text-sm font-medium text-zinc-200">
+                  <Link
+                    href={profileHref(post.author.username)}
+                    className="text-sm font-medium text-zinc-200 transition-colors hover:text-white"
+                  >
                     {post.author.username}
-                  </span>
+                  </Link>
                   <span className="rounded border border-zinc-700/80 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-zinc-500">
                     {categoryLabel}
                   </span>

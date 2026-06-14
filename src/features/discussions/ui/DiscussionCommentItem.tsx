@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { Avatar } from "@/shared/ui/Avatar";
 import { formatTimeAgo } from "@/shared/lib/utils/formatTime";
 import { cn } from "@/shared/lib/utils/cn";
 import type { DiscussionComment, VoteKind } from "@/entities/discussion";
+import { profileHref } from "@/entities/profile";
 import { ReactionBar } from "./ReactionBar";
 
 interface DiscussionCommentItemProps {
@@ -13,12 +15,6 @@ interface DiscussionCommentItemProps {
   onToggleVote?: (commentId: string, kind: VoteKind) => void;
   className?: string;
 }
-
-// TODO: просмотр чужого профиля — вернуть ссылки на /profile/{username}.
-// function profileHref(username: string): string {
-//   const slug = username.trim();
-//   return slug ? `/profile/${encodeURIComponent(slug)}` : "/profile";
-// }
 
 export function DiscussionCommentItem({
   comment,
@@ -37,14 +33,17 @@ export function DiscussionCommentItem({
       )}
     >
       <div className="flex gap-3">
-        <div className="shrink-0">
+        <Link href={profileHref(comment.author.username)} className="shrink-0">
           <Avatar src={comment.author.avatarUrl} alt={comment.author.username} size="sm" />
-        </div>
+        </Link>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="text-sm font-medium text-zinc-200">
+            <Link
+              href={profileHref(comment.author.username)}
+              className="text-sm font-medium text-zinc-200 transition-colors hover:text-white"
+            >
               {comment.author.username}
-            </span>
+            </Link>
             <span className="text-xs text-zinc-600">{formatTimeAgo(comment.createdAt)}</span>
           </div>
 

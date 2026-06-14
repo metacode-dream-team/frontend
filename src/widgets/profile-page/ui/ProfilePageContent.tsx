@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ProfileData, SkillGroup } from "@/entities/profile";
 import { AddProfileCertificationModal } from "@/features/add-profile-certification";
 import { AddProfileEducationModal } from "@/features/add-profile-education";
@@ -13,7 +13,12 @@ import { EditProfileContactsModal } from "@/features/edit-profile-contacts";
 import { EditProfilePersonalModal } from "@/features/edit-profile-personal";
 import { EditableProfileAvatar } from "@/features/profile-basics";
 import { ContactInfoModal } from "@/features/profile-contacts";
+import { hasContactsContent } from "@/features/profile-contacts/lib/contactsMappers";
 import { PersonalInfoModal } from "@/features/profile-personal";
+import {
+  hasPersonalContent,
+  personalForViewer,
+} from "@/features/profile-personal/lib/personalMappers";
 import { ProfileConfirmDialog, useProfileDeleteItem } from "@/features/profile-forms";
 import { ProfileAchievementsBlock } from "./profile-achievements-block";
 import {
@@ -94,6 +99,30 @@ export function ProfilePageContent({
   profile,
   canEdit = false,
 }: ProfilePageContentProps) {
+  const visibility = profile.visibility;
+  const canSeeLocation = canEdit || (visibility?.canSeeLocation ?? true);
+  const canSeeContacts = canEdit || (visibility?.canSeeContacts ?? true);
+  const canSeeBirthDate = canEdit || (visibility?.canSeeBirthDate ?? true);
+  const hasHeatmapData =
+    profile.heatmap.length > 0 ||
+    (profile.heatmapBySource?.combinedMax.length ?? 0) > 0;
+
+  const viewPersonal = useMemo(
+    () =>
+      canEdit
+        ? profile.personal
+        : personalForViewer(profile.personal, canSeeBirthDate),
+    [profile.personal, canSeeBirthDate, canEdit],
+  );
+  const showPersonalInfo = canEdit || hasPersonalContent(viewPersonal);
+  const showContactInfo =
+    canEdit || (canSeeContacts && hasContactsContent(profile.contacts));
+  const displayLocation = canSeeLocation ? profile.location.trim() : "";
+  const displayAddress =
+    !displayLocation && viewPersonal?.address?.trim()
+      ? viewPersonal.address.trim()
+      : "";
+
   const [editBasicsOpen, setEditBasicsOpen] = useState(false);
   const [editAboutOpen, setEditAboutOpen] = useState(false);
   const [addCertificationOpen, setAddCertificationOpen] = useState(false);
@@ -126,7 +155,7 @@ export function ProfilePageContent({
                 <p className="text-sm">
                   <span className="text-zinc-500">Rank </span>
                   <span className="font-semibold tabular-nums text-[#b84dff]">
-                    {profile.rank.toLocaleString()}
+                    {profile.rank > 0 ? profile.rank.toLocaleString() : "—"}
                   </span>
                 </p>
                 {canEdit ? (
@@ -165,26 +194,36 @@ export function ProfilePageContent({
               )}
             </div>
           )}
-          <p className="mt-1 flex items-center justify-center gap-1.5 text-xs text-zinc-500 max-lg:justify-start sm:justify-start">
-            <MapPinIcon />
-            {profile.location}
-          </p>
+          {displayLocation ? (
+            <p className="mt-1 flex items-center justify-center gap-1.5 text-xs text-zinc-500 max-lg:justify-start sm:justify-start">
+              <MapPinIcon />
+              {displayLocation}
+            </p>
+          ) : displayAddress ? (
+            <p className="mt-1 text-center text-xs text-zinc-500 max-lg:text-left sm:text-left">
+              {displayAddress}
+            </p>
+          ) : null}
 
-          <button
-            type="button"
-            onClick={() => setPersonalViewOpen(true)}
-            className="mt-1 w-full text-center text-xs font-medium text-zinc-500 transition-colors hover:text-[#b84dff] max-lg:text-left sm:text-left"
-          >
-            Personal info
-          </button>
+          {showPersonalInfo ? (
+            <button
+              type="button"
+              onClick={() => setPersonalViewOpen(true)}
+              className="mt-1 w-full text-center text-xs font-medium text-zinc-500 transition-colors hover:text-[#b84dff] max-lg:text-left sm:text-left"
+            >
+              Personal info
+            </button>
+          ) : null}
 
-          <button
-            type="button"
-            onClick={() => setContactViewOpen(true)}
-            className="mt-1 w-full text-center text-xs font-medium text-zinc-500 transition-colors hover:text-[#b84dff] max-lg:text-left sm:text-left"
-          >
-            Contact info
-          </button>
+          {showContactInfo ? (
+            <button
+              type="button"
+              onClick={() => setContactViewOpen(true)}
+              className="mt-1 w-full text-center text-xs font-medium text-zinc-500 transition-colors hover:text-[#b84dff] max-lg:text-left sm:text-left"
+            >
+              Contact info
+            </button>
+          ) : null}
 
           {/* TODO: подписки — вернуть счётчики Following/Followers и кнопку Follow на чужих профилях.
           <p className="mt-4 text-center text-sm text-zinc-400 max-lg:text-left sm:text-left">
@@ -215,14 +254,20 @@ export function ProfilePageContent({
             }
           />
 
-          <section className="mt-8 pt-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">DSA Skills</h3>
-            <div className="mt-4 space-y-4">
-              {profile.skills.map((group) => (
-                <SkillGroupBlock key={group.level} group={group} />
-              ))}
-            </div>
-          </section>
+          {(profile.skills.length > 0 || canEdit) && (
+            <section className="mt-8 pt-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">DSA Skills</h3>
+              <div className="mt-4 space-y-4">
+                {profile.skills.length > 0 ? (
+                  profile.skills.map((group) => (
+                    <SkillGroupBlock key={group.level} group={group} />
+                  ))
+                ) : (
+                  <p className="text-sm italic text-zinc-600">Connect LeetCode to see DSA skills.</p>
+                )}
+              </div>
+            </section>
+          )}
           </div>
         </div>
       </aside>
@@ -250,13 +295,15 @@ export function ProfilePageContent({
           />
         </div>
 
-        <SubmissionHeatmap
-          profileKey={profile.username}
-          heatmap={profile.heatmap}
-          heatmapBySource={profile.heatmapBySource}
-          currentStreak={profile.currentStreak}
-          maxStreak={profile.maxStreak}
-        />
+        {hasHeatmapData ? (
+          <SubmissionHeatmap
+            profileKey={profile.username}
+            heatmap={profile.heatmap}
+            heatmapBySource={profile.heatmapBySource}
+            currentStreak={profile.currentStreak}
+            maxStreak={profile.maxStreak}
+          />
+        ) : null}
 
         <ProfileExperienceSection
           items={profile.experience}
@@ -319,7 +366,7 @@ export function ProfilePageContent({
       <PersonalInfoModal
         open={personalViewOpen}
         onOpenChange={setPersonalViewOpen}
-        personal={profile.personal}
+        personal={viewPersonal}
         canEdit={canEdit}
         onEdit={() => {
           setPersonalViewOpen(false);

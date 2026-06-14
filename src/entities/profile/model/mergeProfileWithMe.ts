@@ -239,8 +239,8 @@ export function mergeProfileWithMe(
     location: me.location?.trim() || base.location,
     role: me.headline?.trim() || base.role,
     about: me.about?.trim() || undefined,
-    contacts: fromMeContacts ?? undefined,
-    personal: fromMePersonal ?? undefined,
+    contacts: fromMeContacts ?? base.contacts ?? undefined,
+    personal: fromMePersonal ?? base.personal ?? undefined,
     experience: preferMeList(me.experiences, fromMeExperience, base.experience),
     education: preferMeList(me.educations, fromMeEducation, base.education),
     certifications: preferMeList(

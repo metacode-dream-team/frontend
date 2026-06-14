@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 import { useAuthStore } from "@/entities/auth";
-import { useProfileMeStore } from "@/entities/profile";
+import { profileHref, useProfileMeStore } from "@/entities/profile";
 import type { LeaderboardUser } from "@/shared/types/leaderboard";
 import { Avatar } from "@/shared/ui/Avatar";
 import { cn } from "@/shared/lib/utils/cn";
@@ -33,12 +34,6 @@ function formatScore(score: number): string {
     minimumFractionDigits: 0,
   });
 }
-
-// TODO: просмотр чужого профиля — вернуть ссылки на /profile/{username}.
-// function profileHref(username: string): string {
-//   const slug = username.trim();
-//   return slug ? `/profile/${encodeURIComponent(slug)}` : "/profile";
-// }
 
 function CupIcon({ rank }: { rank: 1 | 2 | 3 }) {
   const stroke =
@@ -238,14 +233,23 @@ function PodiumCard({
         </span>
       </div>
       <div className="mb-4 flex justify-center">
-        <Avatar
-          src={player.avatarUrl}
-          alt={player.username}
-          size="lg"
-          className="h-20 w-20 ring-2 ring-zinc-700"
-        />
+        <Link href={profileHref(player.username)}>
+          <Avatar
+            src={player.avatarUrl}
+            alt={player.username}
+            size="lg"
+            className="h-20 w-20 ring-2 ring-zinc-700"
+          />
+        </Link>
       </div>
-      <h3 className="text-center text-lg font-bold text-white">{player.username}</h3>
+      <h3 className="text-center text-lg font-bold text-white">
+        <Link
+          href={profileHref(player.username)}
+          className="transition-colors hover:text-violet-300"
+        >
+          {player.username}
+        </Link>
+      </h3>
       <p
         className="mt-4 flex items-center justify-center gap-1.5 text-2xl font-bold"
         style={{ color: "#7c3aed" }}
@@ -299,15 +303,24 @@ function MobilePodiumCard({
         </span>
       </div>
 
-      <Avatar
-        src={player.avatarUrl}
-        alt={player.username}
-        size="md"
-        className="h-14 w-14 shrink-0 ring-2 ring-zinc-700"
-      />
+      <Link href={profileHref(player.username)} className="shrink-0">
+        <Avatar
+          src={player.avatarUrl}
+          alt={player.username}
+          size="md"
+          className="h-14 w-14 shrink-0 ring-2 ring-zinc-700"
+        />
+      </Link>
 
       <div className="min-w-0 flex-1">
-        <h3 className="truncate text-base font-bold text-white">{player.username}</h3>
+        <h3 className="truncate text-base font-bold text-white">
+          <Link
+            href={profileHref(player.username)}
+            className="transition-colors hover:text-violet-300"
+          >
+            {player.username}
+          </Link>
+        </h3>
         <p className="mt-0.5 text-lg font-bold" style={{ color: "#7c3aed" }}>
           {formatScore(player.totalScore)}
           <span className="ml-1 text-xs font-medium text-zinc-500">score</span>
@@ -555,8 +568,15 @@ export default function LeaderboardPage() {
                           <td className="py-4 text-zinc-500">#{row.rank}</td>
                           <td className="py-4">
                             <div className="flex items-center gap-3">
-                              <Avatar src={row.avatarUrl} alt={row.username} size="sm" />
-                              <p className="font-medium text-white">{row.username}</p>
+                              <Link href={profileHref(row.username)} className="shrink-0">
+                                <Avatar src={row.avatarUrl} alt={row.username} size="sm" />
+                              </Link>
+                              <Link
+                                href={profileHref(row.username)}
+                                className="font-medium text-white transition-colors hover:text-violet-300"
+                              >
+                                {row.username}
+                              </Link>
                             </div>
                           </td>
                           <td className="hidden py-4 md:table-cell">

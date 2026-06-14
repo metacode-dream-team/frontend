@@ -20,6 +20,7 @@ import {
 import { parseAvatarUploadResponse } from "@/shared/lib/utils/parseAvatarUploadResponse";
 import {
   applyActivityStreakToProfile,
+  applyLeaderboardExtras,
   augmentProfileWithIntegration,
   mapAchievementsPayload,
   mapStreakPayload,
@@ -28,6 +29,7 @@ import {
   mapIntegrationProfileToActivityDays,
   mapIntegrationProfileToStats,
   mapProfileDocument,
+  mapProfileVisibility,
   pickUserId,
   unwrapDataPayload,
 } from "./platformMappers";
@@ -278,7 +280,6 @@ export async function buildProfileFromPlatform(
   accessToken?: string | null,
   options?: BuildProfileOptions,
 ): Promise<ProfileData> {
-  // TODO: просмотр чужого профиля — сейчас грузим только /v1/profiles/me (см. useClientProfileLoader).
   const rawDoc =
     options?.useMeEndpoint && accessToken
       ? await fetchProfileMe(accessToken)
@@ -293,12 +294,18 @@ export async function buildProfileFromPlatform(
   let integrationJson: Json | null = null;
   let streakJson: Json | null = null;
 
-  if (userId) {
-    const [achJson, calJson, integJson, streakRaw] = await Promise.all([
+  const visibility = mapProfileVisibility(doc);
+  const isAccessible = visibility?.isAccessible ?? true;
+
+  let leaderboardJson: Json | null = null;
+
+  if (userId && isAccessible) {
+    const [achJson, calJson, integJson, streakRaw, leaderboardRaw] = await Promise.all([
       fetchUserAchievements(userId, accessToken).catch(() => null),
       fetchIntegrationCalendar(userId, accessToken).catch(() => null),
       fetchIntegrationProfile(userId, accessToken).catch(() => null),
       fetchUserStreak(userId, accessToken).catch(() => null),
+      fetchLeaderboardUser(userId, accessToken).catch(() => null),
     ]);
     if (achJson) {
       achievements = mapAchievementsPayload(achJson);
@@ -310,6 +317,7 @@ export async function buildProfileFromPlatform(
       integrationJson = integJson;
     }
     streakJson = streakRaw;
+    leaderboardJson = leaderboardRaw;
   }
 
   let base = mapProfileDocument(doc, idFromRoute, {
@@ -319,6 +327,10 @@ export async function buildProfileFromPlatform(
 
   if (integrationJson) {
     base = augmentProfileWithIntegration(base, integrationJson);
+  }
+
+  if (leaderboardJson) {
+    base = applyLeaderboardExtras(base, leaderboardJson);
   }
 
   if (userId && streakJson) {

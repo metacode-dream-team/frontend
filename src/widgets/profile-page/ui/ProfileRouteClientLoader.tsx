@@ -10,6 +10,7 @@ import { useClientProfileLoader } from "../lib/useClientProfileLoader";
 import { useProfileWithClientAchievements } from "../lib/useProfileWithClientAchievements";
 import { ProfileLoadError } from "./ProfileLoadError";
 import { ProfilePageContent } from "./ProfilePageContent";
+import { ProfileRestrictedView } from "./ProfileRestrictedView";
 
 interface ProfileRouteClientLoaderProps {
   routeUsername: string;
@@ -56,6 +57,10 @@ export function ProfileRouteClientLoader({ routeUsername }: ProfileRouteClientLo
     return (
       <ProfileLoadError username={routeUsername} status={errorStatus} />
     );
+  }
+
+  if (profile.visibility?.isAccessible === false) {
+    return <ProfileRestrictedView username={routeUsername} />;
   }
 
   return (

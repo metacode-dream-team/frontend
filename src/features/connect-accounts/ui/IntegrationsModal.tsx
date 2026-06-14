@@ -3,10 +3,10 @@
 import { useEffect, useId, useMemo, useState } from "react";
 
 import { useProfileMeStore } from "@/entities/profile";
+import { useGithubConnect } from "@/features/bind-github";
 import { LeetcodeBindModal } from "@/features/bind-leetcode";
 import { MonkeytypeBindModal } from "@/features/bind-monkeytype";
 import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
-import { startAuthServiceOAuth } from "@/shared/lib/auth";
 import type { KeycloakIdpHint } from "@/shared/lib/keycloak/keycloak";
 import { cn } from "@/shared/lib/utils/cn";
 
@@ -127,6 +127,8 @@ export function IntegrationsModal({
   const [loading, setLoading] = useState<ConnectProvider | null>(null);
   const [leetcodeBindOpen, setLeetcodeBindOpen] = useState(false);
   const [monkeytypeBindOpen, setMonkeytypeBindOpen] = useState(false);
+  const { connect: connectGithub, error: githubConnectError, clearError: clearGithubError } =
+    useGithubConnect();
   const { unbind, unbinding, error: unbindError, clearError } = useUnbindIntegration();
 
   const linkedAccounts = useMemo(
@@ -152,9 +154,10 @@ export function IntegrationsModal({
       setLoading(null);
       setLeetcodeBindOpen(false);
       setMonkeytypeBindOpen(false);
+      clearGithubError();
       clearError();
     }
-  }, [open, clearError]);
+  }, [open, clearError, clearGithubError]);
 
   if (!open) return null;
 
@@ -170,8 +173,9 @@ export function IntegrationsModal({
     }
 
     setLoading(provider);
-    const ok = startAuthServiceOAuth("github");
-    if (!ok) setLoading(null);
+    void connectGithub().then((ok) => {
+      if (!ok) setLoading(null);
+    });
   };
 
   const disconnect = (provider: ConnectProvider) => {
@@ -224,9 +228,9 @@ export function IntegrationsModal({
           </button>
         </div>
 
-        {unbindError ? (
+        {(unbindError || githubConnectError) ? (
           <p className="px-5 pb-2 text-sm text-rose-400 sm:px-6" role="alert">
-            {unbindError}
+            {unbindError ?? githubConnectError}
           </p>
         ) : null}
 

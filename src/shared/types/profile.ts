@@ -108,6 +108,18 @@ export interface ProfilePersonal {
 
 import type { ActivityStreak } from "./streak";
 
+export interface ProfileVisibility {
+  isOwner: boolean;
+  isAccessible: boolean;
+  isPrivate: boolean;
+  followStatus: string;
+  profileVisibility: string;
+  canSeeBirthDate: boolean;
+  canSeeContacts: boolean;
+  canSeeLocation: boolean;
+  canSeeIntegrations: boolean;
+}
+
 export interface ProfileData {
   id: string;
   username: string;
@@ -144,6 +156,7 @@ export interface ProfileData {
   education: ProfileEducation[];
   certifications: ProfileCertification[];
   techSkills: ProfileTechSkill[];
+  visibility?: ProfileVisibility;
 }
 
 export interface ProfileIntroPayload {

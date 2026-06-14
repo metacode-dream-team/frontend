@@ -21,8 +21,14 @@ export function useClientProfileLoader(routeUsername: string) {
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
   const [notFound, setNotFound] = useState(false);
 
+  const useMeEndpoint = shouldUseProfileMeEndpoint(
+    routeUsername,
+    accessToken,
+    me,
+  );
+
   useEffect(() => {
-    if (accessToken && isLoadingMe) {
+    if (useMeEndpoint && accessToken && isLoadingMe) {
       return;
     }
 
@@ -32,25 +38,10 @@ export function useClientProfileLoader(routeUsername: string) {
     setErrorStatus(null);
     setNotFound(false);
 
-    const useMeEndpoint = shouldUseProfileMeEndpoint(
-      routeUsername,
-      accessToken,
-      me,
-    );
-
-    // TODO: подписки и просмотр чужого профиля — временно отключены. Убрать guard и грузить чужой профиль через fetchProfileByUsername.
-    if (!useMeEndpoint) {
-      if (!cancelled) {
-        setNotFound(true);
-        setIsLoading(false);
-      }
-      return;
-    }
-
     void (async () => {
       try {
         const data = await buildProfileFromPlatform(routeUsername, accessToken, {
-          useMeEndpoint: true,
+          useMeEndpoint,
         });
         if (!cancelled) {
           setProfile(data);
@@ -72,9 +63,9 @@ export function useClientProfileLoader(routeUsername: string) {
     return () => {
       cancelled = true;
     };
-  }, [routeUsername, accessToken, me, isLoadingMe]);
+  }, [routeUsername, accessToken, isLoadingMe, useMeEndpoint]);
 
-  const waitingForMe = Boolean(accessToken && isLoadingMe);
+  const waitingForMe = Boolean(useMeEndpoint && accessToken && isLoadingMe);
 
   return {
     profile,

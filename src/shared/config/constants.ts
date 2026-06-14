@@ -91,6 +91,11 @@ export const GITHUB_UNLINK_PATH = readApiPath(
   "/v1/integration/github/unlink",
 );
 
+export const GITHUB_PROVIDER_START_PATH = readApiPath(
+  process.env.NEXT_PUBLIC_GITHUB_PROVIDER_START_PATH,
+  "/v1/integration/github/provider/start",
+);
+
 export const MONKEYTYPE_BIND_PATH = readApiPath(
   process.env.NEXT_PUBLIC_MONKEYTYPE_BIND_PATH,
   "/v1/integration/monkeytype/bind",

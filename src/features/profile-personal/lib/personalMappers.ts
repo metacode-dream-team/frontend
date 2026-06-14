@@ -144,3 +144,22 @@ export function hasPersonalContent(personal?: ProfilePersonal | null): boolean {
       personal.birthDate,
   );
 }
+
+export function personalForViewer(
+  personal: ProfilePersonal | null | undefined,
+  canSeeBirthDate: boolean,
+): ProfilePersonal | null {
+  if (!personal) return null;
+  if (canSeeBirthDate) {
+    return hasPersonalContent(personal) ? personal : null;
+  }
+
+  if (!personal.address?.trim() && !personal.gender?.trim()) {
+    return null;
+  }
+
+  return {
+    address: personal.address,
+    gender: personal.gender,
+  };
+}

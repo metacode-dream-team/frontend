@@ -24,5 +24,6 @@ export {
   isProfileRouteCurrentUser,
   mergeProfileWithMe,
 } from "./model/mergeProfileWithMe";
+export { profileHref } from "./lib/profileHref";
 export { useProfileMeStore } from "./model/profileMeStore";
 export { useSubmissionHeatmapStore } from "./model/submissionHeatmapStore";
