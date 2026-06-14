@@ -41,7 +41,10 @@ export function GroupedEventCard({ groupedEvent, className }: GroupedEventCardPr
             >
               {groupedEvent.username}
             </Link>
-            <span className="text-zinc-500">{groupedEvent.events.length} действий</span>
+            <span className="text-zinc-500">
+              {groupedEvent.events.length}{" "}
+              {groupedEvent.events.length === 1 ? "action" : "actions"}
+            </span>
           </div>
           <p className="mt-0.5 text-xs text-zinc-600">{formatTimeAgo(groupedEvent.createdAt)}</p>
         </div>

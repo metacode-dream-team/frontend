@@ -95,7 +95,7 @@ export default function DiscussionPostPage() {
   if (!hydrated || (loadingPostId === postId && !post)) {
     return (
       <div className="min-h-screen bg-black px-4 py-10 text-center text-zinc-500">
-        Загрузка…
+        Loading…
       </div>
     );
   }
@@ -103,9 +103,9 @@ export default function DiscussionPostPage() {
   if (!post) {
     return (
       <div className="min-h-screen bg-black px-4 py-16 text-center">
-        <p className="text-zinc-400">Пост не найден.</p>
+        <p className="text-zinc-400">Post not found.</p>
         <Link href="/feed" className="mt-4 inline-block text-sm text-violet-300 hover:text-violet-200">
-          ← К ленте
+          ← Back to feed
         </Link>
       </div>
     );
@@ -121,7 +121,7 @@ export default function DiscussionPostPage() {
           href="/feed"
           className="inline-flex items-center gap-1 text-sm text-zinc-500 transition-colors hover:text-zinc-300"
         >
-          ← К ленте
+          ← Back to feed
         </Link>
 
         <article className="mt-4 overflow-hidden rounded-2xl border border-zinc-800/80 bg-[#0c0c0e]">
@@ -168,8 +168,8 @@ export default function DiscussionPostPage() {
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-800/60 bg-zinc-950/40 px-4 py-3 text-xs text-zinc-500">
           <span>
             {totalComments === 0
-              ? "Комментариев пока нет"
-              : `Сообщения ${pageStart}–${pageEnd} из ${totalComments}`}
+              ? "No comments yet"
+              : `Comments ${pageStart}–${pageEnd} of ${totalComments}`}
           </span>
           {totalPages > 1 ? (
             <div className="flex items-center gap-2">
@@ -220,10 +220,10 @@ export default function DiscussionPostPage() {
         </div>
 
         <section className="mt-6 rounded-2xl border border-zinc-800/60 bg-[#09090b] p-4 sm:p-5">
-          <h2 className="text-sm font-semibold text-white">Оставить комментарий</h2>
+          <h2 className="text-sm font-semibold text-white">Leave a comment</h2>
           {!isAuthenticated ? (
             <p className="mt-3 text-sm text-zinc-500">
-              Войдите в аккаунт, чтобы комментировать.
+              Sign in to comment.
             </p>
           ) : (
             <form onSubmit={handleAddComment} className="mt-3 space-y-3">
@@ -231,12 +231,12 @@ export default function DiscussionPostPage() {
                 value={commentBody}
                 onChange={(e) => setCommentBody(e.target.value)}
                 rows={4}
-                placeholder="Напишите ответ..."
+                placeholder="Write a reply..."
                 className="w-full resize-y rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-violet-500/50"
               />
               <div className="flex justify-end">
                 <Button type="submit" variant="accent" size="sm" disabled={!commentBody.trim()}>
-                  Отправить
+                  Submit
                 </Button>
               </div>
             </form>
@@ -244,7 +244,7 @@ export default function DiscussionPostPage() {
         </section>
 
         <p className="mt-4 text-center text-[11px] text-zinc-600">
-          {commentCount(post, data.commentsByPostId)} комментариев · обсуждение MetaCode
+          {commentCount(post, data.commentsByPostId)} comments · MetaCode discussion
         </p>
       </div>
     </div>

@@ -66,7 +66,7 @@ export function CreateDiscussionPostModal({
       onClose();
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Не удалось создать пост. Попробуйте ещё раз.";
+        err instanceof Error ? err.message : "Failed to create post. Please try again.";
       setError(message);
     } finally {
       setPending(false);
@@ -88,10 +88,10 @@ export function CreateDiscussionPostModal({
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 id="create-discussion-title" className="text-lg font-semibold text-white">
-              Новый пост
+              New post
             </h2>
             <p className="mt-1 text-sm text-zinc-500">
-              Краткий заголовок и текст — без лишнего форматирования.
+              A short title and plain text — no rich formatting.
             </p>
           </div>
           <button
@@ -99,7 +99,7 @@ export function CreateDiscussionPostModal({
             onClick={onClose}
             disabled={isBusy}
             className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-40"
-            aria-label="Закрыть"
+            aria-label="Close"
           >
             ✕
           </button>
@@ -107,9 +107,9 @@ export function CreateDiscussionPostModal({
 
         {!isAuthenticated ? (
           <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 text-sm text-zinc-400">
-            Войдите в аккаунт, чтобы создавать посты.{" "}
+            Sign in to create posts.{" "}
             <Link href="/" className="text-violet-300 hover:text-violet-200">
-              На главную
+              Go home
             </Link>
           </div>
         ) : (
@@ -122,7 +122,7 @@ export function CreateDiscussionPostModal({
 
             <div>
               <label htmlFor="discussion-title" className="text-xs font-medium text-zinc-400">
-                Заголовок
+                Title
               </label>
               <input
                 id="discussion-title"
@@ -130,14 +130,14 @@ export function CreateDiscussionPostModal({
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={120}
                 disabled={isBusy}
-                placeholder="О чём хотите поговорить?"
+                placeholder="What do you want to talk about?"
                 className="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-violet-500/60 disabled:opacity-60"
               />
             </div>
 
             <div>
               <label htmlFor="discussion-body" className="text-xs font-medium text-zinc-400">
-                Текст
+                Body
               </label>
               <textarea
                 id="discussion-body"
@@ -146,13 +146,13 @@ export function CreateDiscussionPostModal({
                 rows={6}
                 maxLength={4000}
                 disabled={isBusy}
-                placeholder="Опишите вопрос, идею или проект..."
+                placeholder="Describe your question, idea, or project..."
                 className="mt-1.5 w-full resize-y rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-violet-500/60 disabled:opacity-60"
               />
             </div>
 
             <div>
-              <p className="text-xs font-medium text-zinc-400">Категория</p>
+              <p className="text-xs font-medium text-zinc-400">Category</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {DISCUSSION_CATEGORIES.map((cat) => (
                   <button
@@ -175,7 +175,7 @@ export function CreateDiscussionPostModal({
 
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={isBusy}>
-                Отмена
+                Cancel
               </Button>
               <Button
                 type="submit"
@@ -183,7 +183,7 @@ export function CreateDiscussionPostModal({
                 size="sm"
                 disabled={!title.trim() || !body.trim() || isBusy}
               >
-                {isBusy ? "Публикация…" : "Опубликовать"}
+                {isBusy ? "Publishing…" : "Publish"}
               </Button>
             </div>
           </form>

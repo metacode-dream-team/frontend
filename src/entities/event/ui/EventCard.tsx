@@ -81,12 +81,12 @@ function renderEventContent(event: FeedEvent): {
       return {
         text: (
           <>
-            совершил{" "}
+            made{" "}
             <span className="font-medium text-zinc-300">
-              {event.payload.commitCount} коммит
-              {event.payload.commitCount > 1 ? "ов" : ""}
+              {event.payload.commitCount}{" "}
+              {event.payload.commitCount === 1 ? "commit" : "commits"}
             </span>{" "}
-            в репозиторий
+            to
           </>
         ),
         details: (
@@ -108,7 +108,7 @@ function renderEventContent(event: FeedEvent): {
       return {
         text: (
           <>
-            решил задачу{" "}
+            solved{" "}
             <Link
               href={event.payload.problemSlug ? `/problems/${event.payload.problemSlug}` : `#`}
               className="font-medium text-blue-500 hover:text-blue-400"
@@ -128,7 +128,7 @@ function renderEventContent(event: FeedEvent): {
       return {
         text: (
           <>
-            создал новый роадмап{" "}
+            created roadmap{" "}
             <Link
               href={event.payload.roadmapSlug ? `/roadmaps/${event.payload.roadmapSlug}` : `#`}
               className="font-medium text-blue-500 hover:text-blue-400"
@@ -143,7 +143,7 @@ function renderEventContent(event: FeedEvent): {
       return {
         text: (
           <>
-            добавил в избранное роадмап{" "}
+            favorited roadmap{" "}
             <Link
               href={event.payload.roadmapSlug ? `/roadmaps/${event.payload.roadmapSlug}` : `#`}
               className="font-medium text-blue-500 hover:text-blue-400"
@@ -158,30 +158,32 @@ function renderEventContent(event: FeedEvent): {
       return {
         text: (
           <>
-            установил новый рекорд:{" "}
+            set a new record:{" "}
             <span className="text-yellow-400 font-bold">{event.payload.wpm} WPM</span>
           </>
         ),
         details: (
           <span className="text-gray-400">
-            режим {event.payload.mode}
-            {event.payload.accuracy && ` • точность ${event.payload.accuracy}%`}
+            mode {event.payload.mode}
+            {event.payload.accuracy && ` • ${event.payload.accuracy}% accuracy`}
           </span>
         ),
       };
 
     case "DISCUSSION_CREATE":
-    case "DISCUSSION_CREATED":
+    case "DISCUSSION_CREATED": {
+      const discussionHref =
+        "discussionId" in event.payload && event.payload.discussionId
+          ? `/feed/discussions/${event.payload.discussionId}`
+          : event.payload.discussionSlug
+            ? `/feed/discussions/${event.payload.discussionSlug}`
+            : "#";
       return {
         text: (
           <>
-            создал дискуссию{" "}
+            created discussion{" "}
             <Link
-              href={
-                event.payload.discussionSlug
-                  ? `/discussions/${event.payload.discussionSlug}`
-                  : `#`
-              }
+              href={discussionHref}
               className="font-medium text-blue-500 hover:text-blue-400"
             >
               {event.payload.discussionTitle}
@@ -189,12 +191,13 @@ function renderEventContent(event: FeedEvent): {
           </>
         ),
       };
+    }
 
     case "ACHIEVEMENT_GRANTED":
       return {
         text: (
           <>
-            получил достижение{" "}
+            unlocked achievement{" "}
             <span className="font-medium text-violet-300">{event.payload.name}</span>
           </>
         ),
@@ -205,11 +208,11 @@ function renderEventContent(event: FeedEvent): {
 
     case "AVATAR_UPDATED":
       return {
-        text: <>обновил аватар</>,
+        text: <>updated avatar</>,
       };
 
     default:
-      return { text: "выполнил действие" };
+      return { text: "performed an action" };
   }
 }
 

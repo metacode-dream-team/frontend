@@ -30,15 +30,26 @@ export function DiscussionsPanel() {
   const [category, setCategory] = useState<DiscussionCategory>("general");
   const [sort, setSort] = useState<DiscussionSort>("top");
 
+  const isSearchActive = query.trim().length > 0;
+
   const filteredPosts = useMemo(
     () =>
       filterAndSortPosts(data.posts, data.commentsByPostId, {
         query,
-        category,
+        category: isSearchActive ? "all" : category,
         sort,
       }),
-    [data.posts, data.commentsByPostId, query, category, sort],
+    [data.posts, data.commentsByPostId, query, category, sort, isSearchActive],
   );
+
+  const showTopPosts = !isSearchActive && sort === "top";
+  const showFilteredList = isSearchActive || sort !== "top";
+
+  const filteredListTitle = isSearchActive
+    ? "Results"
+    : sort === "new"
+      ? "New"
+      : "Most discussed";
 
   const topPosts = useMemo(
     () =>
@@ -59,11 +70,11 @@ export function DiscussionsPanel() {
       <aside className="flex max-h-[calc(100dvh-11rem)] flex-col lg:max-h-[calc(100dvh-6.5rem)]">
         <div className="flex shrink-0 items-center justify-between gap-3 pb-5">
           <div>
-            <h2 className="text-lg font-semibold text-white">Обсуждения</h2>
-            <p className="mt-0.5 text-xs text-zinc-500">Вопросы, идеи и проекты сообщества</p>
+            <h2 className="text-lg font-semibold text-white">Discussions</h2>
+            <p className="mt-0.5 text-xs text-zinc-500">Questions, ideas, and community projects</p>
           </div>
           <Button variant="accent" size="sm" onClick={() => setCreateOpen(true)}>
-            + Пост
+            + Post
           </Button>
         </div>
 
@@ -79,15 +90,16 @@ export function DiscussionsPanel() {
         />
 
         <div className="panel-scroll mt-5 min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
+          {showTopPosts ? (
           <section>
             <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">
-              Топ посты
+              Top posts
             </h3>
             {!hydrated ? (
-              <p className="mt-3 text-sm text-zinc-600">Загрузка…</p>
+              <p className="mt-3 text-sm text-zinc-600">Loading…</p>
             ) : topPosts.length === 0 ? (
               <p className="mt-3 text-sm text-zinc-600">
-                {data.posts.length === 0 ? "Пока нет постов." : "Пока нет популярных постов."}
+                {data.posts.length === 0 ? "No posts yet." : "No popular posts yet."}
               </p>
             ) : (
               <ul className="mt-3 space-y-2">
@@ -106,8 +118,8 @@ export function DiscussionsPanel() {
                             {post.title}
                           </p>
                           <p className="mt-1 text-[11px] text-zinc-500">
-                            {voteScore(post.upvotes, post.downvotes)} очков ·{" "}
-                            {commentCount(post, data.commentsByPostId)} комм.
+                            {voteScore(post.upvotes, post.downvotes)} pts ·{" "}
+                            {commentCount(post, data.commentsByPostId)} comments
                           </p>
                         </div>
                       </div>
@@ -117,16 +129,17 @@ export function DiscussionsPanel() {
               </ul>
             )}
           </section>
+          ) : null}
 
-          {sort !== "top" ? (
+          {showFilteredList ? (
             <section>
               <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">
-                {sort === "new" ? "Новые" : "Обсуждаемые"}
+                {filteredListTitle}
               </h3>
               {!hydrated ? (
-                <p className="mt-3 text-sm text-zinc-600">Загрузка…</p>
+                <p className="mt-3 text-sm text-zinc-600">Loading…</p>
               ) : filteredPosts.length === 0 ? (
-                <p className="mt-3 text-sm text-zinc-600">Ничего не найдено.</p>
+                <p className="mt-3 text-sm text-zinc-600">Nothing found.</p>
               ) : (
                 <ul className="mt-3 divide-y divide-zinc-800/60 overflow-hidden rounded-2xl border border-zinc-800/60">
                   {filteredPosts.slice(0, 8).map((post) => (
@@ -160,7 +173,7 @@ export function DiscussionsPanel() {
           href={allPostsHref}
           className="mt-3 block shrink-0 py-1 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500 transition-colors hover:text-violet-300"
         >
-          Все →
+          All →
         </Link>
       </aside>
 

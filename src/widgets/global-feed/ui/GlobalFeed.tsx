@@ -70,7 +70,7 @@ export function GlobalFeed({ className, useGrouping = true }: GlobalFeedProps) {
       )}
 
       {!error && isEmpty && (
-        <p className="py-16 text-center text-sm text-zinc-500">Пока нет событий.</p>
+        <p className="py-16 text-center text-sm text-zinc-500">No events yet.</p>
       )}
 
       {!error && isLoading && displayEvents.length === 0 && (
@@ -102,13 +102,13 @@ export function GlobalFeed({ className, useGrouping = true }: GlobalFeedProps) {
       {hasMore && (
         <div ref={triggerRef} className="h-16" aria-hidden="true">
           {isLoading && displayEvents.length > 0 && (
-            <p className="py-4 text-center text-xs text-zinc-600">Загрузка…</p>
+            <p className="py-4 text-center text-xs text-zinc-600">Loading…</p>
           )}
         </div>
       )}
 
       {!hasMore && displayEvents.length > 0 && (
-        <p className="py-8 text-center text-xs text-zinc-600">Конец ленты</p>
+        <p className="py-8 text-center text-xs text-zinc-600">End of feed</p>
       )}
     </div>
   );

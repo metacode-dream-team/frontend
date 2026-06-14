@@ -54,23 +54,23 @@ export function DiscussionsFilterFields({
 }: DiscussionsFilterFieldsProps) {
   return (
     <div className="rounded-2xl border border-zinc-800/60 bg-[#09090b] p-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Поиск</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Search</p>
       <input
         value={query}
         onChange={(e) => onQueryChange(e.target.value)}
-        placeholder="Заголовок, текст, автор..."
+        placeholder="Title, body, author..."
         className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-violet-500/50"
       />
 
       <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">
-        Категория
+        Category
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
         {showAllCategory ? (
           <FilterChip
             active={category === "all"}
             onClick={() => onCategoryChange("all")}
-            label="Все"
+            label="All"
           />
         ) : null}
         {DISCUSSION_CATEGORIES.map((cat) => (
@@ -84,7 +84,7 @@ export function DiscussionsFilterFields({
       </div>
 
       <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">
-        Сортировка
+        Sort
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
         {DISCUSSION_SORT_OPTIONS.map((opt) => (

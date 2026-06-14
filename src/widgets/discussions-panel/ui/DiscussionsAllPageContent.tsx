@@ -48,6 +48,8 @@ export function DiscussionsAllPageContent() {
     }
   }, [sort, category, query, router, searchParams]);
 
+  const isSearchActive = query.trim().length > 0;
+
   const filteredPosts = useMemo(
     () =>
       filterAndSortPosts(data.posts, data.commentsByPostId, {
@@ -61,8 +63,13 @@ export function DiscussionsAllPageContent() {
   const categoryLabel = (id: DiscussionCategory) =>
     DISCUSSION_CATEGORIES.find((c) => c.id === id)?.label ?? id;
 
-  const listTitle =
-    sort === "top" ? "Топ" : sort === "new" ? "Новые" : "Обсуждаемые";
+  const listTitle = isSearchActive
+    ? "Results"
+    : sort === "top"
+      ? "Top"
+      : sort === "new"
+        ? "New"
+        : "Most discussed";
 
   return (
     <>
@@ -74,15 +81,15 @@ export function DiscussionsAllPageContent() {
                 href="/feed"
                 className="text-xs font-medium text-zinc-500 transition-colors hover:text-violet-300"
               >
-                ← К ленте
+                ← Back to feed
               </Link>
-              <h1 className="mt-2 text-2xl font-semibold text-white">Все посты</h1>
+              <h1 className="mt-2 text-2xl font-semibold text-white">All posts</h1>
               <p className="mt-1 text-sm text-zinc-500">
-                Обсуждения сообщества с фильтрами
+                Community discussions with filters
               </p>
             </div>
             <Button variant="accent" size="sm" onClick={() => setCreateOpen(true)}>
-              + Пост
+              + Post
             </Button>
           </div>
 
@@ -109,9 +116,9 @@ export function DiscussionsAllPageContent() {
             </h2>
 
             {!hydrated ? (
-              <p className="mt-4 text-sm text-zinc-600">Загрузка…</p>
+              <p className="mt-4 text-sm text-zinc-600">Loading…</p>
             ) : filteredPosts.length === 0 ? (
-              <p className="mt-4 text-sm text-zinc-600">Ничего не найдено.</p>
+              <p className="mt-4 text-sm text-zinc-600">Nothing found.</p>
             ) : (
               <ul className="mt-4 divide-y divide-zinc-800/60 overflow-hidden rounded-2xl border border-zinc-800/60">
                 {filteredPosts.map((post) => (

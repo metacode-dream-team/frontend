@@ -137,10 +137,10 @@ export function useDiscussions() {
       const title = input.title.trim();
       const body = input.body.trim();
       if (!title || !body) {
-        throw new Error("Заполните заголовок и текст поста");
+        throw new Error("Fill in the title and body");
       }
       if (!accessToken) {
-        throw new Error("Войдите в аккаунт, чтобы создать пост");
+        throw new Error("Sign in to create a post");
       }
 
       setIsCreatingPost(true);
@@ -153,7 +153,7 @@ export function useDiscussions() {
         const mapped = mapDiscussionFromApi(raw, currentUserId);
         if (!mapped) {
           await refreshPosts();
-          throw new Error("Не удалось обработать ответ сервера");
+          throw new Error("Failed to process server response");
         }
 
         const post = enrichPostAuthor(mapped, buildCurrentAuthor());

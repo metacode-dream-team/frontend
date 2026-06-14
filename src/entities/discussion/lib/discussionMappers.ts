@@ -74,7 +74,7 @@ export function mapDiscussionFromApi(
 
   return {
     id,
-    title: str(o.title ?? o.Title, "").trim() || "Без названия",
+    title: str(o.title ?? o.Title, "").trim() || "Untitled",
     body: str(o.content ?? o.Content ?? o.body, ""),
     category: mapCategory(o.category ?? o.Category),
     author,

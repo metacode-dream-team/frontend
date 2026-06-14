@@ -29,7 +29,7 @@ export function ReactionBar({
     <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
       <button
         type="button"
-        title="Нравится"
+        title="Like"
         disabled={!interactive}
         onClick={() => onVote?.("up")}
         className={cn(
@@ -48,7 +48,7 @@ export function ReactionBar({
 
       <button
         type="button"
-        title="Не нравится"
+        title="Dislike"
         disabled={!interactive}
         onClick={() => onVote?.("down")}
         className={cn(
@@ -72,7 +72,7 @@ export function ReactionBar({
             score > 0 ? "text-emerald-400" : score < 0 ? "text-rose-400" : "text-zinc-500",
           )}
         >
-          {score > 0 ? `+${score}` : score} очков
+          {score > 0 ? `+${score}` : score} pts
         </span>
       ) : null}
     </div>

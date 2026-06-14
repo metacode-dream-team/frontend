@@ -1,16 +1,16 @@
 export const DISCUSSION_CATEGORIES = [
-  { id: "general", label: "Общее" },
-  { id: "help", label: "Помощь" },
-  { id: "showcase", label: "Проекты" },
-  { id: "feedback", label: "Отзывы" },
+  { id: "general", label: "General" },
+  { id: "help", label: "Help" },
+  { id: "showcase", label: "Showcase" },
+  { id: "feedback", label: "Feedback" },
 ] as const;
 
 export type DiscussionCategory = (typeof DISCUSSION_CATEGORIES)[number]["id"];
 
 export const DISCUSSION_SORT_OPTIONS = [
-  { id: "top", label: "Топ" },
-  { id: "new", label: "Новые" },
-  { id: "comments", label: "Обсуждаемые" },
+  { id: "top", label: "Top" },
+  { id: "new", label: "New" },
+  { id: "comments", label: "Most discussed" },
 ] as const;
 
 export type DiscussionSort = (typeof DISCUSSION_SORT_OPTIONS)[number]["id"];

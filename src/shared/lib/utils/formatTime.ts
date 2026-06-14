@@ -1,26 +1,26 @@
 /**
- * Утилиты для форматирования времени
+ * Time formatting utilities
  */
 
-const RU_LOCALE = "ru-RU";
+const EN_LOCALE = "en-US";
 
-const timeFormatter = new Intl.DateTimeFormat(RU_LOCALE, {
-  hour: "2-digit",
+const timeFormatter = new Intl.DateTimeFormat(EN_LOCALE, {
+  hour: "numeric",
   minute: "2-digit",
 });
 
-const dayMonthFormatter = new Intl.DateTimeFormat(RU_LOCALE, {
+const dayMonthFormatter = new Intl.DateTimeFormat(EN_LOCALE, {
   day: "numeric",
   month: "long",
-  hour: "2-digit",
+  hour: "numeric",
   minute: "2-digit",
 });
 
-const dayMonthYearFormatter = new Intl.DateTimeFormat(RU_LOCALE, {
+const dayMonthYearFormatter = new Intl.DateTimeFormat(EN_LOCALE, {
   day: "numeric",
   month: "short",
   year: "numeric",
-  hour: "2-digit",
+  hour: "numeric",
   minute: "2-digit",
 });
 
@@ -44,50 +44,43 @@ function isYesterday(date: Date): boolean {
   );
 }
 
-function formatRelativeRu(date: Date): string {
+function formatRelativeEn(date: Date): string {
   const diffMs = Date.now() - date.getTime();
   const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 60) return "только что";
+  if (seconds < 60) return "just now";
 
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) {
-    return `${minutes} мин назад`;
+    return `${minutes}m ago`;
   }
 
   const hours = Math.floor(minutes / 60);
   if (hours < 24) {
-    return `${hours} ч назад`;
+    return `${hours}h ago`;
   }
 
   const days = Math.floor(hours / 24);
-  return `${days} дн назад`;
+  return `${days}d ago`;
 }
 
-/**
- * Форматирует дату в формат "2 часа назад", "Вчера в 15:40" и т.д.
- */
+/** Formats a date as relative time or a calendar string. */
 export function formatTimeAgo(date: string | Date): string {
   const dateObj = typeof date === "string" ? new Date(date) : date;
 
   if (isToday(dateObj)) {
-    // Сегодня: "2 ч назад"
-    return formatRelativeRu(dateObj);
+    return formatRelativeEn(dateObj);
   }
 
   if (isYesterday(dateObj)) {
-    // Вчера: "Вчера в 15:40"
-    return `Вчера в ${timeFormatter.format(dateObj)}`;
+    return `Yesterday at ${timeFormatter.format(dateObj)}`;
   }
 
-  // Старше: "15 января в 15:40" или "15 янв 2024 в 15:40" если не текущий год
   const currentYear = new Date().getFullYear();
   const eventYear = dateObj.getFullYear();
 
   if (eventYear === currentYear) {
-    const formatted = dayMonthFormatter.format(dateObj);
-    return formatted.replace(",", " в");
+    return dayMonthFormatter.format(dateObj);
   }
 
-  const formatted = dayMonthYearFormatter.format(dateObj);
-  return formatted.replace(",", " в");
+  return dayMonthYearFormatter.format(dateObj);
 }
