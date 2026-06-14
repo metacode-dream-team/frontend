@@ -9,14 +9,7 @@ import type {
 
 type Json = Record<string, unknown>;
 
-const API_TO_UI_CATEGORY: Record<string, DiscussionCategory> = {
-  common: "general",
-  support: "help",
-  project: "showcase",
-  review: "feedback",
-};
-
-export const UI_TO_API_CATEGORY: Record<DiscussionCategory, string> = {
+const LEGACY_CATEGORY_ALIASES: Record<string, DiscussionCategory> = {
   general: "common",
   help: "support",
   showcase: "project",
@@ -54,9 +47,16 @@ function mapUserVotes(
   return {};
 }
 
-function mapCategory(raw: unknown): DiscussionCategory {
+export function normalizeDiscussionCategory(raw: unknown): DiscussionCategory {
   const key = str(raw, "").toLowerCase();
-  return API_TO_UI_CATEGORY[key] ?? "general";
+  if (key === "common" || key === "support" || key === "project" || key === "review") {
+    return key;
+  }
+  return LEGACY_CATEGORY_ALIASES[key] ?? "common";
+}
+
+function mapCategory(raw: unknown): DiscussionCategory {
+  return normalizeDiscussionCategory(raw);
 }
 
 export function mapDiscussionFromApi(

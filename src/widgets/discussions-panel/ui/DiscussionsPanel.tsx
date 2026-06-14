@@ -27,7 +27,7 @@ export function DiscussionsPanel() {
   const { data, hydrated, createPost, isCreatingPost } = useDiscussions();
   const [createOpen, setCreateOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<DiscussionCategory>("general");
+  const [category, setCategory] = useState<DiscussionCategory>("common");
   const [sort, setSort] = useState<DiscussionSort>("top");
 
   const isSearchActive = query.trim().length > 0;

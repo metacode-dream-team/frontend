@@ -1,3 +1,4 @@
+import { normalizeDiscussionCategory } from "@/entities/discussion/lib/discussionMappers";
 import type { DiscussionCategory, DiscussionSort } from "@/entities/discussion";
 
 export function buildDiscussionsAllHref(options: {
@@ -23,13 +24,12 @@ export function parseDiscussionsSearchParams(searchParams: URLSearchParams): {
   const categoryRaw = searchParams.get("category");
   const sort: DiscussionSort =
     sortRaw === "new" || sortRaw === "comments" || sortRaw === "top" ? sortRaw : "top";
-  const category: DiscussionCategory | "all" =
-    categoryRaw === "general" ||
-    categoryRaw === "help" ||
-    categoryRaw === "showcase" ||
-    categoryRaw === "feedback"
-      ? categoryRaw
-      : "all";
+
+  let category: DiscussionCategory | "all" = "all";
+  if (categoryRaw && categoryRaw !== "all") {
+    category = normalizeDiscussionCategory(categoryRaw);
+  }
+
   return {
     sort,
     category,

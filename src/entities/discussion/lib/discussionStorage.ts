@@ -68,7 +68,7 @@ const SEED_POSTS: DiscussionPost[] = [
     body:
       "Это пространство для обсуждений между разработчиками. Делитесь опытом, задавайте вопросы и показывайте свои проекты.\n\n" +
       "Создайте свой пост или оставьте комментарий под существующим.",
-    category: "general",
+    category: "common",
     author: {
       id: "system",
       username: "MetaCode",
@@ -85,7 +85,7 @@ const SEED_POSTS: DiscussionPost[] = [
     title: "Как держать streak на LeetCode?",
     body:
       "Делитесь своими лайфхаками: сколько задач в день решаете, как не выгораете и что помогает не пропускать дни.",
-    category: "help",
+    category: "support",
     author: {
       id: "user-demo-1",
       username: "algo_ninja",
@@ -102,7 +102,7 @@ const SEED_POSTS: DiscussionPost[] = [
     title: "Показываю pet-project на Go + Mongo",
     body:
       "Сделал сервис геймификации активности. Архитектура: handlers → service → repository. Буду рад фидбеку по структуре пакетов.",
-    category: "showcase",
+    category: "project",
     author: {
       id: "user-demo-2",
       username: "gopher_dev",

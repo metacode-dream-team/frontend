@@ -29,7 +29,7 @@ export function CreateDiscussionPostModal({
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [category, setCategory] = useState<DiscussionCategory>("general");
+  const [category, setCategory] = useState<DiscussionCategory>("common");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -41,7 +41,7 @@ export function CreateDiscussionPostModal({
     if (!open) {
       setTitle("");
       setBody("");
-      setCategory("general");
+      setCategory("common");
       setError(null);
       setPending(false);
     }

@@ -1,4 +1,3 @@
-import { UI_TO_API_CATEGORY } from "@/entities/discussion/lib/discussionMappers";
 import type { DiscussionCategory } from "@/entities/discussion/model/types";
 import { integrationGet, integrationPost } from "./platformClient";
 import { unwrapDataPayload } from "./platformMappers";
@@ -56,7 +55,7 @@ export async function searchDiscussions(
   }
 
   if (options.category && options.category !== "all") {
-    params.set("category", UI_TO_API_CATEGORY[options.category]);
+    params.set("category", options.category);
   }
 
   const sortBy =
@@ -85,7 +84,7 @@ export async function createDiscussion(
     {
       title: body.title,
       content: body.content,
-      category: UI_TO_API_CATEGORY[body.category],
+      category: body.category,
     },
     accessToken,
   );

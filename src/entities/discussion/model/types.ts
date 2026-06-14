@@ -1,8 +1,8 @@
 export const DISCUSSION_CATEGORIES = [
-  { id: "general", label: "General" },
-  { id: "help", label: "Help" },
-  { id: "showcase", label: "Showcase" },
-  { id: "feedback", label: "Feedback" },
+  { id: "common", label: "General" },
+  { id: "support", label: "Help" },
+  { id: "project", label: "Showcase" },
+  { id: "review", label: "Feedback" },
 ] as const;
 
 export type DiscussionCategory = (typeof DISCUSSION_CATEGORIES)[number]["id"];

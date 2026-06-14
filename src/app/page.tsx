@@ -76,7 +76,7 @@ const INTEGRATION_CARDS = [
 ];
 
 export default function Home() {
-  const { isAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
@@ -130,17 +130,6 @@ export default function Home() {
               </Button>
             </Link>
           </div>
-
-          {isAuthenticated && (
-            <Button
-              variant="outline"
-              onClick={logout}
-              className="mt-2 w-fit border-zinc-600 text-zinc-400 hover:text-white text-sm"
-              size="sm"
-            >
-              Logout
-            </Button>
-          )}
         </div>
 
         {/* Right section - Integration cards (лёгкое наложение) */}

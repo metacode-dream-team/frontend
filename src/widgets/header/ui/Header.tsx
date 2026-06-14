@@ -21,6 +21,7 @@ const IntegrationsModal = dynamic(
 
 const PRIMARY_LINKS = [
   { href: "/feed", label: "Features" },
+  { href: "/feed/discussions?sort=top&category=all", label: "Discussions" },
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/roadmaps", label: "Roadmap" },
 ] as const;
@@ -30,7 +31,8 @@ const MOBILE_HEADER_BTN =
   "max-md:min-h-9 px-3 py-2 text-xs sm:px-4 sm:text-sm";
 
 function linkActive(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const path = href.split("?")[0] ?? href;
+  return pathname === path || pathname.startsWith(`${path}/`);
 }
 
 export function Header() {
