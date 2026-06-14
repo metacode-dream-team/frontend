@@ -5,25 +5,18 @@ export type {
   DiscussionData,
   DiscussionPost,
   DiscussionSort,
-  ReactionCounts,
-  ReactionKind,
+  VoteKind,
 } from "./model/types";
-export {
-  DISCUSSION_CATEGORIES,
-  DISCUSSION_SORT_OPTIONS,
-  REACTION_KINDS,
-  emptyReactions,
-} from "./model/types";
+export { DISCUSSION_CATEGORIES, DISCUSSION_SORT_OPTIONS } from "./model/types";
 export {
   loadDiscussionData,
-  normalizePostReactions,
+  normalizePostVotes,
   saveDiscussionData,
 } from "./lib/discussionStorage";
 export {
   commentCount,
   filterAndSortPosts,
   getTopPosts,
-  reactionScore,
-  toggleReaction,
-  totalReactions,
+  toggleVote,
+  voteScore,
 } from "./lib/discussionUtils";

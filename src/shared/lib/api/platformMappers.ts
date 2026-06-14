@@ -44,6 +44,22 @@ function formatMeYearMonth(value: unknown): string {
   return `${MONTH_SHORT[month - 1]} ${year}`;
 }
 
+function formatLocation(value: unknown): string {
+  if (typeof value === "string") return value.trim();
+  if (!value || typeof value !== "object") return "";
+  const o = value as Json;
+  const city = str(o.City ?? o.city, "").trim();
+  const country = str(o.Country ?? o.country, "").trim();
+  return [city, country].filter(Boolean).join(", ");
+}
+
+function formatExperienceEnd(o: Json): string {
+  const isCurrent = bool(o.IsCurrent ?? o.is_current ?? o.isCurrent);
+  if (isCurrent) return "Present";
+  const endRaw = o.EndDate ?? o.end_date ?? o.endDate ?? o.end;
+  return formatMeYearMonth(endRaw) || str(endRaw, "Present");
+}
+
 export function unwrapDataPayload(raw: unknown): Json {
   if (!raw || typeof raw !== "object") return {};
   const r = raw as Json;
@@ -134,11 +150,21 @@ export function mapProfileDocument(
     username;
 
   const exp = mapExperience(
-    raw.Experiences ?? raw.experience ?? raw.work_experience,
+    raw.Experiences ??
+      raw.experiences ??
+      raw.experience ??
+      raw.work_experience,
   );
-  const edu = mapEducation(raw.Educations ?? raw.education);
+  const edu = mapEducation(
+    raw.Educations ?? raw.educations ?? raw.education,
+  );
   const tech = mapTechSkills(
-    raw.tech_skills ?? raw.techSkills ?? raw.skills_tags ?? raw.TechSkills,
+    raw.tech_skills ??
+      raw.techSkills ??
+      raw.skills_tags ??
+      raw.TechSkills ??
+      raw.Skills ??
+      raw.skills,
   );
 
   // `id` в приоритете = UserID (тот же query `user_id`, что в /integration/profile и /activity/user/achievement)
@@ -153,6 +179,7 @@ export function mapProfileDocument(
       raw.AvatarURL ?? raw.avatar_url ?? raw.avatarUrl,
       `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(username)}`,
     ),
+    about: str(raw.About ?? raw.about, "") || undefined,
     rank: num(raw.Rank ?? raw.rank ?? raw.global_rank),
     role: str(raw.Role ?? raw.role ?? raw.Headline ?? raw.headline ?? raw.Title ?? raw.title, "Developer"),
     location: str(raw.Location ?? raw.location ?? raw.City ?? raw.city, ""),
@@ -170,9 +197,11 @@ export function mapProfileDocument(
     achievements: extras.achievements,
     currentStreak: num(raw.CurrentStreak ?? raw.current_streak ?? raw.currentStreak),
     maxStreak: num(raw.MaxStreak ?? raw.max_streak ?? raw.maxStreak),
-    spokenLanguages: [],
+    spokenLanguages: mapSpokenLanguages(
+      raw.SpokenLanguages ?? raw.spoken_languages ?? raw.spokenLanguages,
+    ),
     languages: mapLanguages(raw.Languages ?? raw.languages ?? raw.language_stats),
-    skills: mapSkillGroups(raw.SkillGroups ?? raw.skill_groups ?? raw.skills),
+    skills: mapSkillGroups(raw.SkillGroups ?? raw.skill_groups),
     heatmap: extras.heatmap,
     experience: exp,
     education: edu,
@@ -184,19 +213,34 @@ export function mapProfileDocument(
 }
 
 function mapExperience(raw: unknown): ProfileData["experience"] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((item, i) => {
+  const list = extractArrayPayload(raw);
+  if (!list.length) return [];
+  return list.map((item, i) => {
     const o = item as Json;
     return {
-      id: str(o.id, `e${i}`),
-      title: str(o.title ?? o.role, "Role"),
-      company: str(o.company ?? o.organization, ""),
-      employmentType: str(o.employment_type ?? o.employmentType, "Full-time"),
-      workMode: normalizeWorkMode(str(o.work_mode ?? o.workMode, "Remote")),
-      location: str(o.location, ""),
-      start: str(o.start ?? o.start_date, ""),
-      end: str(o.end ?? o.end_date ?? "Present", "Present"),
-      description: str(o.description, "") || undefined,
+      id: str(o.ID ?? o.id, `e${i}`),
+      title: str(o.Title ?? o.title ?? o.role, "Role"),
+      company: str(o.Company ?? o.company ?? o.organization, ""),
+      employmentType: str(
+        o.EmploymentType ?? o.employment_type ?? o.employmentType,
+        "Full-time",
+      ),
+      workMode: normalizeWorkMode(
+        str(
+          o.LocationType ??
+            o.location_type ??
+            o.locationType ??
+            o.work_mode ??
+            o.workMode,
+          "Remote",
+        ),
+      ),
+      location: formatLocation(o.Location ?? o.location),
+      start: formatMeYearMonth(
+        o.StartDate ?? o.start_date ?? o.startDate ?? o.start,
+      ),
+      end: formatExperienceEnd(o),
+      description: str(o.Description ?? o.description, "") || undefined,
     };
   });
 }
@@ -209,18 +253,28 @@ function normalizeWorkMode(w: string): ProfileExperience["workMode"] {
 }
 
 function mapEducation(raw: unknown): ProfileData["education"] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((item, i) => {
+  const list = extractArrayPayload(raw);
+  if (!list.length) return [];
+  return list.map((item, i) => {
     const o = item as Json;
     return {
-      id: str(o.id, `ed${i}`),
-      school: str(o.school ?? o.institution, ""),
-      degree: str(o.degree, ""),
-      start: str(o.start ?? o.start_date, ""),
-      end: str(o.end ?? o.end_date, ""),
-      gpa: str(o.gpa, "") || undefined,
-      specialization: str(o.specialization ?? o.field, "") || undefined,
-      logoUrl: str(o.logo_url ?? o.logoUrl, "") || undefined,
+      id: str(o.ID ?? o.id, `ed${i}`),
+      school: str(o.School ?? o.school ?? o.institution, ""),
+      degree: str(o.Degree ?? o.degree, ""),
+      start: formatMeYearMonth(
+        o.StartDate ?? o.start_date ?? o.startDate ?? o.start,
+      ),
+      end: formatMeYearMonth(o.EndDate ?? o.end_date ?? o.endDate ?? o.end),
+      gpa: str(o.Grade ?? o.gpa ?? o.grade, "") || undefined,
+      specialization:
+        str(
+          o.FieldOfStudy ??
+            o.field_of_study ??
+            o.specialization ??
+            o.field,
+          "",
+        ) || undefined,
+      logoUrl: str(o.LogoURL ?? o.logo_url ?? o.logoUrl, "") || undefined,
     };
   });
 }
@@ -286,27 +340,45 @@ function mapTechSkills(raw: unknown): ProfileData["techSkills"] {
     .filter((item): item is NonNullable<typeof item> => item !== null);
 }
 
-function mapLanguages(raw: unknown): ProfileData["languages"] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((item) => {
+function mapSpokenLanguages(raw: unknown): ProfileData["spokenLanguages"] {
+  const list = extractArrayPayload(raw);
+  if (!list.length) return [];
+  return list.map((item, i) => {
     const o = item as Json;
     return {
-      name: str(o.name ?? o.language, "—"),
-      solved: num(o.solved ?? o.count),
+      id: str(o.ID ?? o.id, `lang${i}`),
+      code: str(o.Code ?? o.code, ""),
+      level: str(o.Level ?? o.level, ""),
+    };
+  });
+}
+
+function mapLanguages(raw: unknown): ProfileData["languages"] {
+  const list = extractArrayPayload(raw);
+  if (!list.length) return [];
+  return list.map((item) => {
+    const o = item as Json;
+    return {
+      name: str(o.Name ?? o.name ?? o.language ?? o.Language, "—"),
+      solved: num(o.Solved ?? o.solved ?? o.count),
     };
   });
 }
 
 function mapSkillGroups(raw: unknown): ProfileData["skills"] {
-  if (!Array.isArray(raw)) return [];
+  const list = extractArrayPayload(raw);
+  if (!list.length) return [];
   const levels: ProfileData["skills"][0]["level"][] = ["Fundamental", "Intermediate", "Advanced"];
-  return raw.map((item, i) => {
+  return list.map((item, i) => {
     const o = item as Json;
-    const level = (str(o.level, levels[i % 3]!) as ProfileData["skills"][0]["level"]) ?? "Intermediate";
-    const items = Array.isArray(o.items)
-      ? (o.items as Json[]).map((it) => ({
-          name: str(it.name, ""),
-          count: num(it.count),
+    const level =
+      (str(o.Level ?? o.level, levels[i % 3]!) as ProfileData["skills"][0]["level"]) ??
+      "Intermediate";
+    const rawItems = o.Items ?? o.items;
+    const items = Array.isArray(rawItems)
+      ? (rawItems as Json[]).map((it) => ({
+          name: str(it.Name ?? it.name, ""),
+          count: num(it.Count ?? it.count),
         }))
       : [];
     return { level, items };

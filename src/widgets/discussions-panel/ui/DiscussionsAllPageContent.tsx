@@ -19,7 +19,7 @@ import { DiscussionsFilterFields } from "./DiscussionsFilterFields";
 export function DiscussionsAllPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data, hydrated, createPost } = useDiscussions();
+  const { data, hydrated, createPost, isCreatingPost } = useDiscussions();
   const [createOpen, setCreateOpen] = useState(false);
 
   const initial = useMemo(
@@ -143,6 +143,7 @@ export function DiscussionsAllPageContent() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onSubmit={createPost}
+        submitting={isCreatingPost}
       />
     </>
   );

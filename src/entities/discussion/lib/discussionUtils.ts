@@ -3,31 +3,19 @@ import type {
   DiscussionComment,
   DiscussionPost,
   DiscussionSort,
-  ReactionCounts,
-  ReactionKind,
+  VoteKind,
 } from "../model/types";
 
-export function reactionScore(reactions: ReactionCounts): number {
-  return (
-    reactions.like +
-    reactions.love * 2 +
-    reactions.funny +
-    reactions.fire * 2 +
-    reactions.insight * 2
-  );
-}
-
-export function totalReactions(reactions: ReactionCounts): number {
-  return (
-    reactions.like + reactions.love + reactions.funny + reactions.fire + reactions.insight
-  );
+export function voteScore(upvotes: number, downvotes: number): number {
+  return upvotes - downvotes;
 }
 
 export function commentCount(
-  postId: string,
+  post: DiscussionPost,
   commentsByPostId: Record<string, DiscussionComment[]>,
 ): number {
-  return commentsByPostId[postId]?.length ?? 0;
+  if (typeof post.commentCount === "number") return post.commentCount;
+  return commentsByPostId[post.id]?.length ?? 0;
 }
 
 function compareByTopEngagement(
@@ -35,10 +23,10 @@ function compareByTopEngagement(
   b: DiscussionPost,
   commentsByPostId: Record<string, DiscussionComment[]>,
 ): number {
-  const scoreDiff = reactionScore(b.reactions) - reactionScore(a.reactions);
+  const scoreDiff = voteScore(b.upvotes, b.downvotes) - voteScore(a.upvotes, a.downvotes);
   if (scoreDiff !== 0) return scoreDiff;
 
-  const commentDiff = commentCount(b.id, commentsByPostId) - commentCount(a.id, commentsByPostId);
+  const commentDiff = commentCount(b, commentsByPostId) - commentCount(a, commentsByPostId);
   if (commentDiff !== 0) return commentDiff;
 
   return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -55,7 +43,8 @@ export function getTopPosts(
   const result = posts.filter((post) => {
     if (options.category !== "all" && post.category !== options.category) return false;
     return (
-      reactionScore(post.reactions) > 0 || commentCount(post.id, commentsByPostId) > 0
+      voteScore(post.upvotes, post.downvotes) > 0 ||
+      commentCount(post, commentsByPostId) > 0
     );
   });
 
@@ -90,8 +79,8 @@ export function filterAndSortPosts(
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
     if (options.sort === "comments") {
-      const ca = commentCount(a.id, commentsByPostId);
-      const cb = commentCount(b.id, commentsByPostId);
+      const ca = commentCount(a, commentsByPostId);
+      const cb = commentCount(b, commentsByPostId);
       if (cb !== ca) return cb - ca;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
@@ -101,27 +90,31 @@ export function filterAndSortPosts(
   return result;
 }
 
-export function toggleReaction(
-  reactions: ReactionCounts,
-  userReactions: Record<string, ReactionKind>,
+export function toggleVote(
+  upvotes: number,
+  downvotes: number,
+  userVotes: Record<string, VoteKind>,
   userId: string,
-  kind: ReactionKind,
-): { reactions: ReactionCounts; userReactions: Record<string, ReactionKind> } {
-  const nextReactions = { ...reactions };
-  const nextUserReactions = { ...userReactions };
-  const prev = nextUserReactions[userId];
+  kind: VoteKind,
+): { upvotes: number; downvotes: number; userVotes: Record<string, VoteKind> } {
+  const nextUserVotes = { ...userVotes };
+  const prev = nextUserVotes[userId];
+  let nextUpvotes = upvotes;
+  let nextDownvotes = downvotes;
 
   if (prev === kind) {
-    nextReactions[kind] = Math.max(0, nextReactions[kind] - 1);
-    delete nextUserReactions[userId];
-    return { reactions: nextReactions, userReactions: nextUserReactions };
+    if (kind === "up") nextUpvotes = Math.max(0, nextUpvotes - 1);
+    else nextDownvotes = Math.max(0, nextDownvotes - 1);
+    delete nextUserVotes[userId];
+    return { upvotes: nextUpvotes, downvotes: nextDownvotes, userVotes: nextUserVotes };
   }
 
-  if (prev) {
-    nextReactions[prev] = Math.max(0, nextReactions[prev] - 1);
-  }
+  if (prev === "up") nextUpvotes = Math.max(0, nextUpvotes - 1);
+  if (prev === "down") nextDownvotes = Math.max(0, nextDownvotes - 1);
 
-  nextReactions[kind] += 1;
-  nextUserReactions[userId] = kind;
-  return { reactions: nextReactions, userReactions: nextUserReactions };
+  if (kind === "up") nextUpvotes += 1;
+  else nextDownvotes += 1;
+
+  nextUserVotes[userId] = kind;
+  return { upvotes: nextUpvotes, downvotes: nextDownvotes, userVotes: nextUserVotes };
 }

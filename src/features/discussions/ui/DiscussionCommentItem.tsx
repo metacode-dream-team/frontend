@@ -1,33 +1,33 @@
 "use client";
 
-import Link from "next/link";
 import { Avatar } from "@/shared/ui/Avatar";
 import { formatTimeAgo } from "@/shared/lib/utils/formatTime";
 import { cn } from "@/shared/lib/utils/cn";
-import type { DiscussionComment, ReactionKind } from "@/entities/discussion";
+import type { DiscussionComment, VoteKind } from "@/entities/discussion";
 import { ReactionBar } from "./ReactionBar";
 
 interface DiscussionCommentItemProps {
   comment: DiscussionComment;
   index: number;
   currentUserId?: string | null;
-  onToggleReaction?: (commentId: string, kind: ReactionKind) => void;
+  onToggleVote?: (commentId: string, kind: VoteKind) => void;
   className?: string;
 }
 
-function profileHref(username: string): string {
-  const slug = username.trim();
-  return slug ? `/profile/${encodeURIComponent(slug)}` : "/profile";
-}
+// TODO: просмотр чужого профиля — вернуть ссылки на /profile/{username}.
+// function profileHref(username: string): string {
+//   const slug = username.trim();
+//   return slug ? `/profile/${encodeURIComponent(slug)}` : "/profile";
+// }
 
 export function DiscussionCommentItem({
   comment,
   index,
   currentUserId,
-  onToggleReaction,
+  onToggleVote,
   className,
 }: DiscussionCommentItemProps) {
-  const activeKind = currentUserId ? comment.userReactions[currentUserId] ?? null : null;
+  const userVote = currentUserId ? comment.userVotes[currentUserId] : undefined;
 
   return (
     <article
@@ -37,24 +37,23 @@ export function DiscussionCommentItem({
       )}
     >
       <div className="flex gap-3">
-        <Link href={profileHref(comment.author.username)} className="shrink-0">
+        <div className="shrink-0">
           <Avatar src={comment.author.avatarUrl} alt={comment.author.username} size="sm" />
-        </Link>
+        </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <Link
-              href={profileHref(comment.author.username)}
-              className="text-sm font-medium text-zinc-200 hover:text-white"
-            >
+            <span className="text-sm font-medium text-zinc-200">
               {comment.author.username}
-            </Link>
+            </span>
             <span className="text-xs text-zinc-600">{formatTimeAgo(comment.createdAt)}</span>
           </div>
 
           <ReactionBar
-            reactions={comment.reactions}
-            activeKind={activeKind}
-            onToggle={onToggleReaction ? (kind) => onToggleReaction(comment.id, kind) : undefined}
+            upvotes={comment.upvotes}
+            downvotes={comment.downvotes}
+            isUpvoted={userVote === "up"}
+            isDownvoted={userVote === "down"}
+            onVote={onToggleVote ? (kind) => onToggleVote(comment.id, kind) : undefined}
             compact
             className="mt-2"
           />

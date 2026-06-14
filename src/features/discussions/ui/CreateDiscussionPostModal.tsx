@@ -3,12 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
-import { useProfileMeStore } from "@/entities/profile";
-import {
-  DISCUSSION_CATEGORIES,
-  type DiscussionAuthor,
-  type DiscussionCategory,
-} from "@/entities/discussion";
+import type { DiscussionCategory, DiscussionPost } from "@/entities/discussion";
+import { DISCUSSION_CATEGORIES } from "@/entities/discussion";
 import { useBodyScrollLock } from "@/shared/lib/hooks/useBodyScrollLock";
 import { Button } from "@/shared/ui/Button";
 import { cn } from "@/shared/lib/utils/cn";
@@ -20,24 +16,24 @@ interface CreateDiscussionPostModalProps {
     title: string;
     body: string;
     category: DiscussionCategory;
-    author: DiscussionAuthor;
-  }) => void;
-}
-
-function avatarFallback(seed: string): string {
-  return `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(seed)}`;
+  }) => Promise<DiscussionPost>;
+  submitting?: boolean;
 }
 
 export function CreateDiscussionPostModal({
   open,
   onClose,
   onSubmit,
+  submitting = false,
 }: CreateDiscussionPostModalProps) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const profile = useProfileMeStore((s) => s.profile);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [category, setCategory] = useState<DiscussionCategory>("general");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const isBusy = submitting || pending;
 
   useBodyScrollLock(open);
 
@@ -46,31 +42,35 @@ export function CreateDiscussionPostModal({
       setTitle("");
       setBody("");
       setCategory("general");
+      setError(null);
+      setPending(false);
     }
   }, [open]);
 
   if (!open) return null;
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const trimmedTitle = title.trim();
     const trimmedBody = body.trim();
-    if (!trimmedTitle || !trimmedBody) return;
+    if (!trimmedTitle || !trimmedBody || isBusy) return;
 
-    const username =
-      profile?.username?.trim() ||
-      [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") ||
-      "developer";
-    const authorId = profile?.userId || profile?.id || "guest";
-    const avatarUrl = profile?.avatarUrl?.trim() || avatarFallback(username);
-
-    onSubmit({
-      title: trimmedTitle,
-      body: trimmedBody,
-      category,
-      author: { id: authorId, username, avatarUrl },
-    });
-    onClose();
+    setPending(true);
+    setError(null);
+    try {
+      await onSubmit({
+        title: trimmedTitle,
+        body: trimmedBody,
+        category,
+      });
+      onClose();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Не удалось создать пост. Попробуйте ещё раз.";
+      setError(message);
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -79,7 +79,7 @@ export function CreateDiscussionPostModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="create-discussion-title"
-      onClick={onClose}
+      onClick={isBusy ? undefined : onClose}
     >
       <div
         className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-[#0a0a0b] p-5 shadow-2xl sm:p-6"
@@ -97,7 +97,8 @@ export function CreateDiscussionPostModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+            disabled={isBusy}
+            className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-40"
             aria-label="Закрыть"
           >
             ✕
@@ -113,6 +114,12 @@ export function CreateDiscussionPostModal({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+            {error ? (
+              <p className="rounded-lg border border-red-500/30 bg-red-950/30 px-3 py-2 text-sm text-red-300">
+                {error}
+              </p>
+            ) : null}
+
             <div>
               <label htmlFor="discussion-title" className="text-xs font-medium text-zinc-400">
                 Заголовок
@@ -122,8 +129,9 @@ export function CreateDiscussionPostModal({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={120}
+                disabled={isBusy}
                 placeholder="О чём хотите поговорить?"
-                className="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-violet-500/60"
+                className="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-violet-500/60 disabled:opacity-60"
               />
             </div>
 
@@ -137,8 +145,9 @@ export function CreateDiscussionPostModal({
                 onChange={(e) => setBody(e.target.value)}
                 rows={6}
                 maxLength={4000}
+                disabled={isBusy}
                 placeholder="Опишите вопрос, идею или проект..."
-                className="mt-1.5 w-full resize-y rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-violet-500/60"
+                className="mt-1.5 w-full resize-y rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-violet-500/60 disabled:opacity-60"
               />
             </div>
 
@@ -149,9 +158,10 @@ export function CreateDiscussionPostModal({
                   <button
                     key={cat.id}
                     type="button"
+                    disabled={isBusy}
                     onClick={() => setCategory(cat.id)}
                     className={cn(
-                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors disabled:opacity-60",
                       category === cat.id
                         ? "border-violet-500/50 bg-violet-950/50 text-violet-200"
                         : "border-zinc-700 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600",
@@ -164,16 +174,16 @@ export function CreateDiscussionPostModal({
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" size="sm" onClick={onClose}>
+              <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={isBusy}>
                 Отмена
               </Button>
               <Button
                 type="submit"
                 variant="accent"
                 size="sm"
-                disabled={!title.trim() || !body.trim()}
+                disabled={!title.trim() || !body.trim() || isBusy}
               >
-                Опубликовать
+                {isBusy ? "Публикация…" : "Опубликовать"}
               </Button>
             </div>
           </form>

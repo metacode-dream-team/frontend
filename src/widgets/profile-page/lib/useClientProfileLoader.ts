@@ -38,10 +38,19 @@ export function useClientProfileLoader(routeUsername: string) {
       me,
     );
 
+    // TODO: подписки и просмотр чужого профиля — временно отключены. Убрать guard и грузить чужой профиль через fetchProfileByUsername.
+    if (!useMeEndpoint) {
+      if (!cancelled) {
+        setNotFound(true);
+        setIsLoading(false);
+      }
+      return;
+    }
+
     void (async () => {
       try {
         const data = await buildProfileFromPlatform(routeUsername, accessToken, {
-          useMeEndpoint,
+          useMeEndpoint: true,
         });
         if (!cancelled) {
           setProfile(data);

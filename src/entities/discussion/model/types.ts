@@ -15,21 +15,7 @@ export const DISCUSSION_SORT_OPTIONS = [
 
 export type DiscussionSort = (typeof DISCUSSION_SORT_OPTIONS)[number]["id"];
 
-export const REACTION_KINDS = [
-  { id: "like", emoji: "👍", label: "Нравится" },
-  { id: "love", emoji: "❤️", label: "Супер" },
-  { id: "funny", emoji: "😂", label: "Смешно" },
-  { id: "fire", emoji: "🔥", label: "Огонь" },
-  { id: "insight", emoji: "💡", label: "Полезно" },
-] as const;
-
-export type ReactionKind = (typeof REACTION_KINDS)[number]["id"];
-
-export type ReactionCounts = Record<ReactionKind, number>;
-
-export function emptyReactions(): ReactionCounts {
-  return { like: 0, love: 0, funny: 0, fire: 0, insight: 0 };
-}
+export type VoteKind = "up" | "down";
 
 export interface DiscussionAuthor {
   id: string;
@@ -44,8 +30,10 @@ export interface DiscussionPost {
   category: DiscussionCategory;
   author: DiscussionAuthor;
   createdAt: string;
-  reactions: ReactionCounts;
-  userReactions: Record<string, ReactionKind>;
+  upvotes: number;
+  downvotes: number;
+  commentCount: number;
+  userVotes: Record<string, VoteKind>;
 }
 
 export interface DiscussionComment {
@@ -54,8 +42,9 @@ export interface DiscussionComment {
   author: DiscussionAuthor;
   body: string;
   createdAt: string;
-  reactions: ReactionCounts;
-  userReactions: Record<string, ReactionKind>;
+  upvotes: number;
+  downvotes: number;
+  userVotes: Record<string, VoteKind>;
 }
 
 export interface DiscussionData {

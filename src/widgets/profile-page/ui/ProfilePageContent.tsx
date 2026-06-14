@@ -37,13 +37,14 @@ interface ProfilePageContentProps {
   canEdit?: boolean;
 }
 
-function CheckIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-      <path d="M20 6L9 17l-5-5" />
-    </svg>
-  );
-}
+// TODO: подписки — вернуть CheckIcon вместе с кнопкой Follow.
+// function CheckIcon() {
+//   return (
+//     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+//       <path d="M20 6L9 17l-5-5" />
+//     </svg>
+//   );
+// }
 
 function MapPinIcon() {
   return (
@@ -185,6 +186,7 @@ export function ProfilePageContent({
             Contact info
           </button>
 
+          {/* TODO: подписки — вернуть счётчики Following/Followers и кнопку Follow на чужих профилях.
           <p className="mt-4 text-center text-sm text-zinc-400 max-lg:text-left sm:text-left">
             <span className="font-medium text-zinc-200">{profile.following}</span> Following
             <span className="mx-2 text-zinc-700">|</span>
@@ -200,6 +202,7 @@ export function ProfilePageContent({
               Following
             </button>
           ) : null}
+          */}
 
           <ProfileSpokenLanguagesSection
             items={profile.spokenLanguages}

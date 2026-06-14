@@ -1,10 +1,64 @@
-import type { DiscussionData, DiscussionPost } from "../model/types";
-import { emptyReactions } from "../model/types";
+import type { DiscussionComment, DiscussionData, DiscussionPost, VoteKind } from "../model/types";
 
 const STORAGE_KEY = "metacode-discussions-v1";
 
+type LegacyReactions = Partial<Record<"like" | "love" | "funny" | "fire" | "insight", number>>;
+
+type StoredPost = DiscussionPost & {
+  reactions?: LegacyReactions;
+  userReactions?: Record<string, string>;
+};
+
+type StoredComment = DiscussionComment & {
+  reactions?: LegacyReactions;
+  userReactions?: Record<string, string>;
+};
+
 function avatarSeed(seed: string): string {
   return `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(seed)}`;
+}
+
+function migrateVotes(item: StoredPost | StoredComment): {
+  upvotes: number;
+  downvotes: number;
+  userVotes: Record<string, VoteKind>;
+} {
+  if (typeof item.upvotes === "number" && typeof item.downvotes === "number") {
+    return {
+      upvotes: item.upvotes,
+      downvotes: item.downvotes,
+      userVotes: item.userVotes ?? {},
+    };
+  }
+
+  const reactions = item.reactions ?? {};
+  const upvotes =
+    (reactions.like ?? 0) +
+    (reactions.love ?? 0) +
+    (reactions.funny ?? 0) +
+    (reactions.fire ?? 0) +
+    (reactions.insight ?? 0);
+
+  const userVotes: Record<string, VoteKind> = {};
+  if (item.userReactions) {
+    for (const userId of Object.keys(item.userReactions)) {
+      userVotes[userId] = "up";
+    }
+  }
+
+  return { upvotes, downvotes: 0, userVotes };
+}
+
+function normalizePost(post: StoredPost): DiscussionPost {
+  const votes = migrateVotes(post);
+  const { reactions: _r, userReactions: _ur, ...rest } = post;
+  return { ...rest, ...votes };
+}
+
+function normalizeComment(comment: StoredComment): DiscussionComment {
+  const votes = migrateVotes(comment);
+  const { reactions: _r, userReactions: _ur, ...rest } = comment;
+  return { ...rest, ...votes };
 }
 
 const SEED_POSTS: DiscussionPost[] = [
@@ -21,8 +75,10 @@ const SEED_POSTS: DiscussionPost[] = [
       avatarUrl: avatarSeed("metacode"),
     },
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-    reactions: { like: 42, love: 18, funny: 2, fire: 7, insight: 15 },
-    userReactions: {},
+    upvotes: 84,
+    downvotes: 3,
+    commentCount: 0,
+    userVotes: {},
   },
   {
     id: "leetcode-streak-tips",
@@ -36,8 +92,10 @@ const SEED_POSTS: DiscussionPost[] = [
       avatarUrl: avatarSeed("algo_ninja"),
     },
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 20).toISOString(),
-    reactions: { like: 12, love: 3, funny: 0, fire: 5, insight: 9 },
-    userReactions: {},
+    upvotes: 29,
+    downvotes: 2,
+    commentCount: 0,
+    userVotes: {},
   },
   {
     id: "go-pet-project",
@@ -51,8 +109,10 @@ const SEED_POSTS: DiscussionPost[] = [
       avatarUrl: avatarSeed("gopher_dev"),
     },
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    reactions: { like: 8, love: 6, funny: 1, fire: 11, insight: 4 },
-    userReactions: {},
+    upvotes: 30,
+    downvotes: 1,
+    commentCount: 0,
+    userVotes: {},
   },
 ];
 
@@ -71,8 +131,9 @@ function defaultData(): DiscussionData {
           },
           body: "Отличная идея — наконец-то место, где можно обсудить прогресс, а не только смотреть на ачивки.",
           createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-          reactions: { like: 5, love: 2, funny: 0, fire: 0, insight: 1 },
-          userReactions: {},
+          upvotes: 8,
+          downvotes: 0,
+          userVotes: {},
         },
         {
           id: "c-welcome-2",
@@ -84,8 +145,9 @@ function defaultData(): DiscussionData {
           },
           body: "Жду раздел с вопросами по интеграциям GitHub и LeetCode.",
           createdAt: new Date(Date.now() - 1000 * 60 * 60 * 40).toISOString(),
-          reactions: { like: 3, love: 0, funny: 0, fire: 1, insight: 2 },
-          userReactions: {},
+          upvotes: 6,
+          downvotes: 1,
+          userVotes: {},
         },
       ],
     },
@@ -97,11 +159,20 @@ export function loadDiscussionData(): DiscussionData {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultData();
-    const parsed = JSON.parse(raw) as DiscussionData;
+    const parsed = JSON.parse(raw) as {
+      posts?: StoredPost[];
+      commentsByPostId?: Record<string, StoredComment[]>;
+    };
     if (!Array.isArray(parsed.posts)) return defaultData();
+
+    const commentsByPostId: Record<string, DiscussionComment[]> = {};
+    for (const [postId, comments] of Object.entries(parsed.commentsByPostId ?? {})) {
+      commentsByPostId[postId] = (comments ?? []).map(normalizeComment);
+    }
+
     return {
-      posts: parsed.posts,
-      commentsByPostId: parsed.commentsByPostId ?? {},
+      posts: parsed.posts.map(normalizePost),
+      commentsByPostId,
     };
   } catch {
     return defaultData();
@@ -117,10 +188,6 @@ export function saveDiscussionData(data: DiscussionData): void {
   }
 }
 
-export function normalizePostReactions(post: DiscussionPost): DiscussionPost {
-  return {
-    ...post,
-    reactions: { ...emptyReactions(), ...post.reactions },
-    userReactions: post.userReactions ?? {},
-  };
+export function normalizePostVotes(post: DiscussionPost): DiscussionPost {
+  return normalizePost(post as StoredPost);
 }

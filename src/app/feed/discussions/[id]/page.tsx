@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/entities/auth";
 import { useProfileMeStore } from "@/entities/profile";
 import {
@@ -21,10 +21,11 @@ import { cn } from "@/shared/lib/utils/cn";
 
 const COMMENTS_PER_PAGE = 15;
 
-function profileHref(username: string): string {
-  const slug = username.trim();
-  return slug ? `/profile/${encodeURIComponent(slug)}` : "/profile";
-}
+// TODO: просмотр чужого профиля — вернуть ссылки на /profile/{username}.
+// function profileHref(username: string): string {
+//   const slug = username.trim();
+//   return slug ? `/profile/${encodeURIComponent(slug)}` : "/profile";
+// }
 
 function avatarFallback(seed: string): string {
   return `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(seed)}`;
@@ -38,16 +39,25 @@ export default function DiscussionPostPage() {
   const {
     data,
     hydrated,
+    loadingPostId,
     addComment,
-    togglePostReaction,
-    toggleCommentReaction,
+    togglePostVote,
+    toggleCommentVote,
     getPostById,
+    ensurePostLoaded,
+    loadComments,
   } = useDiscussions();
   const [commentBody, setCommentBody] = useState("");
   const [page, setPage] = useState(1);
 
   const post = getPostById(postId);
   const comments = data.commentsByPostId[postId] ?? [];
+
+  useEffect(() => {
+    if (!postId || !hydrated) return;
+    void ensurePostLoaded(postId);
+    void loadComments(postId);
+  }, [postId, hydrated, ensurePostLoaded, loadComments]);
   const totalComments = comments.length;
   const totalPages = Math.max(1, Math.ceil(totalComments / COMMENTS_PER_PAGE));
 
@@ -57,9 +67,7 @@ export default function DiscussionPostPage() {
   }, [comments, page]);
 
   const currentUserId = profile?.userId || profile?.id || null;
-  const activePostReaction = currentUserId
-    ? post?.userReactions[currentUserId] ?? null
-    : null;
+  const activePostVote = currentUserId && post ? post.userVotes[currentUserId] : undefined;
 
   const categoryLabel =
     DISCUSSION_CATEGORIES.find((c) => c.id === post?.category)?.label ?? post?.category;
@@ -84,7 +92,7 @@ export default function DiscussionPostPage() {
     setPage(Math.max(1, Math.ceil((totalComments + 1) / COMMENTS_PER_PAGE)));
   };
 
-  if (!hydrated) {
+  if (!hydrated || (loadingPostId === postId && !post)) {
     return (
       <div className="min-h-screen bg-black px-4 py-10 text-center text-zinc-500">
         Загрузка…
@@ -119,17 +127,14 @@ export default function DiscussionPostPage() {
         <article className="mt-4 overflow-hidden rounded-2xl border border-zinc-800/80 bg-[#0c0c0e]">
           <div className="border-b border-zinc-800/70 px-4 py-4 sm:px-6 sm:py-5">
             <div className="flex gap-3">
-              <Link href={profileHref(post.author.username)} className="shrink-0">
+              <div className="shrink-0">
                 <Avatar src={post.author.avatarUrl} alt={post.author.username} size="sm" />
-              </Link>
+              </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <Link
-                    href={profileHref(post.author.username)}
-                    className="text-sm font-medium text-zinc-200 hover:text-white"
-                  >
+                  <span className="text-sm font-medium text-zinc-200">
                     {post.author.username}
-                  </Link>
+                  </span>
                   <span className="rounded border border-zinc-700/80 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-zinc-500">
                     {categoryLabel}
                   </span>
@@ -139,11 +144,13 @@ export default function DiscussionPostPage() {
             </div>
 
             <ReactionBar
-              reactions={post.reactions}
-              activeKind={activePostReaction}
-              onToggle={
+              upvotes={post.upvotes}
+              downvotes={post.downvotes}
+              isUpvoted={activePostVote === "up"}
+              isDownvoted={activePostVote === "down"}
+              onVote={
                 currentUserId
-                  ? (kind) => togglePostReaction(post.id, currentUserId, kind)
+                  ? (kind) => togglePostVote(post.id, currentUserId, kind)
                   : undefined
               }
               className="mt-4"
@@ -202,10 +209,10 @@ export default function DiscussionPostPage() {
               comment={comment}
               index={(page - 1) * COMMENTS_PER_PAGE + index}
               currentUserId={currentUserId}
-              onToggleReaction={
+              onToggleVote={
                 currentUserId
                   ? (commentId, kind) =>
-                      toggleCommentReaction(post.id, commentId, currentUserId, kind)
+                      toggleCommentVote(post.id, commentId, currentUserId, kind)
                   : undefined
               }
             />
@@ -237,7 +244,7 @@ export default function DiscussionPostPage() {
         </section>
 
         <p className="mt-4 text-center text-[11px] text-zinc-600">
-          {commentCount(post.id, data.commentsByPostId)} комментариев · обсуждение MetaCode
+          {commentCount(post, data.commentsByPostId)} комментариев · обсуждение MetaCode
         </p>
       </div>
     </div>

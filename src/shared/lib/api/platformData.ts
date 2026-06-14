@@ -52,6 +52,7 @@ function profileMeItemPath(segment: string, id: string): string {
   return `/v1/profiles/me/${segment}/${encodeURIComponent(id)}`;
 }
 
+// TODO: просмотр чужого профиля — используется в buildProfileFromPlatform при useMeEndpoint=false.
 export async function fetchProfileByUsername(
   username: string,
   accessToken?: string | null,
@@ -268,6 +269,7 @@ export async function buildProfileFromPlatform(
   accessToken?: string | null,
   options?: BuildProfileOptions,
 ): Promise<ProfileData> {
+  // TODO: просмотр чужого профиля — сейчас грузим только /v1/profiles/me (см. useClientProfileLoader).
   const rawDoc =
     options?.useMeEndpoint && accessToken
       ? await fetchProfileMe(accessToken)

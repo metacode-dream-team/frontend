@@ -7,7 +7,7 @@ import {
   commentCount,
   filterAndSortPosts,
   getTopPosts,
-  reactionScore,
+  voteScore,
   type DiscussionCategory,
   type DiscussionSort,
 } from "@/entities/discussion";
@@ -24,7 +24,7 @@ import { DiscussionsFilterFields } from "./DiscussionsFilterFields";
 const TOP_LIMIT = 5;
 
 export function DiscussionsPanel() {
-  const { data, hydrated, createPost } = useDiscussions();
+  const { data, hydrated, createPost, isCreatingPost } = useDiscussions();
   const [createOpen, setCreateOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<DiscussionCategory>("general");
@@ -104,8 +104,8 @@ export function DiscussionsPanel() {
                             {post.title}
                           </p>
                           <p className="mt-1 text-[11px] text-zinc-500">
-                            {reactionScore(post.reactions)} очков ·{" "}
-                            {commentCount(post.id, data.commentsByPostId)} комм.
+                            {voteScore(post.upvotes, post.downvotes)} очков ·{" "}
+                            {commentCount(post, data.commentsByPostId)} комм.
                           </p>
                         </div>
                       </div>
@@ -166,6 +166,7 @@ export function DiscussionsPanel() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onSubmit={createPost}
+        submitting={isCreatingPost}
       />
     </>
   );

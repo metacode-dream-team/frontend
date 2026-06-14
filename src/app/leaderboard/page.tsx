@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 
 import { useAuthStore } from "@/entities/auth";
 import { useProfileMeStore } from "@/entities/profile";
 import type { LeaderboardUser } from "@/shared/types/leaderboard";
 import { Avatar } from "@/shared/ui/Avatar";
+import { cn } from "@/shared/lib/utils/cn";
 import {
   buildPodiumDisplayOrder,
   useFetchLeaderboard,
@@ -34,10 +34,11 @@ function formatScore(score: number): string {
   });
 }
 
-function profileHref(username: string): string {
-  const slug = username.trim();
-  return slug ? `/profile/${encodeURIComponent(slug)}` : "/profile";
-}
+// TODO: просмотр чужого профиля — вернуть ссылки на /profile/{username}.
+// function profileHref(username: string): string {
+//   const slug = username.trim();
+//   return slug ? `/profile/${encodeURIComponent(slug)}` : "/profile";
+// }
 
 function CupIcon({ rank }: { rank: 1 | 2 | 3 }) {
   const stroke =
@@ -91,17 +92,139 @@ function SearchIcon({ className }: { className?: string }) {
   );
 }
 
-function PodiumCard({ player }: { player: LeaderboardUser }) {
+function MyStatsBanner({
+  currentUser,
+  currentUserRank,
+  displayName,
+  onViewMyStats,
+}: {
+  currentUser: LeaderboardUser;
+  currentUserRank: number;
+  displayName: string;
+  onViewMyStats: () => void;
+}) {
+  const dockRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  const [docked, setDocked] = useState(false);
+  const [barHeight, setBarHeight] = useState(0);
+
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+
+    const measure = () => setBarHeight(bar.offsetHeight);
+    measure();
+
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(bar);
+
+    const updateDock = () => {
+      const dock = dockRef.current;
+      const currentBar = barRef.current;
+      if (!dock || !currentBar) return;
+
+      const height = currentBar.offsetHeight;
+      const dockTop = dock.getBoundingClientRect().top;
+      setDocked(dockTop <= window.innerHeight - height);
+    };
+
+    updateDock();
+    window.addEventListener("scroll", updateDock, { passive: true });
+    window.addEventListener("resize", updateDock);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("scroll", updateDock);
+      window.removeEventListener("resize", updateDock);
+    };
+  }, []);
+
+  return (
+    <div ref={dockRef} className="mt-8">
+      {!docked && barHeight > 0 ? (
+        <div aria-hidden className="w-full" style={{ height: barHeight }} />
+      ) : null}
+      <div
+        ref={barRef}
+        className={cn(
+          "z-30 px-4 pb-4 pt-2 sm:px-6",
+          docked ? "relative" : "fixed inset-x-0 bottom-0",
+        )}
+      >
+        <div
+          className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 rounded-2xl px-5 py-4 sm:flex-row sm:px-6 sm:py-5"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(42,0,80,0.97) 0%, rgba(26,0,53,0.97) 50%, rgba(15,0,32,0.97) 100%)",
+            border: "1.5px solid rgba(124,58,237,0.65)",
+            boxShadow:
+              "0 0 32px rgba(124,58,237,0.3), inset 0 1px 0 rgba(255,255,255,0.06)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <div className="flex w-full items-center gap-4 sm:w-auto">
+            <span
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-bold"
+              style={{ color: "#a78bfa", backgroundColor: "rgba(124,58,237,0.4)" }}
+            >
+              #{currentUserRank}
+            </span>
+            <Avatar
+              src={currentUser.avatarUrl}
+              alt={displayName}
+              size="md"
+              className="h-12 w-12 shrink-0"
+            />
+            <div className="min-w-0">
+              <p className="truncate font-bold text-white">You ({displayName})</p>
+              <p className="text-sm text-zinc-400">
+                GitHub {currentUser.githubCommits.toLocaleString()} · LeetCode{" "}
+                {currentUser.leetcodeSolved} · {currentUser.monkeytypeRecord} WPM
+              </p>
+            </div>
+          </div>
+          <div className="flex w-full items-center justify-between gap-4 sm:w-auto sm:justify-end">
+            <p className="text-xl font-bold sm:text-right" style={{ color: "#a78bfa" }}>
+              {formatScore(currentUser.totalScore)} score
+            </p>
+            <button
+              type="button"
+              onClick={onViewMyStats}
+              className="shrink-0 rounded-xl px-6 py-3 font-semibold text-white transition-all hover:brightness-110"
+              style={{
+                backgroundColor: "#7c3aed",
+                boxShadow: "0 0 20px rgba(124,58,237,0.45)",
+              }}
+            >
+              View My Stats
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PodiumCard({
+  player,
+  highlighted,
+}: {
+  player: LeaderboardUser;
+  highlighted?: boolean;
+}) {
   const rank = player.rank as 1 | 2 | 3;
   const style = PODIUM_ACCENT[rank];
   const elevated = rank === 1;
 
   return (
-    <Link
-      href={profileHref(player.username)}
-      className={`block w-full max-w-[280px] rounded-2xl p-6 transition-all hover:brightness-105 ${
-        elevated ? "lg:-mt-8 lg:scale-105" : ""
-      }`}
+    <div
+      id={`leaderboard-row-${player.id}`}
+      className={cn(
+        `block w-full max-w-[280px] rounded-2xl p-6 scroll-mt-28 ${
+          elevated ? "lg:-mt-8 lg:scale-105" : ""
+        }`,
+        highlighted && "ring-2 ring-violet-400 ring-offset-2 ring-offset-black",
+      )}
       style={{
         backgroundColor: "#111",
         border: elevated ? "1.5px solid #7c3aed" : "1px solid #1e1e1e",
@@ -141,19 +264,28 @@ function PodiumCard({ player }: { player: LeaderboardUser }) {
           <KeyboardIcon /> {player.monkeytypeRecord} WPM
         </span>
       </div>
-    </Link>
+    </div>
   );
 }
 
-function MobilePodiumCard({ player }: { player: LeaderboardUser }) {
+function MobilePodiumCard({
+  player,
+  highlighted,
+}: {
+  player: LeaderboardUser;
+  highlighted?: boolean;
+}) {
   const rank = player.rank as 1 | 2 | 3;
   const style = PODIUM_ACCENT[rank];
   const isFirst = rank === 1;
 
   return (
-    <Link
-      href={profileHref(player.username)}
-      className="flex w-full items-center gap-4 rounded-2xl p-4 transition-all hover:brightness-105"
+    <div
+      id={`leaderboard-row-${player.id}`}
+      className={cn(
+        "flex w-full scroll-mt-28 items-center gap-4 rounded-2xl p-4",
+        highlighted && "ring-2 ring-violet-400 ring-offset-2 ring-offset-black",
+      )}
       style={{
         backgroundColor: "#111",
         border: isFirst ? "1.5px solid #7c3aed" : "1px solid #1e1e1e",
@@ -192,13 +324,15 @@ function MobilePodiumCard({ player }: { player: LeaderboardUser }) {
           </span>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 
 export default function LeaderboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [highlightedUserId, setHighlightedUserId] = useState<string | null>(null);
+  const [pendingScrollUserId, setPendingScrollUserId] = useState<string | null>(null);
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const profileMe = useProfileMeStore((s) => s.profile);
@@ -210,13 +344,18 @@ export default function LeaderboardPage() {
     return full || profileMe.username || "You";
   }, [profileMe]);
 
+  const isSearchActive = Boolean(searchQuery.trim());
+
   const filteredUsers = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return users;
     return users.filter((u) => u.username.toLowerCase().includes(q));
   }, [users, searchQuery]);
 
-  const podiumUsers = useMemo(() => filteredUsers.slice(0, 3), [filteredUsers]);
+  const podiumUsers = useMemo(() => {
+    if (isSearchActive) return [];
+    return users.slice(0, 3);
+  }, [users, isSearchActive]);
 
   const podiumDisplayOrder = useMemo(
     () => buildPodiumDisplayOrder(podiumUsers),
@@ -225,10 +364,10 @@ export default function LeaderboardPage() {
 
   const mobilePodiumOrder = podiumUsers;
 
-  const tableUsers = useMemo(
-    () => filteredUsers.slice(3),
-    [filteredUsers],
-  );
+  const tableUsers = useMemo(() => {
+    if (isSearchActive) return filteredUsers;
+    return users.slice(3);
+  }, [users, filteredUsers, isSearchActive]);
 
   const paginatedRows = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
@@ -243,6 +382,54 @@ export default function LeaderboardPage() {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
   };
+
+  const scrollToMyRank = useCallback(() => {
+    if (!currentUser) return;
+
+    const user = users.find((u) => u.isCurrentUser) ?? currentUser;
+    if (searchQuery.trim()) {
+      setSearchQuery("");
+    }
+
+    if (user.rank > 3) {
+      const globalIndex = users.findIndex((u) => u.id === user.id);
+      if (globalIndex >= 3) {
+        const tableIndex = globalIndex - 3;
+        setCurrentPage(Math.floor(tableIndex / PAGE_SIZE) + 1);
+      }
+    } else {
+      setCurrentPage(1);
+    }
+
+    setPendingScrollUserId(user.id);
+  }, [currentUser, users, searchQuery]);
+
+  useEffect(() => {
+    if (!pendingScrollUserId) return;
+
+    const userId = pendingScrollUserId;
+    let highlightTimer: number | undefined;
+
+    const scrollTimer = window.setTimeout(() => {
+      const el = document.getElementById(`leaderboard-row-${userId}`);
+      if (!el) {
+        setPendingScrollUserId(null);
+        return;
+      }
+
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setHighlightedUserId(userId);
+      setPendingScrollUserId(null);
+      highlightTimer = window.setTimeout(() => setHighlightedUserId(null), 2500);
+    }, 50);
+
+    return () => {
+      window.clearTimeout(scrollTimer);
+      if (highlightTimer !== undefined) {
+        window.clearTimeout(highlightTimer);
+      }
+    };
+  }, [pendingScrollUserId, currentPage, paginatedRows, users, searchQuery]);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -275,11 +462,15 @@ export default function LeaderboardPage() {
           </div>
         ) : (
           <>
-            {podiumDisplayOrder.length > 0 && (
+            {!isSearchActive && podiumDisplayOrder.length > 0 && (
               <>
                 <div className="mb-16 flex flex-col gap-3 lg:hidden">
                   {mobilePodiumOrder.map((player) => (
-                    <MobilePodiumCard key={player.id} player={player} />
+                    <MobilePodiumCard
+                      key={player.id}
+                      player={player}
+                      highlighted={highlightedUserId === player.id}
+                    />
                   ))}
                 </div>
                 <div
@@ -288,7 +479,11 @@ export default function LeaderboardPage() {
                   }`}
                 >
                   {podiumDisplayOrder.map((player) => (
-                    <PodiumCard key={player.id} player={player} />
+                    <PodiumCard
+                      key={player.id}
+                      player={player}
+                      highlighted={highlightedUserId === player.id}
+                    />
                   ))}
                 </div>
               </>
@@ -337,13 +532,12 @@ export default function LeaderboardPage() {
                         <th className="pb-3 text-left text-[10px] font-medium uppercase tracking-wider text-zinc-500">
                           Score
                         </th>
-                        <th className="pb-3" />
                       </tr>
                     </thead>
                     <tbody>
                       {paginatedRows.length === 0 && (
                         <tr>
-                          <td colSpan={7} className="py-12 text-center text-zinc-500">
+                          <td colSpan={6} className="py-12 text-center text-zinc-500">
                             No developers found. Try another search.
                           </td>
                         </tr>
@@ -351,10 +545,12 @@ export default function LeaderboardPage() {
                       {paginatedRows.map((row) => (
                         <tr
                           key={row.id}
-                          className="cursor-pointer border-b border-[#1e1e1e] transition-colors hover:bg-[#161616]"
-                          onClick={() => {
-                            window.location.href = profileHref(row.username);
-                          }}
+                          id={`leaderboard-row-${row.id}`}
+                          className={cn(
+                            "scroll-mt-28 border-b border-[#1e1e1e]",
+                            highlightedUserId === row.id &&
+                              "bg-violet-950/35 ring-1 ring-inset ring-violet-500/50",
+                          )}
                         >
                           <td className="py-4 text-zinc-500">#{row.rank}</td>
                           <td className="py-4">
@@ -381,7 +577,6 @@ export default function LeaderboardPage() {
                           <td className="py-4">
                             <p className="font-bold text-white">{formatScore(row.totalScore)}</p>
                           </td>
-                          <td className="py-4 text-zinc-500">›</td>
                         </tr>
                       ))}
                     </tbody>
@@ -419,59 +614,16 @@ export default function LeaderboardPage() {
             )}
           </>
         )}
-      </div>
 
-      {isAuthenticated && currentUser && currentUserRank != null && (
-        <div className="mx-auto mt-8 max-w-6xl px-6 pb-8">
-          <div
-            className="flex flex-col items-center justify-between gap-4 rounded-2xl px-6 py-5 sm:flex-row"
-            style={{
-              background: "linear-gradient(135deg, #2a0050 0%, #1a0035 50%, #0f0020 100%)",
-              border: "1.5px solid rgba(124,58,237,0.6)",
-              boxShadow: "0 0 30px rgba(124,58,237,0.25), inset 0 1px 0 rgba(255,255,255,0.05)",
-            }}
-          >
-            <div className="flex items-center gap-4">
-              <span
-                className="flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold"
-                style={{ color: "#a78bfa", backgroundColor: "rgba(124,58,237,0.4)" }}
-              >
-                #{currentUserRank}
-              </span>
-              <Avatar
-                src={currentUser.avatarUrl}
-                alt={currentUserDisplayName}
-                size="md"
-                className="h-12 w-12"
-              />
-              <div>
-                <p className="font-bold text-white">You ({currentUserDisplayName})</p>
-                <p className="text-sm text-zinc-400">
-                  GitHub {currentUser.githubCommits.toLocaleString()} · LeetCode{" "}
-                  {currentUser.leetcodeSolved} · {currentUser.monkeytypeRecord} WPM
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="text-right">
-                <p className="text-xl font-bold" style={{ color: "#a78bfa" }}>
-                  {formatScore(currentUser.totalScore)} score
-                </p>
-              </div>
-              <Link
-                href="/profile"
-                className="rounded-xl px-6 py-3 font-medium text-white transition-all hover:brightness-110"
-                style={{
-                  backgroundColor: "#7c3aed",
-                  boxShadow: "0 0 20px rgba(124,58,237,0.4)",
-                }}
-              >
-                View My Stats
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
+        {isAuthenticated && currentUser && currentUserRank != null ? (
+          <MyStatsBanner
+            currentUser={currentUser}
+            currentUserRank={currentUserRank}
+            displayName={currentUserDisplayName}
+            onViewMyStats={scrollToMyRank}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }

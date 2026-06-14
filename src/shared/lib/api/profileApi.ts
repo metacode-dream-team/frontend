@@ -1,6 +1,7 @@
 import type { ProfileData } from "@/shared/types/profile";
 import { buildProfileFromPlatform } from "./platformData";
 
+// TODO: просмотр чужого профиля — вернуть публичную загрузку через fetchProfileByUsername.
 export async function getProfileById(id: string): Promise<ProfileData> {
   return buildProfileFromPlatform(id);
 }
